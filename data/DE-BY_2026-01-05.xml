@@ -1,0 +1,153 @@
+<bulletins xmlns="http://caaml.org/Schemas/V6.0/Profiles/BulletinEAWS">
+  <bulletin bulletinID="e20fe5a1-1da2-4080-abd2-720d3b43f9de" lang="en">
+    <publicationTime>2026-01-04T16:00:00Z</publicationTime>
+    <validTime>
+      <startTime>2026-01-04T16:00:00Z</startTime>
+      <endTime>2026-01-05T16:00:00Z</endTime>
+    </validTime>
+    <unscheduled>false</unscheduled>
+    <source>
+      <person>
+        <name>Avalanche Service Bavaria</name>
+      </person>
+    </source>
+    <region regionID="DE-BY-30">
+      <name>Werdenfels Alps</name>
+    </region>
+    <region regionID="DE-BY-12">
+      <name>Allgäu  Alps Central</name>
+    </region>
+    <region regionID="DE-BY-11">
+      <name>Allgäu  Prealps</name>
+    </region>
+    <region regionID="DE-BY-20">
+      <name>Ammergau Alps North</name>
+    </region>
+    <dangerRating>
+      <mainValue>low</mainValue>
+      <elevation uom="m">
+        <upperBound>treeline</upperBound>
+      </elevation>
+      <validTimePeriod>all_day</validTimePeriod>
+    </dangerRating>
+    <dangerRating>
+      <mainValue>moderate</mainValue>
+      <elevation uom="m">
+        <lowerBound>treeline</lowerBound>
+      </elevation>
+      <validTimePeriod>all_day</validTimePeriod>
+    </dangerRating>
+    <avalancheProblem>
+      <problemType>wind_slab</problemType>
+      <elevation uom="m">
+        <lowerBound>treeline</lowerBound>
+      </elevation>
+      <aspect>NW</aspect>
+      <aspect>N</aspect>
+      <aspect>SE</aspect>
+      <aspect>E</aspect>
+      <aspect>NE</aspect>
+      <validTimePeriod>all_day</validTimePeriod>
+      <customData>
+        <ALBINA>
+          <avalancheType>slab</avalancheType>
+        </ALBINA>
+      </customData>
+    </avalancheProblem>
+    <avalancheActivity>
+      <highlights>Wind slabs are prone to triggering in places.</highlights>
+      <comment>The avalanche risk is moderate above the tree line and low below it. In places, wind slab can be triggered as a small or medium slab avalanche by a small additional load. Avalanche prone locations are located adjacent to the ridgeline, crest or summit in steep terrain in northern and eastern aspects as well as in gullies and bowls. The number and extent of avalanche prone locations increase with altitude. In addition to the risk of burial, the risk of being swept away and falling must be taken into account.</comment>
+    </avalancheActivity>
+    <snowpackStructure>
+      <comment>The wind slab snow of the last few days is partly prone to triggering on surface hoar or graupel, especially on the shady slopes. Snowdrift accumulations and obstacles are often covered by a thin layer of soft new fallen snow and are therefore difficult to recognise. Below the old melt-freeze crust, faceted crystals can often be found right down to the ground, especially at higher altitudes. The snow depths are below average.</comment>
+    </snowpackStructure>
+    <tendency>
+      <highlights>Slow decline in avalanche danger.</highlights>
+      <validTime>
+        <startTime>2026-01-05T16:00:00Z</startTime>
+        <endTime>2026-01-06T16:00:00Z</endTime>
+      </validTime>
+    </tendency>
+    <customData>
+      <ALBINA>
+        <mainDate>2026-01-05</mainDate>
+      </ALBINA>
+      <LWD_Tyrol/>
+    </customData>
+  </bulletin>
+  <bulletin bulletinID="db64b1f6-bca1-4ec8-a41f-08a464426af7" lang="en">
+    <publicationTime>2026-01-04T16:00:00Z</publicationTime>
+    <validTime>
+      <startTime>2026-01-04T16:00:00Z</startTime>
+      <endTime>2026-01-05T16:00:00Z</endTime>
+    </validTime>
+    <unscheduled>false</unscheduled>
+    <source>
+      <person>
+        <name>Avalanche Service Bavaria</name>
+      </person>
+    </source>
+    <region regionID="DE-BY-52">
+      <name>Chiemgau Alps East</name>
+    </region>
+    <region regionID="DE-BY-41">
+      <name>Bavarian Prealps West</name>
+    </region>
+    <region regionID="DE-BY-51">
+      <name>Chiemgau Alps West</name>
+    </region>
+    <region regionID="DE-BY-60">
+      <name>Berchtesgaden Alps</name>
+    </region>
+    <region regionID="DE-BY-43">
+      <name>Bavarian Prealps East</name>
+    </region>
+    <region regionID="DE-BY-42">
+      <name>Bavarian Prealps Central</name>
+    </region>
+    <dangerRating>
+      <mainValue>low</mainValue>
+      <validTimePeriod>all_day</validTimePeriod>
+    </dangerRating>
+    <avalancheProblem>
+      <problemType>wind_slab</problemType>
+      <elevation uom="m"/>
+      <aspect>NW</aspect>
+      <aspect>N</aspect>
+      <aspect>SE</aspect>
+      <aspect>E</aspect>
+      <aspect>NE</aspect>
+      <validTimePeriod>all_day</validTimePeriod>
+      <customData>
+        <ALBINA>
+          <avalancheType>slab</avalancheType>
+        </ALBINA>
+      </customData>
+    </avalancheProblem>
+    <avalancheActivity>
+      <highlights>Risk of snagging and falling due to small snowdrift accumulations.</highlights>
+      <comment>The avalanche risk is low. Small snowdrift accumulations in steep, blown-in areas can be triggered in some places by a small additional load as a small snow slab.</comment>
+    </avalancheActivity>
+    <snowpackStructure>
+      <comment>Low-grade snowdrift accumulations are sometimes prone to disturbance, especially on the shady slopes. At higher and higher elevations, there are often faceted crystals down to the ground below a melt-freeze crust close to the surface. There are usually only a few centimetres of snow on the sunny slopes.</comment>
+    </snowpackStructure>
+    <tendency>
+      <highlights>No change.</highlights>
+      <validTime>
+        <startTime>2026-01-05T16:00:00Z</startTime>
+        <endTime>2026-01-06T16:00:00Z</endTime>
+      </validTime>
+    </tendency>
+    <customData>
+      <ALBINA>
+        <mainDate>2026-01-05</mainDate>
+      </ALBINA>
+      <LWD_Tyrol/>
+    </customData>
+  </bulletin>
+  <customData>
+    <ALBINA>
+      <generalHeadline>Usually too little snow for ski tours.</generalHeadline>
+    </ALBINA>
+  </customData>
+</bulletins>

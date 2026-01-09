@@ -1,0 +1,234 @@
+<bulletins xmlns="http://caaml.org/Schemas/V6.0/Profiles/BulletinEAWS">
+  <bulletin bulletinID="4d814ad5-070c-4090-821e-143b08d1c62d" lang="en">
+    <publicationTime>2026-01-01T16:00:00Z</publicationTime>
+    <validTime>
+      <startTime>2026-01-01T16:00:00Z</startTime>
+      <endTime>2026-01-02T16:00:00Z</endTime>
+    </validTime>
+    <unscheduled>false</unscheduled>
+    <source>
+      <person>
+        <name>Avalanche Service Bavaria</name>
+      </person>
+    </source>
+    <region regionID="DE-BY-60">
+      <name>Berchtesgaden Alps</name>
+    </region>
+    <dangerRating>
+      <mainValue>low</mainValue>
+      <elevation uom="m">
+        <upperBound>2000</upperBound>
+      </elevation>
+      <validTimePeriod>all_day</validTimePeriod>
+    </dangerRating>
+    <dangerRating>
+      <mainValue>moderate</mainValue>
+      <elevation uom="m">
+        <lowerBound>2000</lowerBound>
+      </elevation>
+      <validTimePeriod>all_day</validTimePeriod>
+    </dangerRating>
+    <avalancheProblem>
+      <problemType>wind_slab</problemType>
+      <elevation uom="m">
+        <lowerBound>2000</lowerBound>
+      </elevation>
+      <aspect>N</aspect>
+      <aspect>SE</aspect>
+      <aspect>E</aspect>
+      <aspect>NE</aspect>
+      <validTimePeriod>all_day</validTimePeriod>
+      <customData>
+        <ALBINA>
+          <avalancheType>slab</avalancheType>
+        </ALBINA>
+      </customData>
+    </avalancheProblem>
+    <avalancheActivity>
+      <highlights>Fresh and older wind slabs are prone to triggering.</highlights>
+      <comment>The avalanche danger is moderate above 2000 metres and low below that. In some places, wind slab avalanches can be triggered as small to medium sized slab avalanches at high altitudes by a small additional load. This occurs adjacent to the ridgeline, crest or summit and distant from ridgelines in steep terrain in northern and eastern aspects as well as in gullies and bowls. In addition to the risk of burial, the risk of being swept away and falling must be taken into account.</comment>
+    </avalancheActivity>
+    <snowpackStructure>
+      <comment>Stormy winds are transporting the snow. Fresh and older snowdrift accumulations are sometimes prone to triggering on surface hoar, especially on the shady slopes. Intermediate layers prone to triggering can also be found within the wind slab. At higher and higher altitudes, faceted crystals can often be found underneath a melt-freeze crust close to the surface. A few centimetres of new fallen snow, up to high altitudes on the sunny slopes.</comment>
+    </snowpackStructure>
+    <tendency>
+      <highlights>Slow decline in avalanche danger.</highlights>
+      <validTime>
+        <startTime>2026-01-02T16:00:00Z</startTime>
+        <endTime>2026-01-03T16:00:00Z</endTime>
+      </validTime>
+    </tendency>
+    <customData>
+      <ALBINA>
+        <mainDate>2026-01-02</mainDate>
+      </ALBINA>
+      <LWD_Tyrol/>
+    </customData>
+  </bulletin>
+  <bulletin bulletinID="84183ee5-957c-4922-91ef-d3bb473b8ff6" lang="en">
+    <publicationTime>2026-01-01T16:00:00Z</publicationTime>
+    <validTime>
+      <startTime>2026-01-01T16:00:00Z</startTime>
+      <endTime>2026-01-02T16:00:00Z</endTime>
+    </validTime>
+    <unscheduled>false</unscheduled>
+    <source>
+      <person>
+        <name>Avalanche Service Bavaria</name>
+      </person>
+    </source>
+    <region regionID="DE-BY-12">
+      <name>Allgäu  Alps Central</name>
+    </region>
+    <region regionID="DE-BY-11">
+      <name>Allgäu  Prealps</name>
+    </region>
+    <dangerRating>
+      <mainValue>low</mainValue>
+      <validTimePeriod>earlier</validTimePeriod>
+    </dangerRating>
+    <dangerRating>
+      <mainValue>low</mainValue>
+      <elevation uom="m">
+        <upperBound>treeline</upperBound>
+      </elevation>
+      <validTimePeriod>later</validTimePeriod>
+    </dangerRating>
+    <dangerRating>
+      <mainValue>moderate</mainValue>
+      <elevation uom="m">
+        <lowerBound>treeline</lowerBound>
+      </elevation>
+      <validTimePeriod>later</validTimePeriod>
+    </dangerRating>
+    <avalancheProblem>
+      <problemType>wind_slab</problemType>
+      <elevation uom="m">
+        <lowerBound>treeline</lowerBound>
+      </elevation>
+      <aspect>N</aspect>
+      <aspect>SE</aspect>
+      <aspect>E</aspect>
+      <aspect>NE</aspect>
+      <validTimePeriod>earlier</validTimePeriod>
+      <customData>
+        <ALBINA>
+          <avalancheType>slab</avalancheType>
+        </ALBINA>
+      </customData>
+    </avalancheProblem>
+    <avalancheProblem>
+      <problemType>wind_slab</problemType>
+      <elevation uom="m">
+        <lowerBound>treeline</lowerBound>
+      </elevation>
+      <aspect>N</aspect>
+      <aspect>SE</aspect>
+      <aspect>E</aspect>
+      <aspect>NE</aspect>
+      <validTimePeriod>later</validTimePeriod>
+      <customData>
+        <ALBINA>
+          <avalancheType>slab</avalancheType>
+        </ALBINA>
+      </customData>
+    </avalancheProblem>
+    <avalancheActivity>
+      <highlights>Fresh snowdrift accumulations develop. In addition to the risk of burial, the risk of being swept away and falling must be taken into account.</highlights>
+      <comment>The avalanche risk increases to moderate above the tree line during the daytime changes, otherwise it is low. In some places, wind slab avalanches can be triggered by slight additional load as small, and by the afternoon also medium-sized slab avalanches. This occurs adjacent to the ridgeline, crest or summit and distant from ridgelines in steep terrain in northern and eastern aspects as well as in gullies and bowls.</comment>
+    </avalancheActivity>
+    <snowpackStructure>
+      <comment>Stormy winds are transporting the snow. Fresh and older snowdrift accumulations are sometimes prone to triggering on surface hoar, especially on the shady slopes. Intermediate layers prone to triggering can also be found within the wind slab. At higher and higher elevations, faceted crystals can often be found below a melt-freeze crust close to the surface. On the sunny slopes, the little new fallen snow falls up to high altitudes on the apery ground.</comment>
+    </snowpackStructure>
+    <tendency>
+      <highlights>Little change.</highlights>
+      <validTime>
+        <startTime>2026-01-02T16:00:00Z</startTime>
+        <endTime>2026-01-03T16:00:00Z</endTime>
+      </validTime>
+    </tendency>
+    <customData>
+      <ALBINA>
+        <mainDate>2026-01-02</mainDate>
+      </ALBINA>
+      <LWD_Tyrol/>
+    </customData>
+  </bulletin>
+  <bulletin bulletinID="7362813b-a45e-434c-a640-500e1fad7730" lang="en">
+    <publicationTime>2026-01-01T16:00:00Z</publicationTime>
+    <validTime>
+      <startTime>2026-01-01T16:00:00Z</startTime>
+      <endTime>2026-01-02T16:00:00Z</endTime>
+    </validTime>
+    <unscheduled>false</unscheduled>
+    <source>
+      <person>
+        <name>Avalanche Service Bavaria</name>
+      </person>
+    </source>
+    <region regionID="DE-BY-52">
+      <name>Chiemgau Alps East</name>
+    </region>
+    <region regionID="DE-BY-30">
+      <name>Werdenfels Alps</name>
+    </region>
+    <region regionID="DE-BY-41">
+      <name>Bavarian Prealps West</name>
+    </region>
+    <region regionID="DE-BY-51">
+      <name>Chiemgau Alps West</name>
+    </region>
+    <region regionID="DE-BY-43">
+      <name>Bavarian Prealps East</name>
+    </region>
+    <region regionID="DE-BY-42">
+      <name>Bavarian Prealps Central</name>
+    </region>
+    <region regionID="DE-BY-20">
+      <name>Ammergau Alps North</name>
+    </region>
+    <dangerRating>
+      <mainValue>low</mainValue>
+      <validTimePeriod>all_day</validTimePeriod>
+    </dangerRating>
+    <avalancheProblem>
+      <problemType>wind_slab</problemType>
+      <elevation uom="m"/>
+      <aspect>N</aspect>
+      <aspect>SE</aspect>
+      <aspect>E</aspect>
+      <aspect>NE</aspect>
+      <validTimePeriod>all_day</validTimePeriod>
+      <customData>
+        <ALBINA>
+          <avalancheType>slab</avalancheType>
+        </ALBINA>
+      </customData>
+    </avalancheProblem>
+    <avalancheActivity>
+      <highlights>Watch out for small snowdrift accumulations.</highlights>
+      <comment>The avalanche risk is low.  Occasionally, small snowdrift accumulations can be triggered as a small slab by a small additional load. This occurs adjacent to the ridgeline and distant from ridgelines in the steep terrain of northern and eastern aspects. Be aware of the risk of being swept away and falling.</comment>
+    </avalancheActivity>
+    <snowpackStructure>
+      <comment>Stormy winds and a few centimetres of new fallen snow are causing small-scale wind slab accumulations. The fresh and older snowdrift accumulations are only slightly thick, but are prone to triggering on surface hoar, especially on the shady slopes. At higher and higher elevations, there are often faceted crystals down to the ground below a melt-freeze crust near the surface. On the sunny slopes, the little new fallen snow falls up to high altitudes on the apery ground.</comment>
+    </snowpackStructure>
+    <tendency>
+      <highlights>Little change.</highlights>
+      <validTime>
+        <startTime>2026-01-02T16:00:00Z</startTime>
+        <endTime>2026-01-03T16:00:00Z</endTime>
+      </validTime>
+    </tendency>
+    <customData>
+      <ALBINA>
+        <mainDate>2026-01-02</mainDate>
+      </ALBINA>
+      <LWD_Tyrol/>
+    </customData>
+  </bulletin>
+  <customData>
+    <ALBINA>
+      <generalHeadline>Storm and some new fallen snow.</generalHeadline>
+    </ALBINA>
+  </customData>
+</bulletins>

@@ -1,0 +1,152 @@
+<bulletins xmlns="http://caaml.org/Schemas/V6.0/Profiles/BulletinEAWS">
+  <bulletin bulletinID="a653c381-0b07-44f9-9a29-415238ef3392" lang="en">
+    <publicationTime>2025-12-31T16:00:00Z</publicationTime>
+    <validTime>
+      <startTime>2025-12-31T16:00:00Z</startTime>
+      <endTime>2026-01-01T16:00:00Z</endTime>
+    </validTime>
+    <unscheduled>false</unscheduled>
+    <source>
+      <person>
+        <name>Avalanche Service Bavaria</name>
+      </person>
+    </source>
+    <region regionID="DE-BY-60">
+      <name>Berchtesgaden Alps</name>
+    </region>
+    <dangerRating>
+      <mainValue>low</mainValue>
+      <elevation uom="m">
+        <upperBound>treeline</upperBound>
+      </elevation>
+      <validTimePeriod>all_day</validTimePeriod>
+    </dangerRating>
+    <dangerRating>
+      <mainValue>moderate</mainValue>
+      <elevation uom="m">
+        <lowerBound>treeline</lowerBound>
+      </elevation>
+      <validTimePeriod>all_day</validTimePeriod>
+    </dangerRating>
+    <avalancheProblem>
+      <problemType>wind_slab</problemType>
+      <elevation uom="m">
+        <lowerBound>treeline</lowerBound>
+      </elevation>
+      <aspect>N</aspect>
+      <aspect>SE</aspect>
+      <aspect>S</aspect>
+      <aspect>E</aspect>
+      <aspect>NE</aspect>
+      <validTimePeriod>all_day</validTimePeriod>
+      <customData>
+        <ALBINA>
+          <avalancheType>slab</avalancheType>
+        </ALBINA>
+      </customData>
+    </avalancheProblem>
+    <avalancheActivity>
+      <highlights>Slab avalanches can also reach medium size in the Berchtesgaden Alps.</highlights>
+      <comment>The avalanche risk is moderate above the tree line and low below it. In the steep terrain adjacent to the ridgeline in northern, eastern and southern aspects as well as in gullies and bowls, wind slab can be triggered in some places as a small to medium slab avalanche by a small additional load. In addition to the risk of burial, the risk of being swept away and falling must be taken into account.</comment>
+    </avalancheActivity>
+    <snowpackStructure>
+      <comment>The snow from Tuesday lies on a melt-freeze crust or, on the sunny side, up to high altitudes on the ground that has already been covered by snow. In places, the connection to the melt-freeze crust is poor due to embedded surface hoar. Intermediate layers prone to triggering may be present within fresh snowdrift accumulations. At higher and higher altitudes, faceted crystals can be found below the old melt-freeze crust down to the ground.</comment>
+    </snowpackStructure>
+    <tendency>
+      <highlights>With stormy westerly winds and some new fallen snow, wind slab will continue to be problematic on Friday.</highlights>
+      <validTime>
+        <startTime>2026-01-01T16:00:00Z</startTime>
+        <endTime>2026-01-02T16:00:00Z</endTime>
+      </validTime>
+    </tendency>
+    <customData>
+      <ALBINA>
+        <mainDate>2026-01-01</mainDate>
+      </ALBINA>
+      <LWD_Tyrol/>
+    </customData>
+  </bulletin>
+  <bulletin bulletinID="08810b1d-cf71-42f9-b64a-6281d6d1f40f" lang="en">
+    <publicationTime>2025-12-31T16:00:00Z</publicationTime>
+    <validTime>
+      <startTime>2025-12-31T16:00:00Z</startTime>
+      <endTime>2026-01-01T16:00:00Z</endTime>
+    </validTime>
+    <unscheduled>false</unscheduled>
+    <source>
+      <person>
+        <name>Avalanche Service Bavaria</name>
+      </person>
+    </source>
+    <region regionID="DE-BY-52">
+      <name>Chiemgau Alps East</name>
+    </region>
+    <region regionID="DE-BY-30">
+      <name>Werdenfels Alps</name>
+    </region>
+    <region regionID="DE-BY-41">
+      <name>Bavarian Prealps West</name>
+    </region>
+    <region regionID="DE-BY-51">
+      <name>Chiemgau Alps West</name>
+    </region>
+    <region regionID="DE-BY-12">
+      <name>Allgäu  Alps Central</name>
+    </region>
+    <region regionID="DE-BY-11">
+      <name>Allgäu  Prealps</name>
+    </region>
+    <region regionID="DE-BY-43">
+      <name>Bavarian Prealps East</name>
+    </region>
+    <region regionID="DE-BY-42">
+      <name>Bavarian Prealps Central</name>
+    </region>
+    <region regionID="DE-BY-20">
+      <name>Ammergau Alps North</name>
+    </region>
+    <dangerRating>
+      <mainValue>low</mainValue>
+      <validTimePeriod>all_day</validTimePeriod>
+    </dangerRating>
+    <avalancheProblem>
+      <problemType>wind_slab</problemType>
+      <elevation uom="m"/>
+      <aspect>N</aspect>
+      <aspect>SE</aspect>
+      <aspect>E</aspect>
+      <aspect>NE</aspect>
+      <validTimePeriod>all_day</validTimePeriod>
+      <customData>
+        <ALBINA>
+          <avalancheType>slab</avalancheType>
+        </ALBINA>
+      </customData>
+    </avalancheProblem>
+    <avalancheActivity>
+      <highlights>Avoid small, fresh snowdrift accumulations in the steep terrain adjacent to the ridgeline</highlights>
+      <comment>The avalanche risk is low. In the steep terrain adjacent to the ridgeline in northern and eastern aspects, small, fresh snowdrift accumulations can be triggered locally as a small snow slab by a small additional load. Be aware of the risk of being swept away and falling.</comment>
+    </avalancheActivity>
+    <snowpackStructure>
+      <comment>The little new fallen snow from Tuesday lies on an often load-bearing melt-freeze crust or up to high altitudes on the sunny slopes on the ground that has already been covered with snow. The freshening wind cannot transport much snow, which is why only small snowdrift accumulations are developing. In some places, these lie prone to triggering on surface hoar. At higher and higher altitudes, there are often faceted crystals below the melt-freeze crust that have built up to the ground.</comment>
+    </snowpackStructure>
+    <tendency>
+      <highlights>With new fallen snow and stormy winds, the wind slab problem will increase on Friday.</highlights>
+      <validTime>
+        <startTime>2026-01-01T16:00:00Z</startTime>
+        <endTime>2026-01-02T16:00:00Z</endTime>
+      </validTime>
+    </tendency>
+    <customData>
+      <ALBINA>
+        <mainDate>2026-01-01</mainDate>
+      </ALBINA>
+      <LWD_Tyrol/>
+    </customData>
+  </bulletin>
+  <customData>
+    <ALBINA>
+      <generalHeadline>Fresh snowdrift accumulations can be prone to triggering, but snow slabs usually remain small.</generalHeadline>
+    </ALBINA>
+  </customData>
+</bulletins>
