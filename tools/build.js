@@ -12,15 +12,15 @@ if (fs.existsSync(archiveDir)) {
 fs.mkdirSync(archiveDir, { recursive: true });
 
 const REGION_CONFIG = {
-    'DE-BY-11': {
+    'allgau-prealps': {
         label: 'Allgäu Prealps (Sonthofen)',
         slug: 'allgau-prealps',
-        type: 'json'
+        type: 'pdf'
     },
-    'DE-BY-12': {
+    'allgau-alps-central': {
         label: 'Allgäu Alps Central (Oberstdorf)',
         slug: 'allgau-alps-central',
-        type: 'json'
+        type: 'pdf'
     },
     'allgau-alps-west': {
         label: 'Allgäu Alps West (Kleinwalsertal)',
@@ -392,7 +392,7 @@ function renderBulletin(dateStr, bulletin, regionConfig, pathToRoot) {
                 sortedDates.map(d => {
                     const isPdf = datesData[d].type === 'pdf';
                     return {
-                        text: d + (isPdf ? ' (PDF)' : ''),
+                        text: d,
                         href: `${d}.${isPdf ? 'pdf' : 'html'}`
                     };
                 })

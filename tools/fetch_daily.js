@@ -1,6 +1,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { processBulletinForPdfs } = require('./pdf_fetcher');
 
 const dataDir = path.join(__dirname, '../data');
 
@@ -32,8 +33,20 @@ https.get(url, (response) => {
     if (response.statusCode === 200) {
         response.pipe(file);
         file.on('finish', () => {
-            file.close(() => {
+            file.close(async () => {
                 console.log(`Successfully downloaded to ${dest}`);
+                // Post-process for PDFs
+                try {
+                    const content = JSON.parse(fs.readFileSync(dest, 'utf-8'));
+                    const bulletins = Array.isArray(content) ? content : content.bulletins;
+                    if (bulletins) {
+                        for (const bulletin of bulletins) {
+                            await processBulletinForPdfs(bulletin, dateStr);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error processing PDFs:', e);
+                }
             });
         });
     } else {
