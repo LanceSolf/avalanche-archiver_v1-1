@@ -150,11 +150,12 @@ header {
 .problem-icon {
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  /* border-radius: 50%; Removed */
   border: 3px solid #fff;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   background-size: cover;
   flex-shrink: 0;
+  margin-top: -10px;
 }
 
 .problem-details {
