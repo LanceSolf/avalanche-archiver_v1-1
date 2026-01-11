@@ -62,6 +62,13 @@ async function fetchAndProcess(source, dateStr) {
                                 for (const bulletin of bulletins) {
                                     await processBulletinForPdfs(bulletin, dateStr, source.type);
                                 }
+                                // Cleanup JSON file
+                                try {
+                                    fs.unlinkSync(dest);
+                                    console.log(`  Cleaned up ${dest}`);
+                                } catch (cleanupErr) {
+                                    console.error(`  Failed to delete JSON: ${cleanupErr.message}`);
+                                }
                             }
                             resolve(true);
                         } catch (e) {
