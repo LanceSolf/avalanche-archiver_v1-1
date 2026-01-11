@@ -17,7 +17,7 @@ let targetDate = new Date();
 if (process.argv[2]) {
     targetDate = new Date(process.argv[2]);
 } else {
-    targetDate.setDate(targetDate.getDate() + 1);
+    // Default to today
 }
 
 const dateStr = formatDate(targetDate);
