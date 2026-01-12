@@ -144,4 +144,5 @@ async function fetchAndProcess(source, dateStr) {
             await fetchAndProcess(source, dStr);
         }
     }
+    process.exit(0);
 })();

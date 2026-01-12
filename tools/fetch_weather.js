@@ -7,25 +7,37 @@ const STATIONS = [
         name: 'Hochgrat (1715m) / Hörmoos (1300m)',
         id: '7',
         apiUrl: 'https://api-la-dok.bayern.de/public/weatherWeb/7',
-        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=7'
+        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=7',
+        lat: 47.493444,
+        lon: 10.073861,
+        elevation: 1720
     },
     {
         name: 'Fellhorn (1967m)',
         id: '8',
         apiUrl: 'https://api-la-dok.bayern.de/public/weatherWeb/8',
-        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=8'
+        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=8',
+        lat: 47.340806,
+        lon: 10.22425,
+        elevation: 1960
     },
     {
         name: 'Nebelhorn (2075m)',
         id: '4',
         apiUrl: 'https://api-la-dok.bayern.de/public/weatherWeb/4',
-        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=4'
+        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=4',
+        lat: 47.420889,
+        lon: 10.351056,
+        elevation: 2220
     },
     {
         name: 'Schwarzenberg (1172m)',
         id: '19',
         apiUrl: 'https://api-la-dok.bayern.de/public/weatherWeb/19',
-        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=19'
+        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=19',
+        lat: 47.427834,
+        lon: 10.409694,
+        elevation: 1355
     }
 ];
 
@@ -33,7 +45,18 @@ const OUTPUT_FILE = path.join(__dirname, '../data/weather_stations.json');
 
 const fetchStationData = (url) => {
     return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
+        const options = {
+            headers: {
+                'User-Agent': 'AvalancheArchiver/1.0 (contact: admin@example.com)'
+            },
+            timeout: 10000 // 10s timeout
+        };
+        const req = https.get(url, options, (res) => {
+            if (res.statusCode !== 200) {
+                res.resume(); // Consume response to free memory
+                reject(new Error(`Status Code: ${res.statusCode}`));
+                return;
+            }
             let data = '';
             res.on('data', (chunk) => data += chunk);
             res.on('end', () => {
@@ -43,7 +66,13 @@ const fetchStationData = (url) => {
                     reject(e);
                 }
             });
-        }).on('error', reject);
+        });
+
+        req.on('error', reject);
+        req.on('timeout', () => {
+            req.destroy();
+            reject(new Error('Request Timeout'));
+        });
     });
 };
 
@@ -101,7 +130,21 @@ const main = async () => {
             }
         }));
 
-        fs.writeFileSync(OUTPUT_FILE, JSON.stringify(results, null, 2));
+        // Merge results into existingData preserving other stations
+        const finalStationsMap = new Map();
+
+        // 1. Add all existing stations to map
+        existingData.forEach(s => {
+            if (s.name) finalStationsMap.set(s.name, s);
+        });
+
+        // 2. Overwrite/Add updated Bavarian stations
+        results.forEach(r => {
+            finalStationsMap.set(r.name, r);
+        });
+
+        const outputList = Array.from(finalStationsMap.values());
+        fs.writeFileSync(OUTPUT_FILE, JSON.stringify(outputList, null, 2));
         console.log(`Successfully wrote data to ${OUTPUT_FILE}`);
 
     } catch (error) {

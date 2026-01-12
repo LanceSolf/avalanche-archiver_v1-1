@@ -88,7 +88,7 @@ def generate_map():
                         window[key].setView([lat, lon], 15);
                         // Add a marker at the centered location
                         L.marker([lat, lon]).addTo(window[key])
-                          .bindPopup("<b>Incident Profile Location</b>")
+                          .bindPopup("<b>Selected Location</b>")
                           .openPopup();
                         break;
                     }

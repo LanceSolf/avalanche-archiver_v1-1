@@ -2183,5 +2183,119 @@
       }
     ],
     "pdf_path": "incident_bulletins/allgau-alps-central/2024-12/2024-12-15.pdf"
+  },
+  {
+    "id": 11221,
+    "date": "2026-01-11 11:38:00",
+    "location": "\"Ifen-Kellerloch\" - freier Schiraum",
+    "regionId": 2,
+    "subregionId": 82,
+    "lat": 47.35163,
+    "lon": 10.12298,
+    "url": "https://lawis.at/incident/11221",
+    "details": {
+      "id": 11221,
+      "comments": "Auslösung lt. Polizei durch zwei Wintersportler - nähere Infos folgen!",
+      "valid_time": true,
+      "images": [
+        {
+          "url": "https://lawis.at/lawis_api/v2_3/files/incidents/incident_11221_000.jpg",
+          "local_path": "incident_images/11221/incident_11221_000.jpg"
+        }
+      ],
+      "date": "2026-01-11T11:38:00+01:00",
+      "reported": {
+        "date": "2026-01-12T13:17:26+01:00",
+        "name": "A. Pecl / LWD Vorarlberg",
+        "email": "andreas.pecl@lwz-vorarlberg.at"
+      },
+      "involved": {
+        "dead": null,
+        "injured": null,
+        "uninjured": 2,
+        "sweeped": null,
+        "buried_partial": null,
+        "buried_total": null,
+        "equipment": {
+          "standard": {
+            "id": 1,
+            "text": "yes"
+          },
+          "lvs": {
+            "id": 0,
+            "text": "unknown"
+          },
+          "airbag": {
+            "id": 1,
+            "text": "all"
+          }
+        },
+        "ascent_descent": {
+          "id": 2,
+          "text": "descent"
+        }
+      },
+      "danger": {
+        "rating": {
+          "id": 4,
+          "level": 4,
+          "text": "high"
+        },
+        "problem": {
+          "id": 2,
+          "text": "wind-drifted snow"
+        }
+      },
+      "avalanche": {
+        "extent": {
+          "length": 200,
+          "width": 70
+        },
+        "breakheight": 40,
+        "type": {
+          "id": 1,
+          "text": "slab"
+        },
+        "size": {
+          "id": 6,
+          "text": "unknown"
+        },
+        "release": {
+          "id": 1,
+          "text": "artificial"
+        },
+        "humidity": {
+          "id": 1,
+          "text": "dry"
+        }
+      },
+      "location": {
+        "name": "\"Ifen-Kellerloch\" - freier Schiraum",
+        "elevation": 1700,
+        "longitude": 10.12298,
+        "latitude": 47.35163,
+        "slope_angle": 30,
+        "aspect": {
+          "id": 2,
+          "text": "NE"
+        },
+        "country": {
+          "id": 1,
+          "code": "AT",
+          "text": "Österreich"
+        },
+        "region": {
+          "id": 2,
+          "text": "Vorarlberg"
+        },
+        "subregion": {
+          "id": 82,
+          "text": "Allgäuer Alpen"
+        }
+      },
+      "comments_en": "According to police, the incident was triggered by two winter sports enthusiasts - more information to follow!"
+    },
+    "pdf_path": "incident_bulletins/allgau-alps-central/2026-01/2026-01-11.pdf",
+    "linked_profiles": []
   }
 ]

@@ -235,15 +235,29 @@
     <div class="container">
         <header>
             <div class="header-content">
-                <a href="../index.html" class="logo">Avalanche Archive</a>
+                <a href="../../index.html" class="logo">Avalanche Archive</a>
                 <div class="date-nav"><span>Weather Stations</span></div>
             </div>
         </header>
+
+        <!-- Bavarian Stations -->
         <h1>Bavarian Alps Weather Stations</h1>
         <p>Current snow depth and weather conditions. Data sourced from Lawinenwarndienst Bayern.</p>
-        <div id="station-container" class="station-grid">
+        <div id="station-container-bavarian" class="station-grid">
             <div class="loading">Loading station data...</div>
         </div>
+
+        <!-- Austrian Stations (Expandable) -->
+        <details style="margin-top: 3rem; margin-bottom: 3rem;">
+            <summary style="font-size: 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-primary);">
+                Austrian Stations (Neighboring)
+            </summary>
+            <p style="margin-top: 0.5rem; color: #666;">Weather data from Geosphere Austria (TAWES).</p>
+            <div id="station-container-austrian" class="station-grid">
+                <!-- Populated by JS -->
+            </div>
+        </details>
+
     </div>
     <!-- Modal Container -->
     <div id="chart-modal" class="modal-overlay">
@@ -261,7 +275,7 @@
 
         async function loadData() {
             try {
-                const response = await fetch('../data/weather_stations.json');
+                const response = await fetch('../data/weather_stations.json?v=' + Date.now());
                 const data = await response.json();
                 allStations = data;
                 renderStations(data);
@@ -269,21 +283,77 @@
 
             catch (error) {
                 console.error('Error loading data:', error);
-                document.getElementById('station-container').innerHTML = '<div class="error">Failed to load weather data. Please try again later.</div>';
+                document.getElementById('station-container-bavarian').innerHTML = '<div class="error">Failed to load weather data. Please try again later.</div>';
             }
         }
 
         function renderStations(stations) {
-            const container = document.getElementById('station-container');
-            container.innerHTML = ''; // Clear loading
+            const bavarianContainer = document.getElementById('station-container-bavarian');
+            const austrianContainer = document.getElementById('station-container-austrian');
+
+            bavarianContainer.innerHTML = '';
+            austrianContainer.innerHTML = '';
 
             stations.forEach((station, index) => {
+                const isAustrian = station.source && station.source.includes('Geosphere');
+                const targetContainer = isAustrian ? austrianContainer : bavarianContainer;
+
                 const latest = station.data[station.data.length - 1] || {};
                 const date = new Date(latest.TS);
                 const chartId = `chart-${index}`;
 
                 const card = document.createElement('div');
                 card.className = 'station-card';
+
+                // Customize data grid based on source
+                let dataGridHtml = '';
+
+                if (isAustrian) {
+                    // Austrian: Temp, Wind, Dir, Precip
+                    dataGridHtml = `
+                        <div class="data-item">
+                            <span class="data-label">Air Temp</span>
+                            <span class="data-value">${(latest.TL !== undefined && latest.TL !== null) ? latest.TL : '-'} <span class="unit">°C</span></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Precip</span>
+                            <span class="data-value">${(latest.precip !== undefined && latest.precip !== null) ? latest.precip : '-'} <span class="unit">mm</span></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Wind</span>
+                            <span class="data-value">${(latest.ff !== undefined && latest.ff !== null) ? latest.ff : '-'} <span class="unit">km/h</span></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Dir</span>
+                            <span class="data-value">${formatWindDir(latest.dd)}</span>
+                        </div>
+                    `;
+                } else {
+                    // Bavarian: Snow, Temp, Wind, Dir
+                    dataGridHtml = `
+                        <div class="data-item">
+                            <span class="data-label">Snow Depth</span>
+                            <span class="data-value">${(latest.HS !== undefined && latest.HS !== null) ? latest.HS : '-'} <span class="unit">cm</span></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Air Temp</span>
+                            <span class="data-value">${(latest.TL !== undefined && latest.TL !== null) ? latest.TL : '-'} <span class="unit">°C</span></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Wind</span>
+                            <span class="data-value">${(latest.ff !== undefined && latest.ff !== null) ? latest.ff : '-'} <span class="unit">km/h</span></span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Dir</span>
+                            <span class="data-value">${formatWindDir(latest.dd)}</span>
+                        </div>
+                    `;
+                }
+
+                // Disclaimer for Austrian stations
+                const disclaimer = isAustrian
+                    ? `<div style="font-size: 0.75rem; color: #888; margin-top: 0.5rem; font-style: italic;">*In ideal conditions, 1mm rain ≈ 1cm snow</div>`
+                    : '';
 
                 card.innerHTML = `
                     <button class="expand-btn" onclick="openModal(${index})" title="Expand Chart">
@@ -292,48 +362,36 @@
                         </svg>
                     </button>
                     <div class="station-header">
-                        <h2 class="station-name">${station.name}</h2>
+                        <h2 class="station-name">
+                            <a href="../archive/profiles/map.html?lat=${station.lat}&lon=${station.lon}" target="_blank" style="text-decoration: none; color: inherit; border-bottom: 1px dotted currentColor;" title="View Location on Map">
+                                ${station.name}
+                            </a>
+                        </h2>
                         <span class="latest-update">${formatDate(date)}</span>
                     </div>
                     <div class="data-grid">
-                        <div class="data-item">
-                            <span class="data-label">Snow Depth</span>
-                            <span class="data-value">${latest.HS !== undefined ? latest.HS : '-'} <span class="unit">cm</span></span>
-                        </div>
-                        <div class="data-item">
-                            <span class="data-label">Air Temp</span>
-                            <span class="data-value">${latest.TL !== undefined ? latest.TL : '-'} <span class="unit">°C</span></span>
-                        </div>
-                        <div class="data-item">
-                            <span class="data-label">Wind</span>
-                            <span class="data-value">${latest.ff !== undefined ? latest.ff : '-'} <span class="unit">km/h</span></span>
-                        </div>
-                        <div class="data-item">
-                            <span class="data-label">Dir</span>
-                            <span class="data-value">${formatWindDir(latest.dd)}</span>
-                        </div>
+                        ${dataGridHtml}
                     </div>
                     <div class="chart-container">
                         <canvas id="${chartId}"></canvas>
                     </div>
-                    <a href="${station.originalUrl}" target="_blank" class="source-link">View Source &rarr;</a>
+                    ${disclaimer}
+                    <a href="${station.originalUrl || '#'}" target="_blank" class="source-link">View Source &rarr;</a>
                 `;
-                container.appendChild(card);
+                targetContainer.appendChild(card);
 
-                renderChart(chartId, station.data, 6); // Hourly for small charts
+                // Pass isAustrian flag to chart config if needed, or chart just renders what's available
+                renderChart(chartId, station.data, 6, null, isAustrian);
             });
         }
 
         function openModal(index) {
             const station = allStations[index];
             if (!station) return;
+            const isAustrian = station.source && station.source.includes('Geosphere');
 
             // Get standard chart visibility state to preserve it
-            const smallChartId = `chart-$ {
-                index
-            }
-
-            `;
+            const smallChartId = `chart-${index}`;
             const smallChart = Chart.getChart(smallChartId);
             let visibilityState = null;
 
@@ -347,7 +405,7 @@
             document.getElementById('chart-modal').style.display = 'flex';
 
             // Render full detail chart (step = 1) with preserved visibility
-            renderChart('modal-chart', station.data, 1, visibilityState);
+            renderChart('modal-chart', station.data, 1, visibilityState, isAustrian);
         }
 
         function closeModal() {
@@ -368,7 +426,7 @@
             }
         }
 
-        function renderChart(canvasId, rawData, step = 6, visibilityState = null) {
+        function renderChart(canvasId, rawData, step = 6, visibilityState = null, isAustrian = false) {
             const ctx = document.getElementById(canvasId).getContext('2d');
 
             // Filter data based on step
@@ -463,84 +521,140 @@
                 return defaultState;
             };
 
+            const datasets = [];
+
+            // 0: Snow Depth (Hide for Austrian)
+            if (!isAustrian) {
+                datasets.push({
+                    label: 'Snow Depth (cm)',
+                    data: data.map(d => d.HS),
+                    borderColor: '#004481',
+                    backgroundColor: 'rgba(0, 68, 129, 0.1)',
+                    borderWidth: 2,
+                    yAxisID: 'y',
+                    pointRadius: step === 1 ? 0 : 0,
+                    pointHoverRadius: 4,
+                    fill: true,
+                    tension: 0.2,
+                    hidden: isVisible(0, false)
+                });
+            }
+
+            // 1: Air Temp
+            datasets.push({
+                label: 'Air Temp (°C)',
+                data: data.map(d => d.TL),
+                borderColor: '#FF0000',
+                borderWidth: 1.5,
+                yAxisID: 'y1',
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                borderDash: [5, 5],
+                tension: 0.4,
+                hidden: isVisible(datasets.length, true)
+            });
+
+            // 2: Surface Temp (Hide for Austrian if not available, usually isn't)
+            if (!isAustrian) {
+                datasets.push({
+                    label: 'Surface Temp (°C)',
+                    data: data.map(d => d.TO),
+                    borderColor: '#FF9900',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    hidden: isVisible(datasets.length, true),
+                    tension: 0.4
+                });
+            }
+
+            // Precip (Specific for Austrian or both?)
+            // Bavarian data doesn't seem to have Precip in the JSON sample I saw, 
+            // but if Austrian has it, let's show it. 
+            // Ideally Precip should be a bar chart, but line ok for now. 
+            if (isAustrian) {
+                datasets.push({
+                    label: 'Precip (mm)',
+                    data: data.map(d => d.precip),
+                    borderColor: '#0066CC',
+                    backgroundColor: 'rgba(0, 102, 204, 0.2)',
+                    borderWidth: 1.5,
+                    yAxisID: 'y', // Reuse Left Axis or create new? Reuse Snow axis for mm is fine-ish if labeled properly or separate?
+                    // Snow is 0-200cm, Precip is 0-10mm. Scaling issue. 
+                    // Let's put it on y2 (right) alongside wind, or own axis. 
+                    // Actually, let's put it on 'y' (left) but change the title if Snow is missing.
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    hidden: isVisible(datasets.length, false), // Default visible
+                    fill: true
+                });
+            }
+
+            // Wind
+            datasets.push({
+                label: 'Wind Speed (km/h)',
+                data: data.map(d => d.ff),
+                borderColor: '#4BC0C0',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 1.5,
+                yAxisID: 'y2',
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                hidden: isVisible(datasets.length, true),
+                tension: 0.1,
+                fill: false
+            });
+
+            if (!isAustrian) {
+                datasets.push({
+                    label: 'Wind Gusts (km/h)',
+                    data: data.map(d => d.ffBoe),
+                    borderColor: '#9966FF',
+                    borderWidth: 1.5,
+                    yAxisID: 'y2',
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    hidden: isVisible(datasets.length, true),
+                    tension: 0.1,
+                    borderDash: [2, 2]
+                });
+            }
+
+            // Direction
+            datasets.push({
+                label: 'Wind Direction',
+                data: [], // Handled by plugin
+                borderColor: 'rgba(0, 0, 0, 0.7)',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                pointStyle: 'triangle',
+                rotation: 90,
+                borderWidth: 0,
+                hidden: isVisible(datasets.length, true),
+                yAxisID: 'y3'
+            });
+
+            // Adjust Scales based on Austrian/Bavarian
+            const scales = {
+                x: { ticks: { maxRotation: 0, autoSkip: false }, grid: { display: false } },
+                y: {
+                    type: 'linear',
+                    display: 'auto',
+                    position: 'left',
+                    title: { display: true, text: isAustrian ? 'Precip (mm)' : 'Snow (cm)' },
+                    grid: { color: '#f0f0f0' },
+                    min: 0 // Keep 0 baseline
+                },
+                y1: { type: 'linear', display: 'auto', position: 'right', title: { display: true, text: 'Temp (°C)' }, grid: { display: false } },
+                y2: { type: 'linear', display: 'auto', position: 'right', title: { display: true, text: 'Wind (km/h)' }, grid: { display: false } },
+                y3: { type: 'linear', display: false }
+            };
+
             const chartConfig = {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [
-                        {
-                            label: 'Snow Depth (cm)',
-                            data: data.map(d => d.HS),
-                            borderColor: '#004481',
-                            backgroundColor: 'rgba(0, 68, 129, 0.1)',
-                            borderWidth: 2,
-                            yAxisID: 'y',
-                            pointRadius: step === 1 ? 0 : 0,
-                            pointHoverRadius: 4,
-                            fill: true,
-                            tension: 0.2,
-                            hidden: isVisible(0, false)
-                        },
-                        {
-                            label: 'Air Temp (°C)',
-                            data: data.map(d => d.TL),
-                            borderColor: '#FF0000',
-                            borderWidth: 1.5,
-                            yAxisID: 'y1',
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
-                            borderDash: [5, 5],
-                            tension: 0.4,
-                            hidden: isVisible(1, true)
-                        },
-                        {
-                            label: 'Surface Temp (°C)',
-                            data: data.map(d => d.TO),
-                            borderColor: '#FF9900',
-                            borderWidth: 1,
-                            yAxisID: 'y1',
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
-                            hidden: isVisible(2, true),
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Wind Speed (km/h)',
-                            data: data.map(d => d.ff),
-                            borderColor: '#4BC0C0',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderWidth: 1.5,
-                            yAxisID: 'y2',
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
-                            hidden: isVisible(3, true),
-                            tension: 0.1,
-                            fill: false
-                        },
-                        {
-                            label: 'Wind Gusts (km/h)',
-                            data: data.map(d => d.ffBoe),
-                            borderColor: '#9966FF',
-                            borderWidth: 1.5,
-                            yAxisID: 'y2',
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
-                            hidden: isVisible(4, true),
-                            tension: 0.1,
-                            borderDash: [2, 2]
-                        },
-                        {
-                            label: 'Wind Direction',
-                            data: [],
-                            borderColor: 'rgba(0, 0, 0, 0.7)',
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                            pointStyle: 'triangle',
-                            rotation: 90,
-                            borderWidth: 0,
-                            hidden: isVisible(5, true),
-                            yAxisID: 'y3'
-                        }
-                    ]
+                    datasets: datasets
                 },
                 plugins: [windArrowsPlugin],
                 options: {
@@ -565,22 +679,24 @@
                                     if (dir !== undefined && dir !== null) {
                                         points.push(`Wind Dir: ${formatWindDir(dir)} (${dir}°)`);
                                     }
-                                    const currentHS = data[index].HS;
-                                    if (currentHS !== undefined && currentHS !== null) {
-                                        const currentTs = fullDates[index].getTime();
-                                        const targetTs = currentTs - (24 * 60 * 60 * 1000);
-                                        for (let j = index - 1; j >= 0; j--) {
-                                            const prevTs = new Date(data[j].TS).getTime();
-                                            if (prevTs <= targetTs) {
-                                                if (targetTs - prevTs < 30 * 60 * 1000) {
-                                                    const prevHS = data[j].HS;
-                                                    if (prevHS !== undefined && prevHS !== null) {
-                                                        const delta = currentHS - prevHS;
-                                                        const sign = delta > 0 ? '+' : '';
-                                                        points.push(`24h Snow Diff: ${sign}${delta.toFixed(1)} cm`);
+                                    if (!isAustrian) {
+                                        const currentHS = data[index].HS;
+                                        if (currentHS !== undefined && currentHS !== null) {
+                                            const currentTs = fullDates[index].getTime();
+                                            const targetTs = currentTs - (24 * 60 * 60 * 1000);
+                                            for (let j = index - 1; j >= 0; j--) {
+                                                const prevTs = new Date(data[j].TS).getTime();
+                                                if (prevTs <= targetTs) {
+                                                    if (targetTs - prevTs < 30 * 60 * 1000) {
+                                                        const prevHS = data[j].HS;
+                                                        if (prevHS !== undefined && prevHS !== null) {
+                                                            const delta = currentHS - prevHS;
+                                                            const sign = delta > 0 ? '+' : '';
+                                                            points.push(`24h Snow Diff: ${sign}${delta.toFixed(1)} cm`);
+                                                        }
                                                     }
+                                                    break;
                                                 }
-                                                break;
                                             }
                                         }
                                     }
@@ -589,13 +705,7 @@
                             }
                         }
                     },
-                    scales: {
-                        x: { ticks: { maxRotation: 0, autoSkip: false }, grid: { display: false } },
-                        y: { type: 'linear', display: 'auto', position: 'left', title: { display: true, text: 'Snow (cm)' }, grid: { color: '#f0f0f0' } },
-                        y1: { type: 'linear', display: 'auto', position: 'right', title: { display: true, text: 'Temp (°C)' }, grid: { display: false } },
-                        y2: { type: 'linear', display: 'auto', position: 'right', title: { display: true, text: 'Wind (km/h)' }, grid: { display: false } },
-                        y3: { type: 'linear', display: false }
-                    }
+                    scales: scales
                 }
             };
 

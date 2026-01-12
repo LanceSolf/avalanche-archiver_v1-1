@@ -4,8 +4,10 @@
   "description": "Daily avalanche bulletin archiver",
   "scripts": {
     "build": "node tools/build.js",
-    "fetch": "node tools/fetch_daily.js && node tools/fetch_weather.js && node tools/fetch_lawis_incidents.js && node tools/fetch_weather_report.js"
+    "fetch": "node tools/fetch_daily.js && node tools/fetch_weather.js && node tools/fetch_weather_report.js && node tools/fetch_geosphere.js && node tools/pdf_fetcher.js && node tools/fetch_lawis_incidents.js && node tools/process_profiles.js && node tools/cleanup_pdfs.js && node tools/build.js"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "puppeteer": "^24.35.0"
+  }
 }

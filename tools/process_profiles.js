@@ -23,7 +23,7 @@ function downloadImage(url, profileId) {
         // Skip if exists
         if (fs.existsSync(destPath)) return resolve(path.relative(path.join(__dirname, '..', 'data'), destPath));
 
-        https.get(url, (res) => {
+        const req = https.get(url, { headers: { 'User-Agent': 'AvalancheArchiver/1.0' }, timeout: 15000 }, (res) => {
             if (res.statusCode === 200) {
                 const file = fs.createWriteStream(destPath);
                 res.pipe(file);
@@ -32,9 +32,12 @@ function downloadImage(url, profileId) {
                     resolve(path.relative(path.join(__dirname, '..', 'data'), destPath));
                 });
             } else {
+                res.resume();
                 resolve(null);
             }
-        }).on('error', () => resolve(null));
+        });
+        req.on('error', () => resolve(null));
+        req.on('timeout', () => { req.destroy(); resolve(null); });
     });
 }
 
@@ -47,7 +50,7 @@ const RECENT_WINDOW_DAYS = 2;
 // Helper to fetch JSON
 function fetchJson(url) {
     return new Promise((resolve, reject) => {
-        https.get(url, { headers: { 'Accept': 'application/json', 'User-Agent': 'AvalancheArchiver/1.0' } }, (res) => {
+        const req = https.get(url, { headers: { 'Accept': 'application/json', 'User-Agent': 'AvalancheArchiver/1.0' }, timeout: 15000 }, (res) => {
             let data = '';
             res.on('data', c => data += c);
             res.on('end', () => {
@@ -58,7 +61,9 @@ function fetchJson(url) {
                     resolve([]);
                 }
             });
-        }).on('error', reject);
+        });
+        req.on('error', reject);
+        req.on('timeout', () => { req.destroy(); reject(new Error('Request Timeout')); });
     });
 }
 

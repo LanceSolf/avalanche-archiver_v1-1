@@ -70,6 +70,9 @@ const REGION_CONFIG = {
         weatherData.forEach(w => {
             weatherMap[w.date] = w;
             // Generate Weather Page
+            const hasTranslation = w.translated_content && w.translated_content !== w.html_content;
+            const mainContent = hasTranslation ? w.translated_content : w.html_content;
+
             const weatherHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,6 +83,8 @@ const REGION_CONFIG = {
     <style>
         .weather-content { background: white; padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-sm); line-height: 1.6; }
         .weather-content h2 { margin-top: 0; color: var(--primary-blue); border-bottom: 2px solid var(--accent-red); padding-bottom: 0.5rem; display:inline-block; }
+        .original-text { margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem; color: #555; }
+        .original-text summary { cursor: pointer; color: var(--primary-blue); font-weight: 500; }
     </style>
 </head>
 <body>
@@ -90,7 +95,18 @@ const REGION_CONFIG = {
         <p style="color:#666; margin-bottom:2rem;">Issued: ${w.issued}</p>
         
         <div class="weather-content">
-            ${w.html_content}
+            <div class="translated-text">
+                ${mainContent}
+            </div>
+
+            ${hasTranslation ? `
+            <details class="original-text">
+                <summary>Show Original German Text</summary>
+                <div style="margin-top:1rem;">
+                    ${w.html_content}
+                </div>
+            </details>
+            ` : ''}
         </div>
     </div>
 </body>
@@ -188,12 +204,30 @@ const REGION_CONFIG = {
                         href: `${d}.pdf`
                     };
 
-                    // Add Weather Link for specific regions
-                    if ((config.slug === 'allgau-prealps' || config.slug === 'allgau-alps-central') && weatherMap[d]) {
+                    // Add Weather Link (Archive or Live)
+                    // Apply to all Bavarian/Allgäu regions
+                    if (weatherMap[d]) {
                         item.extraLink = {
                             text: 'Mountain Weather',
-                            href: `../../weather/${d}.html` // Adjust path relative to region/month/index.html
+                            href: `../../weather/${d}.html`
                         };
+                    } else {
+                        // Fallback to live link if date is recent (e.g. today or future)
+                        // Simple check: if date is not in archive, standard link?
+                        // Only sensible for the 'latest' or current bulletin. 
+                        // But users might browse old bulletins. Link to live site for old dates is wrong.
+                        // So only for dates >= today - 1 day?
+                        const dateObj = new Date(d);
+                        const now = new Date();
+                        const diffTime = Math.abs(now - dateObj);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (diffDays <= 2) {
+                            item.extraLink = {
+                                text: 'Mountain Weather (Live)',
+                                href: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/bergwetterbericht-bayern/'
+                            };
+                        }
                     }
                     return item;
                 }),
@@ -283,6 +317,35 @@ const REGION_CONFIG = {
         } catch (e) {
             console.error('Failed to load recent profiles', e);
         }
+    }
+
+    // --- Build Weather Stations Page ---
+    // --- Build Weather Stations Page ---
+    /* 
+       We no longer generate a static page. We copy the source `snow-depth` folder 
+       to the archive, which contains the client-side app (index.html + JS).
+    */
+    const snowSource = path.join(outputDir, 'snow-depth');
+    const snowDest = path.join(archiveDir, 'snow-depth');
+
+    if (fs.existsSync(snowSource)) {
+        if (!fs.existsSync(snowDest)) fs.mkdirSync(snowDest, { recursive: true });
+
+        fs.cpSync(snowSource, snowDest, { recursive: true });
+        console.log(`Copied 'snow-depth' app to archive.`);
+
+        // Fix fetch path for Archive structure (needs to go up 2 levels)
+        const indexDest = path.join(snowDest, 'index.html');
+        if (fs.existsSync(indexDest)) {
+            let content = fs.readFileSync(indexDest, 'utf8');
+            content = content.replace('../data/weather_stations.json', '../../data/weather_stations.json');
+            // Fix map link for Archive (remove /archive/ prefix since snow-depth and profiles are siblings in archive)
+            content = content.replace('../archive/profiles/map.html', '../profiles/map.html');
+            fs.writeFileSync(indexDest, content);
+            console.log('Fixed data path in archive/snow-depth/index.html');
+        }
+    } else {
+        console.warn('Source snow-depth folder not found!');
     }
 
     // 3. Generate Global Landing Page
@@ -483,7 +546,11 @@ function generateIncidentPage(inc) {
             <div class="meta-item"><strong>Elevation:</strong> ${elev}</div>
             <div class="meta-item"><strong>Incline:</strong> ${incline}</div>
             <div class="meta-item"><strong>Aspect:</strong> ${aspect}</div>
-            <div class="meta-item"><strong>Coordinates:</strong> ${inc.lat}, ${inc.lon}</div>
+            <div class="meta-item"><strong>Coordinates:</strong> 
+                <a href="../profiles/map.html?lat=${inc.lat}&lon=${inc.lon}" target="_blank" style="color:#0284c7; text-decoration:underline;">
+                    ${inc.lat}, ${inc.lon}
+                </a>
+            </div>
             ${pdfLink ? `<div class="meta-item"><strong>Forecast:</strong> ${pdfLink}</div>` : ''}
         </div>
     `;
@@ -499,12 +566,14 @@ function generateIncidentPage(inc) {
                 ${inc.linked_profiles.map(p => {
             const imgUrl = p.local_path ? `../${p.local_path}` : p.url;
             // Create map link if coordinates exist
-            let distDisplay = `${p.dist_km} km away`;
+            const dist = typeof p.dist_km === 'number' ? p.dist_km : parseFloat(p.dist_km);
+            const distStr = !isNaN(dist) ? dist.toFixed(1) : p.dist_km;
+            let distDisplay = `${distStr} km away`;
             if (p.latitude && p.longitude) {
                 // Link to local interactive map with query params
-                distDisplay = `<a href="../profiles/map.html?lat=${p.latitude}&lon=${p.longitude}" target="_blank" style="color:#0284c7; text-decoration:underline;" title="View on Interactive Map">📍 ${p.dist_km} km away</a>`;
+                distDisplay = `<a href="../profiles/map.html?lat=${p.latitude}&lon=${p.longitude}" target="_blank" style="color:#0284c7; text-decoration:underline;" title="View on Interactive Map">📍 ${distStr} km away</a>`;
             } else {
-                distDisplay = `<span style="color:#0284c7;">${p.dist_km} km away</span>`;
+                distDisplay = `<span style="color:#0284c7;">${distStr} km away</span>`;
             }
 
             return `

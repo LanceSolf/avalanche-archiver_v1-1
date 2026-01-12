@@ -23,7 +23,7 @@ function downloadImage(url, incidentId) {
         // Skip if exists
         if (fs.existsSync(destPath)) return resolve(path.relative(path.join(__dirname, '..', 'data'), destPath));
 
-        https.get(url, (res) => {
+        const req = https.get(url, { headers: { 'User-Agent': 'AvalancheArchiver/1.0' }, timeout: 15000 }, (res) => {
             if (res.statusCode === 200) {
                 const file = fs.createWriteStream(destPath);
                 res.pipe(file);
@@ -32,9 +32,12 @@ function downloadImage(url, incidentId) {
                     resolve(path.relative(path.join(__dirname, '..', 'data'), destPath));
                 });
             } else {
+                res.resume(); // free memory
                 resolve(null);
             }
-        }).on('error', () => resolve(null));
+        });
+        req.on('error', () => resolve(null));
+        req.on('timeout', () => { req.destroy(); resolve(null); });
     });
 }
 
@@ -60,10 +63,12 @@ function getSeasonDates() {
 
 function fetchJson(url) {
     return new Promise((resolve, reject) => {
-        https.get(url, {
-            headers: { 'Accept': 'application/json', 'User-Agent': 'AvalancheArchiver/1.0' }
+        const req = https.get(url, {
+            headers: { 'Accept': 'application/json', 'User-Agent': 'AvalancheArchiver/1.0' },
+            timeout: 15000
         }, (res) => {
             if (res.statusCode !== 200) {
+                res.resume();
                 return reject(new Error(`Failed to fetch ${url}, status: ${res.statusCode}`));
             }
             let data = '';
@@ -75,7 +80,9 @@ function fetchJson(url) {
                     reject(e);
                 }
             });
-        }).on('error', reject);
+        });
+        req.on('error', reject);
+        req.on('timeout', () => { req.destroy(); reject(new Error('Request Timeout')); });
     });
 }
 
@@ -305,10 +312,12 @@ async function probeImages(incidentId) {
 
 function checkUrlExists(url) {
     return new Promise((resolve) => {
-        const req = https.request(url, { method: 'HEAD' }, (res) => {
+        const req = https.request(url, { method: 'HEAD', timeout: 5000 }, (res) => {
+            res.resume();
             resolve(res.statusCode === 200);
         });
         req.on('error', () => resolve(false));
+        req.on('timeout', () => { req.destroy(); resolve(false); });
         req.end();
     });
 }
