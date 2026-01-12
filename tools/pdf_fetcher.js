@@ -109,16 +109,12 @@ async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-w
                 // For PDFs, even a tiny change implies a rebuild.
                 // Let's use exact size match as a proxy for identity, or simple buffer compare if needed.
                 // But size + buffer compare is best.
+                // If sizes differ significantly or usually just binary comparison, assume update.
+                // For PDFs, dynamic generation (timestamps/IDs) can cause binary diffs even if content is same.
+                // We rely on file size stability: meaningful content changes usually change the size.
                 let isDifferent = (statExisting.size !== statNew.size);
 
-                if (!isDifferent) {
-                    // Deep compare if sizes match
-                    const buf1 = fs.readFileSync(baseDest);
-                    const buf2 = fs.readFileSync(tempDest);
-                    if (!buf1.equals(buf2)) {
-                        isDifferent = true;
-                    }
-                }
+                // Removed strict buffer comparison to avoid duplicates for identical-size downloads.
 
                 if (isDifferent) {
                     console.log(`  Update detected for ${slug}/${dateStr}.pdf!`);
