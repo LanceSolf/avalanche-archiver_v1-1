@@ -148,6 +148,49 @@ const REGION_CONFIG = {
         }
     }
 
+    // Load Historic Weather Data
+    let historicWeatherMap = {};
+    const historicWeatherPath = path.join(__dirname, '../data/historic_weather.txt');
+    if (fs.existsSync(historicWeatherPath)) {
+        try {
+            const content = fs.readFileSync(historicWeatherPath, 'utf8');
+            // Parse the file - each entry starts with a number followed by incident date and location
+            // Format: "1) 2026‑01‑11 — Ifen‑Kellerloch"
+            // Note: The file uses Unicode non-breaking hyphens (U+2011) which need to be normalized
+            const normalizedContent = content.replace(/‑/g, '-'); // Replace Unicode hyphens with regular hyphens
+
+            const entries = normalizedContent.split(/\d+\)\s+\d{4}-\d{2}-\d{2}\s+[—–-]\s+/);
+            const headers = normalizedContent.match(/\d+\)\s+(\d{4}-\d{2}-\d{2})\s+[—–-]\s+([^\r\n]+)/g);
+
+            if (headers && entries.length > 1) {
+                for (let i = 0; i < headers.length; i++) {
+                    const match = headers[i].match(/\d+\)\s+(\d{4}-\d{2}-\d{2})\s+[—–-]\s+([^\r\n]+)/);
+                    if (match) {
+                        const date = match[1];
+                        let location = match[2].trim();
+
+                        // Clean up location - remove parenthetical notes
+                        location = location.replace(/\s*\([^)]*\)\s*/g, '').trim();
+
+                        const description = entries[i + 1] ? entries[i + 1].trim() : '';
+
+                        // Store by date-location key
+                        const key = `${date}_${location}`;
+                        historicWeatherMap[key] = description;
+
+                        // Also store by date only for fallback matching
+                        if (!historicWeatherMap[date]) {
+                            historicWeatherMap[date] = description;
+                        }
+                    }
+                }
+            }
+            console.log(`Loaded ${Object.keys(historicWeatherMap).length} historic weather entries.`);
+        } catch (e) {
+            console.error('Failed to load historic_weather.txt', e);
+        }
+    }
+
     // Process PDF Files
     const pdfsBaseDir = path.join(__dirname, '../data/pdfs');
     if (fs.existsSync(pdfsBaseDir)) {
@@ -282,7 +325,7 @@ const REGION_CONFIG = {
             const detailFilename = `${safeDate}_${inc.id}.html`;
             const detailPath = path.join(incidentsDir, detailFilename);
 
-            const detailHtml = generateIncidentPage(inc, weatherMap, weatherStations);
+            const detailHtml = generateIncidentPage(inc, weatherMap, weatherStations, historicWeatherMap);
             fs.writeFileSync(detailPath, detailHtml);
 
             return {
@@ -519,7 +562,7 @@ function generateProfilesPage(profiles) {
 }
 
 
-function generateIncidentPage(inc, weatherMap, stations) {
+function generateIncidentPage(inc, weatherMap, stations, historicWeatherMap) {
     const details = inc.details || {};
     const cssPath = `../../styles.css`;
 
@@ -593,12 +636,12 @@ function generateIncidentPage(inc, weatherMap, stations) {
             // Get Weather Report for that day
             const report = weatherMap ? weatherMap[incDateStr] : null;
 
-            const weatherHtml = generateIncidentWeatherPage(inc, closestStation, relevantData, report, minDist);
+            const weatherHtml = generateIncidentWeatherPage(inc, closestStation, relevantData, report, minDist, historicWeatherMap);
             fs.writeFileSync(weatherFullPath, weatherHtml);
 
             weatherPageUrl = weatherFilename;
             const distDisplay = minDist.toFixed(1) + 'km';
-            weatherLink = `<a href="${weatherPageUrl}" style="color:#0284c7; text-decoration:underline; font-weight:bold;">Weather (${closestStation.name}, ${distDisplay})</a>`;
+            weatherLink = `<a href="${weatherPageUrl}" style="color:#0284c7; text-decoration:underline;">Weather (${closestStation.name}, ${distDisplay})</a>`;
         }
     }
 
@@ -756,7 +799,7 @@ function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
 
-function generateIncidentWeatherPage(inc, station, data, report, dist) {
+function generateIncidentWeatherPage(inc, station, data, report, dist, historicWeatherMap) {
     // Reuse chart logic from snow-depth/index.html but embed static data
     // We need to provide the chart configuration and data directly in the HTML
 
@@ -768,7 +811,47 @@ function generateIncidentWeatherPage(inc, station, data, report, dist) {
     // We need to serialize the data for the template
     const chartData = JSON.stringify(data);
 
-    const weatherHtmlContent = report ? (report.translated_content || report.html_content) : '<p>No text report available for this date.</p>';
+    // Try to get historic weather description
+    let weatherHtmlContent = '';
+    if (report) {
+        weatherHtmlContent = report.translated_content || report.html_content;
+    } else if (historicWeatherMap) {
+        // Try to match by date and location
+        const incDateStr = inc.date.split(' ')[0];
+        const incLocation = inc.location;
+
+        // Try exact match first
+        let key = `${incDateStr}_${incLocation}`;
+        let historicDesc = historicWeatherMap[key];
+
+        // If no exact match, try partial location match
+        if (!historicDesc) {
+            for (const [k, v] of Object.entries(historicWeatherMap)) {
+                if (k.startsWith(incDateStr + '_')) {
+                    const storedLocation = k.substring(incDateStr.length + 1);
+                    // Check if locations are similar (contains or partial match)
+                    if (incLocation.includes(storedLocation) || storedLocation.includes(incLocation)) {
+                        historicDesc = v;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // If still no match, try date-only fallback
+        if (!historicDesc) {
+            historicDesc = historicWeatherMap[incDateStr];
+        }
+
+        if (historicDesc) {
+            // Format the historic description as HTML
+            weatherHtmlContent = `<div style="white-space: pre-wrap; line-height: 1.8;">${historicDesc}</div>`;
+        } else {
+            weatherHtmlContent = '<p>No text report available for this date.</p>';
+        }
+    } else {
+        weatherHtmlContent = '<p>No text report available for this date.</p>';
+    }
 
     return `<!DOCTYPE html>
 <html lang="en">
