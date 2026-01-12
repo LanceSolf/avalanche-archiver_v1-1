@@ -136,6 +136,18 @@ const REGION_CONFIG = {
         }
     }
 
+    // Load Weather Stations for Context
+    let weatherStations = [];
+    const stationsPath = path.join(__dirname, '../data/weather_stations.json');
+    if (fs.existsSync(stationsPath)) {
+        try {
+            weatherStations = JSON.parse(fs.readFileSync(stationsPath, 'utf8'));
+            console.log(`Loaded ${weatherStations.length} weather stations.`);
+        } catch (e) {
+            console.error('Failed to load weather_stations.json', e);
+        }
+    }
+
     // Process PDF Files
     const pdfsBaseDir = path.join(__dirname, '../data/pdfs');
     if (fs.existsSync(pdfsBaseDir)) {
@@ -270,7 +282,7 @@ const REGION_CONFIG = {
             const detailFilename = `${safeDate}_${inc.id}.html`;
             const detailPath = path.join(incidentsDir, detailFilename);
 
-            const detailHtml = generateIncidentPage(inc);
+            const detailHtml = generateIncidentPage(inc, weatherMap, weatherStations);
             fs.writeFileSync(detailPath, detailHtml);
 
             return {
@@ -507,7 +519,7 @@ function generateProfilesPage(profiles) {
 }
 
 
-function generateIncidentPage(inc) {
+function generateIncidentPage(inc, weatherMap, stations) {
     const details = inc.details || {};
     const cssPath = `../../styles.css`;
 
@@ -519,13 +531,10 @@ function generateIncidentPage(inc) {
     // Generate PDF Link
     let pdfLink = '<span style="color:#888; font-style:italic;">No Report</span>';
     if (inc.pdf_path) {
-        // If it comes from the new incident_bulletins structure
         if (inc.pdf_path.startsWith('incident_bulletins/')) {
-            // Link to ../../data/incident_bulletins/... (Relative to archive/incidents/xxx.html)
             const pdfUrl = `../../data/${inc.pdf_path}`;
             pdfLink = `<a href="${pdfUrl}" target="_blank" style="color:#0284c7; text-decoration:underline;">Archived Bulletin</a>`;
         }
-        // Fallback for legacy "pdfs/" structure if any remain
         else if (inc.pdf_path.startsWith('pdfs/')) {
             const parts = inc.pdf_path.split('/');
             if (parts.length >= 3) {
@@ -533,17 +542,66 @@ function generateIncidentPage(inc) {
                 const filename = parts[2]; // date.pdf
                 const date = filename.replace('.pdf', '');
                 const month = date.slice(0, 7);
-                // Old structure was archive/{slug}/{month}/{date}.pdf.
-                // But wait, the daily fetcher stores in data/pdfs/{slug}/{date}.pdf (no month folder?).
-                // Let's check build.js logic for daily PDFs again.
-                // Lines 88-96 in build.js implies daily PDFs are flattened in data/pdfs/{slug}/ but sorted into {month} folders in archive.
-                // So line 362 `../${slug}/${month}/${filename}` was correct for the daily archive.
-                // We keep this for backward compatibility if mixed.
                 const pdfUrl = `../${slug}/${month}/${filename}`;
                 pdfLink = `<a href="${pdfUrl}" target="_blank" style="color:#0284c7; text-decoration:underline;">Archived Bulletin</a>`;
             }
         }
     }
+
+    // Weather Context Logic
+    let weatherLink = '';
+
+    // 1. Find Closest Station
+    let closestStation = null;
+    let minDist = Infinity;
+
+    if (inc.lat && inc.lon && stations && stations.length > 0) {
+        stations.forEach(st => {
+            // Filter for Bavarian stations only (as requested "Allgau weather stations")
+            // Assuming "Allgau" stations are in the list. The list has source=Geosphere for Austrian.
+            // We'll prefer non-Geosphere, or just closest valid one. User said "Allgau weather stations".
+            // Let's exclude Geosphere for now to stick to Bavarian net unless closest is huge diff.
+            if (st.source && st.source.includes('Geosphere')) return;
+
+            const dist = getDistance(inc.lat, inc.lon, st.lat, st.lon);
+            if (dist < minDist) {
+                minDist = dist;
+                closestStation = st;
+            }
+        });
+    }
+
+    // 2. Filter Data (Last 2 days up to incident date EOD)
+    let weatherPageUrl = '';
+    if (closestStation) {
+        const incDateStr = inc.date.split(' ')[0]; // YYYY-MM-DD
+        const incDate = new Date(incDateStr + 'T23:59:59'); // End of day
+        const startDate = new Date(incDate);
+        startDate.setDate(startDate.getDate() - 2); // 2 days back (48hrs)
+
+        // Filter data
+        const relevantData = closestStation.data.filter(d => {
+            const ts = new Date(d.TS);
+            return ts >= startDate && ts <= incDate;
+        });
+
+        if (relevantData.length > 0) {
+            // Generate Weather Context Page
+            const weatherFilename = `weather_${inc.id}.html`;
+            const weatherFullPath = path.join(__dirname, '../archive/incidents', weatherFilename);
+
+            // Get Weather Report for that day
+            const report = weatherMap ? weatherMap[incDateStr] : null;
+
+            const weatherHtml = generateIncidentWeatherPage(inc, closestStation, relevantData, report, minDist);
+            fs.writeFileSync(weatherFullPath, weatherHtml);
+
+            weatherPageUrl = weatherFilename;
+            const distDisplay = minDist.toFixed(1) + 'km';
+            weatherLink = `<a href="${weatherPageUrl}" style="color:#0284c7; text-decoration:underline; font-weight:bold;">Weather (${closestStation.name}, ${distDisplay})</a>`;
+        }
+    }
+
 
     // Build tables or grid
     const infoGrid = `
@@ -559,6 +617,7 @@ function generateIncidentPage(inc) {
                 </a>
             </div>
             ${pdfLink ? `<div class="meta-item"><strong>Forecast:</strong> ${pdfLink}</div>` : ''}
+            ${weatherLink ? `<div class="meta-item"><strong>Weather:</strong> ${weatherLink}</div>` : ''}
         </div>
     `;
 
@@ -572,16 +631,9 @@ function generateIncidentPage(inc) {
             <div style="display:grid; gap:1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top:1rem;">
                 ${inc.linked_profiles.map(p => {
             const imgUrl = p.local_path ? `../${p.local_path}` : p.url;
-            // Create map link if coordinates exist
             const dist = typeof p.dist_km === 'number' ? p.dist_km : parseFloat(p.dist_km);
             const distStr = !isNaN(dist) ? dist.toFixed(1) : p.dist_km;
-            let distDisplay = `${distStr} km away`;
-            if (p.latitude && p.longitude) {
-                // Link to local interactive map with query params
-                distDisplay = `<a href="../profiles/map.html?lat=${p.latitude}&lon=${p.longitude}" target="_blank" style="color:#0284c7; text-decoration:underline;" title="View on Interactive Map">📍 ${distStr} km away</a>`;
-            } else {
-                distDisplay = `<span style="color:#0284c7;">${distStr} km away</span>`;
-            }
+            let distDisplay = `<a href="../profiles/map.html?lat=${p.latitude}&lon=${p.longitude}" target="_blank" style="color:#0284c7; text-decoration:underline;" title="View on Interactive Map">📍 ${distStr} km away</a>`;
 
             return `
                     <div style="background:#f0f9ff; padding:1rem; border-radius:8px; border:1px solid #bae6fd;">
@@ -636,7 +688,6 @@ function generateIncidentPage(inc) {
                 </details>
             </div>`;
     } else {
-        // Fallback translation link
         const translateUrl = `https://translate.google.com/?sl=auto&tl=en&text=${encodeURIComponent(descriptionText)}`;
         descriptionHtml = `
             <div class="incident-description">
@@ -684,6 +735,129 @@ function generateIncidentPage(inc) {
 
         <div style="margin-top:2rem"><a href="index.html">&larr; Back to Incidents</a></div>
     </div>
+</body>
+</html>`;
+}
+
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return d;
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+}
+
+function generateIncidentWeatherPage(inc, station, data, report, dist) {
+    // Reuse chart logic from snow-depth/index.html but embed static data
+    // We need to provide the chart configuration and data directly in the HTML
+
+    // Prepare Data Arrays for Chart.js
+    const labels = data.map(d => new Date(d.TS).toLocaleString('en-GB', {
+        weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    }));
+
+    // We need to serialize the data for the template
+    const chartData = JSON.stringify(data);
+
+    const weatherHtmlContent = report ? (report.translated_content || report.html_content) : '<p>No text report available for this date.</p>';
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Context: ${inc.location}</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <style>
+        .weather-content { background: white; padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-sm); line-height: 1.6; margin-bottom: 2rem; }
+        .chart-container { position: relative; height: 400px; width: 100%; background: white; padding: 1rem; border-radius: 12px; box-shadow: var(--shadow-sm); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a></div></header>
+        <div style="margin-bottom:1rem;"><a href="javascript:history.back()">&larr; Back to Incident</a></div>
+        
+        <h1>Weather Context</h1>
+        <h2 style="color: #666;">${inc.location} - ${inc.date}</h2>
+        
+        <div class="weather-content">
+            <h3>Forecast for ${inc.date.split(' ')[0]}</h3>
+            ${weatherHtmlContent}
+        </div>
+
+        <div class="weather-content">
+            <h3>Station Data: ${station.name} (${dist.toFixed(1)} km away)</h3>
+            <p>Data from previous 48hrs showing conditions leading up to the incident.</p>
+            <div class="chart-container">
+                <canvas id="weatherChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const rawData = ${chartData};
+        
+        const labels = rawData.map(d => new Date(d.TS).toLocaleString('en-GB', { 
+            weekday: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' 
+        }));
+
+        const ctx = document.getElementById('weatherChart').getContext('2d');
+        
+        // Simplified Dataset Mapping
+        const datasets = [
+            {
+                label: 'Snow Depth (cm)',
+                data: rawData.map(d => d.HS),
+                borderColor: '#004481',
+                backgroundColor: 'rgba(0, 68, 129, 0.1)',
+                fill: true,
+                yAxisID: 'y',
+                tension: 0.2
+            },
+            {
+                label: 'Air Temp (°C)',
+                data: rawData.map(d => d.TL),
+                borderColor: '#FF0000',
+                borderDash: [5, 5],
+                yAxisID: 'y1',
+                tension: 0.4
+            },
+            {
+                label: 'Wind Speed (km/h)',
+                data: rawData.map(d => d.ff),
+                borderColor: '#4BC0C0',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                yAxisID: 'y2',
+                tension: 0.1
+            }
+        ];
+
+        new Chart(ctx, {
+            type: 'line',
+            data: { labels: labels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                     y: { type: 'linear', display: 'auto', position: 'left', title: { display: true, text: 'Snow (cm)' } },
+                     y1: { type: 'linear', display: 'auto', position: 'right', title: { display: true, text: 'Temp (°C)' }, grid: { display: false } },
+                     y2: { type: 'linear', display: 'auto', position: 'right', title: { display: true, text: 'Wind (km/h)' }, grid: { display: false } }
+                }
+            }
+        });
+    </script>
 </body>
 </html>`;
 }
