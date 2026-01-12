@@ -400,6 +400,8 @@ const REGION_CONFIG = {
             content = content.replace('../data/weather_stations.json', '../../data/weather_stations.json');
             // Fix map link for Archive (remove /archive/ prefix since snow-depth and profiles are siblings in archive)
             content = content.replace('../archive/profiles/map.html', '../profiles/map.html');
+            // Fix back links for Archive (needs to go up 2 levels from archive/snow-depth/)
+            content = content.replace(/href="\.\.\/index\.html"/g, 'href="../../index.html"');
             fs.writeFileSync(indexDest, content);
             console.log('Fixed data path in archive/snow-depth/index.html');
         }
