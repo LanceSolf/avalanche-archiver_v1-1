@@ -23,23 +23,6 @@ async function main() {
         console.error('Error creating archive dir:', e);
     }
 
-    /*
-    try {
-        console.log('Copying styles.css...');
-        const styleSrc = path.join(PATHS.root, 'styles.css');
-        const styleDest = path.join(PATHS.archive, 'styles.css');
-        // Only copy if src exists
-        if (fs.existsSync(styleSrc)) {
-             fs.copyFileSync(styleSrc, styleDest);
-             console.log('Copied styles.css');
-        } else {
-            console.log('styles.css not found at root, skipping copy.');
-        }
-    } catch (e) {
-        console.error('Error copying styles:', e);
-    }
-    */
-
     try {
         console.log('Running buildWeatherPages...');
         buildWeatherPages();
@@ -73,6 +56,14 @@ async function main() {
         buildSnowDepth();
     } catch (e) {
         console.error('Error in buildSnowDepth:', e);
+    }
+
+    try {
+        const { buildGroundConditions } = require('./lib/builders/buildGroundConditions');
+        console.log('Running buildGroundConditions...');
+        buildGroundConditions();
+    } catch (e) {
+        console.error('Error in buildGroundConditions:', e);
     }
 
     try {

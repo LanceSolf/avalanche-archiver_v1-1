@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skier Upload</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        .upload-form { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b; }
+        input[type="text"], textarea, select { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
+        input[type="file"] { width: 100%; padding: 0.5rem; border: 1px dashed #cbd5e1; border-radius: 6px; }
+        button { background: #0284c7; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
+        button:hover { background: #0369a1; }
+        .map-picker { height: 300px; width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 0.5rem; }
+        .status-msg { margin-top: 1rem; padding: 1rem; border-radius: 6px; display: none; }
+        .success { background: #dcfce7; color: #166534; }
+        .error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="../../index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>Submit Report</span></div>
+            </div>
+        </header>
+        <div style="margin-bottom:1rem;"><a href="index.html">&larr; Back to Ground Conditions</a></div>
+
+        <div class="upload-form">
+            <h1>❄️ Skier Upload</h1>
+            <p style="margin-bottom:2rem; color:#64748b;">Share your observations. Photos will be scanned for location data.</p>
+            
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="name" required placeholder="e.g. Hansi Hinterseer">
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <select id="dateSelect"></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Photo (Optional)</label>
+                    <input type="file" id="photo" accept="image/*">
+                    <div id="locationStatus" style="font-size:0.85rem; color:#64748b; margin-top:0.5rem;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Location (Tap to mark)</label>
+                    <div id="pickerMap" class="map-picker"></div>
+                    <input type="hidden" id="lat">
+                    <input type="hidden" id="lon">
+                </div>
+
+                <div class="form-group">
+                    <label>Comments</label>
+                    <textarea id="comment" rows="4" placeholder="How was the snow? Any hazards?"></textarea>
+                </div>
+
+                <button type="submit">Submit Report</button>
+                <div id="status" class="status-msg"></div>
+            </form>
+        </div>
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <!-- EXIF JS for reading geo tags -->
+        <script src="https://cdn.jsdelivr.net/npm/exif-js"></script> 
+        <script>
+            // 1. Date Dropdown (Today + 4 days back)
+            const dateSelect = document.getElementById('dateSelect');
+            const today = new Date();
+            for(let i=0; i<5; i++) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+                const opt = document.createElement('option');
+                opt.value = d.toISOString();
+                opt.text = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString();
+                dateSelect.add(opt);
+            }
+
+            // 2. Map Picker
+            const map = L.map('pickerMap').setView([47.45, 10.3], 9);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM' }).addTo(map);
+            
+            let marker;
+            function setLocation(lat, lng) {
+                if(marker) map.removeLayer(marker);
+                marker = L.marker([lat, lng]).addTo(map);
+                document.getElementById('lat').value = lat;
+                document.getElementById('lon').value = lng;
+            }
+
+            map.on('click', function(e) {
+                setLocation(e.latlng.lat, e.latlng.lng);
+            });
+
+            // 3. EXIF Extraction
+            document.getElementById('photo').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if(file) {
+                    EXIF.getData(file, function() {
+                        const lat = EXIF.getTag(this, "GPSLatitude");
+                        const lon = EXIF.getTag(this, "GPSLongitude");
+                        
+                        // Convert DMS to DD
+                        if(lat && lon && lat.length === 3 && lon.length === 3) {
+                             const toDecimal = (n) => n[0] + n[1]/60 + n[2]/3600;
+                             const latDec = toDecimal(lat);
+                             const lonDec = toDecimal(lon);
+                             
+                             // Check ref (N/S, E/W) - Simplified assumption for Alps (N, E)
+                             
+                             setLocation(latDec, lonDec);
+                             map.setView([latDec, lonDec], 14);
+                             document.getElementById('locationStatus').innerText = "✅ Location found in photo!";
+                        } else {
+                            document.getElementById('locationStatus').innerText = "⚠️ No location in photo. Please tap the map.";
+                             // Try Geolocation API
+                             if(navigator.geolocation) {
+                                 navigator.geolocation.getCurrentPosition(pos => {
+                                     setLocation(pos.coords.latitude, pos.coords.longitude);
+                                      map.setView([pos.coords.latitude, pos.coords.longitude], 12);
+                                 });
+                             }
+                        }
+                    });
+                }
+            });
+
+            // 4. Submit
+            document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                btn.disabled = true;
+                btn.innerText = 'Uploading...';
+
+                const data = {
+                    user: document.getElementById('name').value,
+                    date: dateSelect.value,
+                    comment: document.getElementById('comment').value,
+                    lat: document.getElementById('lat').value,
+                    lon: document.getElementById('lon').value,
+                    // TODO: Handle Image Upload (Base64)
+                };
+
+                // Read Image as Base64
+                const fileInput = document.getElementById('photo');
+                if (fileInput.files.length > 0) {
+                     const reader = new FileReader();
+                     reader.onload = async function() {
+                         data.image = reader.result; // Base64 string
+                         await sendData(data);
+                     };
+                     reader.readAsDataURL(fileInput.files[0]);
+                } else {
+                    await sendData(data);
+                }
+
+                async function sendData(payload) {
+                    try {
+                        const statusDiv = document.getElementById('status');
+                        // POST to Cloudflare Worker
+                        const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev';
+                        
+                        // For demo purposes (mock) -> Switched to Real
+                        // console.log('Would upload:', payload);
+                        
+                        statusDiv.style.display = 'block';
+                        statusDiv.className = 'status-msg';
+                        statusDiv.innerText = 'Uploading...';
+                        
+                        const res = await fetch(WORKER_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if(res.ok) {
+                            statusDiv.className = 'status-msg success';
+                            statusDiv.innerText = 'Report Submitted! (Pending approval/display on next site build)';
+                            e.target.reset();
+                            // Clear map
+                            if(marker) map.removeLayer(marker);
+                            document.getElementById('lat').value = '';
+                            document.getElementById('lon').value = '';
+                            document.getElementById('locationStatus').innerText = '';
+                        } else {
+                            throw new Error('Upload failed');
+                        }
+
+                    } catch(err) {
+                        alert('Error uploading');
+                        const statusDiv = document.getElementById('status');
+                        statusDiv.className = 'status-msg error';
+                        statusDiv.innerText = 'Error uploading report.';
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = 'Submit Report';
+                    }
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

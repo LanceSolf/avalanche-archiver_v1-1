@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allgäu Webcams</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        .webcam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .webcam-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .webcam-img { width: 100%; height: 180px; object-fit: cover; display: block; background: #f1f5f9; }
+        .webcam-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
+        .area-pil { padding: 0.25rem 0.75rem; background: white; border: 1px solid #cbd5e1; border-radius: 99px; font-size: 0.85rem; cursor: pointer; }
+        .area-pil:hover, .area-pil.active { background: #0284c7; color: white; border-color: #0284c7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="../../index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>Webcams</span></div>
+            </div>
+        </header>
+         <div style="margin-bottom:1rem;"><a href="../ground-conditions/index.html">&larr; Back to Ground Conditions</a></div>
+
+        <h1>Allgäu Webcams</h1>
+
+        <!-- Map showing webcam locations -->
+        <div id="map" style="height: 400px; width: 100%; border-radius: 12px; margin-bottom: 2rem;"></div>
+
+        <div class="webcam-grid">
+            
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=12206&2&format=44" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=12206&2&format=44" class="webcam-img" loading="lazy" alt="Kanzelwand / Fellhorn">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Kanzelwand / Fellhorn</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Fellhorn</p>
+                </div>
+            </div>
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=4971&2&format=44" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=4971&2&format=44" class="webcam-img" loading="lazy" alt="Nebelhorn">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Nebelhorn</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Nebelhorn-Oberstdorf</p>
+                </div>
+            </div>
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=14246&2&format=44" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=14246&2&format=44" class="webcam-img" loading="lazy" alt="Schloss Hohenschwangau">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Schloss Hohenschwangau</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Hohenschwangau</p>
+                </div>
+            </div>
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=12246&2&format=12" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=12246&2&format=12" class="webcam-img" loading="lazy" alt="Mittaggipfel">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Mittaggipfel</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Immenstadt</p>
+                </div>
+            </div>
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=14587&2&format=12" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=14587&2&format=12" class="webcam-img" loading="lazy" alt="Balderschwang">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Balderschwang</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Balderschwang</p>
+                </div>
+            </div>
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=10858&2&format=12" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=10858&2&format=12" class="webcam-img" loading="lazy" alt="Söllereck / Oberstdorf">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Söllereck / Oberstdorf</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Oberstdorf</p>
+                </div>
+            </div>
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=5540&2&format=44" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=5540&2&format=44" class="webcam-img" loading="lazy" alt="Skizentrum Steinach / Pfronten">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Skizentrum Steinach / Pfronten</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Pfronten</p>
+                </div>
+            </div>
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=5577&2&format=44" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=5577&2&format=44" class="webcam-img" loading="lazy" alt="Breitenberg Bergstation">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Breitenberg Bergstation</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Pfronten</p>
+                </div>
+            </div>
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=1448&2&format=44" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=1448&2&format=44" class="webcam-img" loading="lazy" alt="Talstation (Tegelberg)">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Talstation (Tegelberg)</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Schwangau</p>
+                </div>
+            </div>
+            <div class="webcam-card">
+                <a href="https://images.bergfex.at/webcams/?id=1449&2&format=44" target="_blank">
+                    <img src="https://images.bergfex.at/webcams/?id=1449&2&format=44" class="webcam-img" loading="lazy" alt="Tegelbergbahn Bergstation">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">Tegelbergbahn Bergstation</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">Schwangau</p>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+             const webcams = [{"title":"Kanzelwand / Fellhorn","location":"Fellhorn","imageUrl":"https://images.bergfex.at/webcams/?id=12206&2&format=44","lat":47.35,"lon":10.25},{"title":"Nebelhorn","location":"Nebelhorn-Oberstdorf","imageUrl":"https://images.bergfex.at/webcams/?id=4971&2&format=44","lat":47.4,"lon":10.35},{"title":"Schloss Hohenschwangau","location":"Hohenschwangau","imageUrl":"https://images.bergfex.at/webcams/?id=14246&2&format=44","lat":47.55,"lon":10.74},{"title":"Mittaggipfel","location":"Immenstadt","imageUrl":"https://images.bergfex.at/webcams/?id=12246&2&format=12","lat":47.55,"lon":10.18},{"title":"Balderschwang","location":"Balderschwang","imageUrl":"https://images.bergfex.at/webcams/?id=14587&2&format=12","lat":47.46,"lon":10.1},{"title":"Söllereck / Oberstdorf","location":"Oberstdorf","imageUrl":"https://images.bergfex.at/webcams/?id=10858&2&format=12","lat":47.38,"lon":10.25},{"title":"Skizentrum Steinach / Pfronten","location":"Pfronten","imageUrl":"https://images.bergfex.at/webcams/?id=5540&2&format=44","lat":47.58,"lon":10.56},{"title":"Breitenberg Bergstation","location":"Pfronten","imageUrl":"https://images.bergfex.at/webcams/?id=5577&2&format=44","lat":47.55,"lon":10.57},{"title":"Talstation (Tegelberg)","location":"Schwangau","imageUrl":"https://images.bergfex.at/webcams/?id=1448&2&format=44","lat":47.57,"lon":10.75},{"title":"Tegelbergbahn Bergstation","location":"Schwangau","imageUrl":"https://images.bergfex.at/webcams/?id=1449&2&format=44","lat":47.56,"lon":10.76}];
+             const map = L.map('map').setView([47.45, 10.3], 9);
+             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+             webcams.forEach(cam => {
+                 if(cam.lat && cam.lon) {
+                    L.marker([cam.lat, cam.lon]).bindPopup(`<b>${cam.title}</b><br><img src="${cam.imageUrl}" width="150">`).addTo(map);
+                 }
+             });
+        </script>
+    </div>
+</body>
+</html>

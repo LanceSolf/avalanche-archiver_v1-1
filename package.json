@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "dotenv": "^17.2.3",
+    "leaflet": "^1.9.4",
     "puppeteer": "^24.35.0"
   },
   "devDependencies": {

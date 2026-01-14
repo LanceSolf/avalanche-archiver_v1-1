@@ -1,0 +1,22 @@
+[
+    {
+        "id": "1705260000000",
+        "date": "2024-01-14T10:00:00.000Z",
+        "user": "Hansi Hinterseer",
+        "location": "Nebelhorn (Test)",
+        "comment": "Super snow conditions today! Powder everywhere.",
+        "lat": 47.40,
+        "lon": 10.35,
+        "approved": true
+    },
+    {
+        "id": "1705173600000",
+        "date": "2024-01-13T14:30:00.000Z",
+        "user": "Lena Neuner",
+        "location": "Fellhorn (Test)",
+        "comment": "Be careful on the ridge, some wind drift visible.",
+        "lat": 47.35,
+        "lon": 10.25,
+        "approved": true
+    }
+]

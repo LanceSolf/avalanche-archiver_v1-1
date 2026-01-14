@@ -68,6 +68,7 @@ function generateIndexPage(title, relativePath, links, isIncident = false, backL
         <header>
             <div class="header-content">
                 <a href="${relativePath}index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>${title}</span></div>
             </div>
         </header>
 
@@ -125,7 +126,7 @@ function generateProfileDetailPage(p, profileImageBaseName, relativePath, backLi
 </head>
 <body>
     <div class="container">
-        <header><div class="header-content"><a href="${relativePath}index.html" class="logo">Avalanche Archive</a></div></header>
+        <header><div class="header-content"><a href="${relativePath}index.html" class="logo">Avalanche Archive</a><div class="date-nav"><span>Snow Profiles</span></div></div></header>
         
         ${backLink ? `<a href="${backLink}" id="dynamic-back-link" class="back-link">&larr; Back</a>` : ''}
 
@@ -203,7 +204,7 @@ function generateWeatherPage(w, content) {
 </head>
 <body>
     <div class="container">
-        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a></div></header>
+        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a><div class="date-nav"><span>Mountain Weather</span></div></div></header>
         <div style="margin-bottom:1rem;"><a href="#" onclick="history.back(); return false;">&larr; Back</a></div>
         <h1>Mountain Weather Report</h1>
         <h2 style="color: #666; font-weight: 400;">${w.date} (Issued: ${w.issued})</h2>
@@ -218,7 +219,7 @@ function generateWeatherPage(w, content) {
 /**
  * Generate Incident Weather Context Page (Chart + Text)
  */
-function generateIncidentWeatherPage(inc, weatherHtml, historicText) {
+function generateIncidentWeatherPage(inc, weatherHtml, historicText, dailyWeatherLink) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -229,7 +230,7 @@ function generateIncidentWeatherPage(inc, weatherHtml, historicText) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .chart-container { position: relative; height: 400px; width: 100%; margin-bottom: 2rem; }
-        .weather-text { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid var(--primary-blue); }
+        .weather-text { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
         .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .meta-item { background: white; padding: 1rem; border-radius: 4px; border: 1px solid #eee; }
         .meta-label { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -238,7 +239,7 @@ function generateIncidentWeatherPage(inc, weatherHtml, historicText) {
 </head>
 <body>
     <div class="container">
-        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a></div></header>
+        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a><div class="date-nav"><span>Weather Context</span></div></div></header>
         <div style="margin-bottom:1rem;"><a href="index.html">&larr; Back to Incidents</a></div>
         
         <h1>Weather Context</h1>
@@ -247,6 +248,9 @@ function generateIncidentWeatherPage(inc, weatherHtml, historicText) {
         <div class="weather-text">
             <h3>Weather Report (${inc.date})</h3>
             ${historicText ? `<p style="white-space: pre-line;">${historicText}</p>` : '<p>No text report available for this specific location/date in historic records.</p>'}
+            ${dailyWeatherLink ? `<div style="margin-top:1rem; padding-top:1rem; border-top:1px solid #e5e7eb;">
+                <a href="${dailyWeatherLink}" style="color:#0284c7; font-weight:bold; text-decoration:none;">&rarr; View Full Mountain Weather Forecast</a>
+            </div>` : ''}
         </div>
 
         <h3>Station Data: ${inc.closestStation.name} (${inc.closestStation.dist}km away)</h3>
@@ -353,6 +357,7 @@ function generateIncidentPage(inc, imagesHtml, weatherLink, profilesHtml, relati
         <header>
              <div class="header-content">
                 <a href="../../index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>Avalanche Incidents</span></div>
              </div>
         </header>
 
@@ -415,10 +420,442 @@ function generateIncidentPage(inc, imagesHtml, weatherLink, profilesHtml, relati
 </html>`;
 }
 
+/**
+ * Generate Ground Conditions Index Page
+ */
+function generateGroundConditionsPage(data) {
+    const { uploads, webcamCount } = data;
+    const uploadCards = uploads.map(u => {
+        const dateStr = new Date(u.date).toLocaleDateString();
+        return `
+        <a href="uploads/${u.id || new Date(u.date).getTime()}.html" class="archive-item">
+            <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                <span style="font-size:0.85rem; color:#64748b; font-weight:500;">${dateStr}</span>
+                 ${u.image ? '<span style="font-size:1.1rem; flex-shrink:0;" title="Has Image">📷</span>' : ''}
+                <span style="font-size:1rem; color:#1e293b;">Uploaded by ${u.user}</span>
+                <span style="font-size:0.85rem; color:#64748b; font-style:italic;">"${u.comment.substring(0, 30)}${u.comment.length > 30 ? '...' : ''}"</span>
+            </div>
+        </a>`;
+    }).join('');
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ground Conditions</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        .tagline-container { text-align: center; margin-bottom: 3rem; padding: 2rem; background: #f0f9ff; border-radius: 12px; border: 1px solid #bae6fd; }
+        .tagline-main { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; font-size: 1.5rem; color: #0369a1; margin-bottom: 0.5rem; }
+        .tagline-sub { font-size: 0.9rem; color: #0c4a6e; opacity: 0.8; }
+        .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .action-card { padding: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: inherit; transition: transform 0.2s; border: 2px solid transparent; }
+        .action-card:hover { transform: translateY(-4px); border-color: #0284c7; }
+        .action-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+        .action-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; display: block; }
+        .map-container { height: 400px; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 2rem; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="../../index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>Ground Conditions</span></div>
+            </div>
+        </header>
+
+        <div class="tagline-container">
+            <h2 class="tagline-main">If you find good snow let your fellow skiers know! ❄️</h2>
+            <div class="tagline-sub">and if it's not good definately share it so we can mark and avoid! 🏔️</div>
+        </div>
+
+        <div class="action-grid">
+            <a href="../webcams/index.html" class="action-card">
+                <span class="action-icon">📹</span>
+                <span class="action-title">Allgäu Webcams</span>
+                <span style="display:block; margin-top:0.5rem; color:#64748b;">${webcamCount} Live Views</span>
+            </a>
+            <a href="upload.html" class="action-card" style="background:#fefce8; border-color:#fef08a;">
+                <span class="action-icon">⛷️</span>
+                <span class="action-title">Skier Upload</span>
+                <span style="display:block; margin-top:0.5rem; color:#854d0e;">Submit Report</span>
+            </a>
+        </div>
+
+        <h2>Report Map</h2>
+        <div id="map" class="map-container"></div>
+
+        <h2>Recent Reports</h2>
+        ${uploads.length > 0 ? `<div class="archive-list">${uploadCards}</div>` : '<p style="text-align:center; color:#64748b; padding:2rem;">No reports in the last 7 days. Be the first!</p>'}
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+            const uploads = ${JSON.stringify(uploads)};
+            const map = L.map('map').setView([47.45, 10.3], 9); // Center on Allgau
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            uploads.forEach(u => {
+                if (u.lat && u.lon) {
+                    const marker = L.marker([u.lat, u.lon]).addTo(map);
+                    const link = 'uploads/' + (u.id || new Date(u.date).getTime()) + '.html';
+                    marker.bindPopup(\`<b>\${u.user}</b><br>\${u.date}<br><a href="\${link}">View Report</a>\`);
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>`;
+}
+
+/**
+ * Generate Upload Form Page
+ */
+function generateUploadPage() {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skier Upload</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        .upload-form { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b; }
+        input[type="text"], textarea, select { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
+        input[type="file"] { width: 100%; padding: 0.5rem; border: 1px dashed #cbd5e1; border-radius: 6px; }
+        button { background: #0284c7; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
+        button:hover { background: #0369a1; }
+        .map-picker { height: 300px; width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 0.5rem; }
+        .status-msg { margin-top: 1rem; padding: 1rem; border-radius: 6px; display: none; }
+        .success { background: #dcfce7; color: #166534; }
+        .error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="../../index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>Submit Report</span></div>
+            </div>
+        </header>
+        <div style="margin-bottom:1rem;"><a href="index.html">&larr; Back to Ground Conditions</a></div>
+
+        <div class="upload-form">
+            <h1>❄️ Skier Upload</h1>
+            <p style="margin-bottom:2rem; color:#64748b;">Share your observations. Photos will be scanned for location data.</p>
+            
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="name" required placeholder="e.g. Hansi Hinterseer">
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <select id="dateSelect"></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Photo (Optional)</label>
+                    <input type="file" id="photo" accept="image/*">
+                    <div id="locationStatus" style="font-size:0.85rem; color:#64748b; margin-top:0.5rem;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Location (Tap to mark)</label>
+                    <div id="pickerMap" class="map-picker"></div>
+                    <input type="hidden" id="lat">
+                    <input type="hidden" id="lon">
+                </div>
+
+                <div class="form-group">
+                    <label>Comments</label>
+                    <textarea id="comment" rows="4" placeholder="How was the snow? Any hazards?"></textarea>
+                </div>
+
+                <button type="submit">Submit Report</button>
+                <div id="status" class="status-msg"></div>
+            </form>
+        </div>
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <!-- EXIF JS for reading geo tags -->
+        <script src="https://cdn.jsdelivr.net/npm/exif-js"></script> 
+        <script>
+            // 1. Date Dropdown (Today + 4 days back)
+            const dateSelect = document.getElementById('dateSelect');
+            const today = new Date();
+            for(let i=0; i<5; i++) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+                const opt = document.createElement('option');
+                opt.value = d.toISOString();
+                opt.text = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString();
+                dateSelect.add(opt);
+            }
+
+            // 2. Map Picker
+            const map = L.map('pickerMap').setView([47.45, 10.3], 9);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM' }).addTo(map);
+            
+            let marker;
+            function setLocation(lat, lng) {
+                if(marker) map.removeLayer(marker);
+                marker = L.marker([lat, lng]).addTo(map);
+                document.getElementById('lat').value = lat;
+                document.getElementById('lon').value = lng;
+            }
+
+            map.on('click', function(e) {
+                setLocation(e.latlng.lat, e.latlng.lng);
+            });
+
+            // 3. EXIF Extraction
+            document.getElementById('photo').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if(file) {
+                    EXIF.getData(file, function() {
+                        const lat = EXIF.getTag(this, "GPSLatitude");
+                        const lon = EXIF.getTag(this, "GPSLongitude");
+                        
+                        // Convert DMS to DD
+                        if(lat && lon && lat.length === 3 && lon.length === 3) {
+                             const toDecimal = (n) => n[0] + n[1]/60 + n[2]/3600;
+                             const latDec = toDecimal(lat);
+                             const lonDec = toDecimal(lon);
+                             
+                             // Check ref (N/S, E/W) - Simplified assumption for Alps (N, E)
+                             
+                             setLocation(latDec, lonDec);
+                             map.setView([latDec, lonDec], 14);
+                             document.getElementById('locationStatus').innerText = "✅ Location found in photo!";
+                        } else {
+                            document.getElementById('locationStatus').innerText = "⚠️ No location in photo. Please tap the map.";
+                             // Try Geolocation API
+                             if(navigator.geolocation) {
+                                 navigator.geolocation.getCurrentPosition(pos => {
+                                     setLocation(pos.coords.latitude, pos.coords.longitude);
+                                      map.setView([pos.coords.latitude, pos.coords.longitude], 12);
+                                 });
+                             }
+                        }
+                    });
+                }
+            });
+
+            // 4. Submit
+            document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                btn.disabled = true;
+                btn.innerText = 'Uploading...';
+
+                const data = {
+                    user: document.getElementById('name').value,
+                    date: dateSelect.value,
+                    comment: document.getElementById('comment').value,
+                    lat: document.getElementById('lat').value,
+                    lon: document.getElementById('lon').value,
+                    // TODO: Handle Image Upload (Base64)
+                };
+
+                // Read Image as Base64
+                const fileInput = document.getElementById('photo');
+                if (fileInput.files.length > 0) {
+                     const reader = new FileReader();
+                     reader.onload = async function() {
+                         data.image = reader.result; // Base64 string
+                         await sendData(data);
+                     };
+                     reader.readAsDataURL(fileInput.files[0]);
+                } else {
+                    await sendData(data);
+                }
+
+                async function sendData(payload) {
+                    try {
+                        const statusDiv = document.getElementById('status');
+                        // POST to Cloudflare Worker
+                        const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev';
+                        
+                        // For demo purposes (mock) -> Switched to Real
+                        // console.log('Would upload:', payload);
+                        
+                        statusDiv.style.display = 'block';
+                        statusDiv.className = 'status-msg';
+                        statusDiv.innerText = 'Uploading...';
+                        
+                        const res = await fetch(WORKER_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if(res.ok) {
+                            statusDiv.className = 'status-msg success';
+                            statusDiv.innerText = 'Report Submitted! (Pending approval/display on next site build)';
+                            e.target.reset();
+                            // Clear map
+                            if(marker) map.removeLayer(marker);
+                            document.getElementById('lat').value = '';
+                            document.getElementById('lon').value = '';
+                            document.getElementById('locationStatus').innerText = '';
+                        } else {
+                            throw new Error('Upload failed');
+                        }
+
+                    } catch(err) {
+                        alert('Error uploading');
+                        const statusDiv = document.getElementById('status');
+                        statusDiv.className = 'status-msg error';
+                        statusDiv.innerText = 'Error uploading report.';
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = 'Submit Report';
+                    }
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>`;
+}
+
+/**
+ * Generate Webcams Page
+ */
+function generateWebcamPage(webcams) {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allgäu Webcams</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        .webcam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .webcam-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .webcam-img { width: 100%; height: 180px; object-fit: cover; display: block; background: #f1f5f9; }
+        .webcam-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
+        .area-pil { padding: 0.25rem 0.75rem; background: white; border: 1px solid #cbd5e1; border-radius: 99px; font-size: 0.85rem; cursor: pointer; }
+        .area-pil:hover, .area-pil.active { background: #0284c7; color: white; border-color: #0284c7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="../../index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>Webcams</span></div>
+            </div>
+        </header>
+         <div style="margin-bottom:1rem;"><a href="../ground-conditions/index.html">&larr; Back to Ground Conditions</a></div>
+
+        <h1>Allgäu Webcams</h1>
+
+        <!-- Map showing webcam locations -->
+        <div id="map" style="height: 400px; width: 100%; border-radius: 12px; margin-bottom: 2rem;"></div>
+
+        <div class="webcam-grid">
+            ${webcams.map(cam => `
+            <div class="webcam-card">
+                <a href="${cam.imageUrl}" target="_blank">
+                    <img src="${cam.imageUrl}" class="webcam-img" loading="lazy" alt="${cam.title}">
+                </a>
+                <div style="padding:1rem;">
+                    <h3 style="margin:0; font-size:1rem;">${cam.title}</h3>
+                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.85rem;">${cam.location}</p>
+                </div>
+            </div>`).join('')}
+        </div>
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+             const webcams = ${JSON.stringify(webcams)};
+             const map = L.map('map').setView([47.45, 10.3], 9);
+             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+             webcams.forEach(cam => {
+                 if(cam.lat && cam.lon) {
+                    L.marker([cam.lat, cam.lon]).bindPopup(\`<b>\${cam.title}</b><br><img src="\${cam.imageUrl}" width="150">\`).addTo(map);
+                 }
+             });
+        </script>
+    </div>
+</body>
+</html>`;
+}
+
+/**
+ * Generate User Upload Detail Page
+ */
+function generateUserUploadDetailPage(upload) {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report by ${upload.user}</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="../../index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>Report Detail</span></div>
+            </div>
+        </header>
+        <div style="margin-bottom:1rem;"><a href="../index.html">&larr; Back to Ground Conditions</a></div>
+
+        <h1>Skier Report</h1>
+        <div style="background:white; padding:2rem; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); border:1px solid #e2e8f0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid #eee; padding-bottom:1rem;">
+                <div>
+                   <h2 style="margin:0; color:#0f172a;">${upload.user}</h2>
+                   <div style="color:#64748b; margin-top:0.25rem;">${new Date(upload.date).toLocaleDateString()} ${new Date(upload.date).toLocaleTimeString()}</div>
+                </div>
+            </div>
+
+            ${upload.image ? `<div style="margin-bottom:2rem;"><img src="${upload.image}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;"></div>` : ''}
+
+            <p style="font-size:1.1rem; line-height:1.7; color:#334155;">${upload.comment}</p>
+
+            ${(upload.lat && upload.lon) ? `
+            <div style="margin-top:2rem;">
+                <h3>Location</h3>
+                <div id="map" style="height:300px; width:100%; border-radius:8px;"></div>
+                <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                <script>
+                    const map = L.map('map').setView([${upload.lat}, ${upload.lon}], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                    L.marker([${upload.lat}, ${upload.lon}]).addTo(map);
+                </script>
+            </div>` : ''}
+        </div>
+    </div>
+</body>
+</html>`;
+}
+
 module.exports = {
     generateIndexPage,
     generateProfileDetailPage,
     generateWeatherPage,
     generateIncidentWeatherPage,
-    generateIncidentPage
+    generateIncidentPage,
+    generateGroundConditionsPage,
+    generateUploadPage,
+    generateWebcamPage,
+    generateUserUploadDetailPage
 };

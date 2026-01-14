@@ -64,6 +64,29 @@ function buildProfilePages() {
     const profilesDir = path.join(PATHS.archive, 'profiles');
     if (!fs.existsSync(profilesDir)) fs.mkdirSync(profilesDir, { recursive: true });
 
+    // --- CLEANUP: Remove stale profile pages ---
+    // Only keep profiles that are in the current 'profiles' list.
+    try {
+        const expectedFiles = new Set(profiles.map(p => `${p.profil_id || p.id}.html`));
+        expectedFiles.add('index.html');
+        expectedFiles.add('map.html');
+
+        const existingFiles = fs.readdirSync(profilesDir);
+        existingFiles.forEach(file => {
+            if (file.endsWith('.html') && !expectedFiles.has(file)) {
+                // console.log(`Cleaning up stale profile: ${file}`);
+                try {
+                    fs.unlinkSync(path.join(profilesDir, file));
+                } catch (err) {
+                    console.error(`Failed to delete stale profile ${file}:`, err);
+                }
+            }
+        });
+    } catch (e) {
+        console.error('Error during profile cleanup:', e);
+    }
+    // -------------------------------------------
+
     // Copy map if exists (legacy)
     const mapSrc = path.join(PATHS.profiles || path.join(PATHS.root, 'tools'), 'map.html');
     if (fs.existsSync(mapSrc)) {
@@ -171,7 +194,7 @@ function buildProfilePages() {
 </head>
 <body>
     <div class="container">
-        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a></div></header>
+        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a><div class="date-nav"><span>Snow Profiles</span></div></div></header>
         
         <h1>Latest Snow Profiles (Last 48 Hours)</h1>
 

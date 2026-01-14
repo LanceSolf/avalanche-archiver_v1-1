@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .chart-container { position: relative; height: 400px; width: 100%; margin-bottom: 2rem; }
-        .weather-text { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid var(--primary-blue); }
+        .weather-text { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
         .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .meta-item { background: white; padding: 1rem; border-radius: 4px; border: 1px solid #eee; }
         .meta-label { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -17,7 +17,7 @@
 </head>
 <body>
     <div class="container">
-        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a></div></header>
+        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a><div class="date-nav"><span>Weather Context</span></div></div></header>
         <div style="margin-bottom:1rem;"><a href="index.html">&larr; Back to Incidents</a></div>
         
         <h1>Weather Context</h1>
@@ -27,6 +27,7 @@
             <h3>Weather Report (2020-12-10 11:22:00)</h3>
             <p style="white-space: pre-line;">On 9 December 2020, temperatures were cold and stable, averaging –1.7 °C. Snowfall was light to moderate, totaling around 4.0 mm water equivalent. Snow depth increased from 0.33 m to 0.38 m, indicating steady accumulation. Winds were light to moderate, averaging 3.7 km/h, with a westerly flow. Total precipitation reached around 5.0 mm.
 Source: Open‑Meteo Historical Forecast API.</p>
+            
         </div>
 
         <h3>Station Data: Fellhorn (1967m) (9.3km away)</h3>

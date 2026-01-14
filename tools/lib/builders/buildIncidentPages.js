@@ -209,10 +209,20 @@ function buildIncidentPages() {
                 historicText = historicWeatherMap.get(dateKey);
             }
 
+            // Check for Daily Weather Report file
+            let dailyWeatherLink = null;
+            if (dateKey) {
+                const dailyWeatherFile = path.join(PATHS.archive, 'weather', `${dateKey}.html`);
+                if (fs.existsSync(dailyWeatherFile)) {
+                    dailyWeatherLink = `../weather/${dateKey}.html`;
+                }
+            }
+
             const weatherHtml = generateIncidentWeatherPage(
                 { ...inc, closestStation, weatherData },
                 '',
-                historicText
+                historicText,
+                dailyWeatherLink
             );
 
             const weatherFileName = `weather_${inc.id}.html`;

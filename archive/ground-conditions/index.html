@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ground Conditions</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        .tagline-container { text-align: center; margin-bottom: 3rem; padding: 2rem; background: #f0f9ff; border-radius: 12px; border: 1px solid #bae6fd; }
+        .tagline-main { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; font-size: 1.5rem; color: #0369a1; margin-bottom: 0.5rem; }
+        .tagline-sub { font-size: 0.9rem; color: #0c4a6e; opacity: 0.8; }
+        .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .action-card { padding: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: inherit; transition: transform 0.2s; border: 2px solid transparent; }
+        .action-card:hover { transform: translateY(-4px); border-color: #0284c7; }
+        .action-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+        .action-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; display: block; }
+        .map-container { height: 400px; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 2rem; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="../../index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>Ground Conditions</span></div>
+            </div>
+        </header>
+
+        <div class="tagline-container">
+            <h2 class="tagline-main">If you find good snow let your fellow skiers know! ❄️</h2>
+            <div class="tagline-sub">and if it's not good definately share it so we can mark and avoid! 🏔️</div>
+        </div>
+
+        <div class="action-grid">
+            <a href="../webcams/index.html" class="action-card">
+                <span class="action-icon">📹</span>
+                <span class="action-title">Allgäu Webcams</span>
+                <span style="display:block; margin-top:0.5rem; color:#64748b;">10 Live Views</span>
+            </a>
+            <a href="upload.html" class="action-card" style="background:#fefce8; border-color:#fef08a;">
+                <span class="action-icon">⛷️</span>
+                <span class="action-title">Skier Upload</span>
+                <span style="display:block; margin-top:0.5rem; color:#854d0e;">Submit Report</span>
+            </a>
+        </div>
+
+        <h2>Report Map</h2>
+        <div id="map" class="map-container"></div>
+
+        <h2>Recent Reports</h2>
+        <p style="text-align:center; color:#64748b; padding:2rem;">No reports in the last 7 days. Be the first!</p>
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+            const uploads = [];
+            const map = L.map('map').setView([47.45, 10.3], 9); // Center on Allgau
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            uploads.forEach(u => {
+                if (u.lat && u.lon) {
+                    const marker = L.marker([u.lat, u.lon]).addTo(map);
+                    const link = 'uploads/' + (u.id || new Date(u.date).getTime()) + '.html';
+                    marker.bindPopup(`<b>${u.user}</b><br>${u.date}<br><a href="${link}">View Report</a>`);
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

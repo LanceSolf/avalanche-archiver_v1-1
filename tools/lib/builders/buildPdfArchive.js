@@ -89,7 +89,7 @@ function buildPdfArchive() {
         // Generate Region Index (List of Months)
         const sortedMonths = Object.keys(monthsData).sort().reverse();
         const monthsHtml = generateIndexPage(
-            `Archive: ${config.label}`,
+            config.label,
             `../../`,
             sortedMonths.map(m => ({ text: getMonthName(m), href: `${m}/index.html` })),
             false,
@@ -241,6 +241,7 @@ function buildPdfArchive() {
         <header>
             <div class="header-content">
                 <a href="../../../index.html" class="logo">Avalanche Archive</a>
+                <div class="date-nav"><span>${config.label}</span></div>
             </div>
         </header>
 

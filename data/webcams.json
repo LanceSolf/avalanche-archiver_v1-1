@@ -1,0 +1,72 @@
+[
+    {
+        "title": "Kanzelwand / Fellhorn",
+        "location": "Fellhorn",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=12206&2&format=44",
+        "lat": 47.35,
+        "lon": 10.25
+    },
+    {
+        "title": "Nebelhorn",
+        "location": "Nebelhorn-Oberstdorf",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=4971&2&format=44",
+        "lat": 47.40,
+        "lon": 10.35
+    },
+    {
+        "title": "Schloss Hohenschwangau",
+        "location": "Hohenschwangau",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=14246&2&format=44",
+        "lat": 47.55,
+        "lon": 10.74
+    },
+    {
+        "title": "Mittaggipfel",
+        "location": "Immenstadt",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=12246&2&format=12",
+        "lat": 47.55,
+        "lon": 10.18
+    },
+    {
+        "title": "Balderschwang",
+        "location": "Balderschwang",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=14587&2&format=12",
+        "lat": 47.46,
+        "lon": 10.10
+    },
+    {
+        "title": "Söllereck / Oberstdorf",
+        "location": "Oberstdorf",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=10858&2&format=12",
+        "lat": 47.38,
+        "lon": 10.25
+    },
+    {
+        "title": "Skizentrum Steinach / Pfronten",
+        "location": "Pfronten",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=5540&2&format=44",
+        "lat": 47.58,
+        "lon": 10.56
+    },
+    {
+        "title": "Breitenberg Bergstation",
+        "location": "Pfronten",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=5577&2&format=44",
+        "lat": 47.55,
+        "lon": 10.57
+    },
+    {
+        "title": "Talstation (Tegelberg)",
+        "location": "Schwangau",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=1448&2&format=44",
+        "lat": 47.57,
+        "lon": 10.75
+    },
+    {
+        "title": "Tegelbergbahn Bergstation",
+        "location": "Schwangau",
+        "imageUrl": "https://images.bergfex.at/webcams/?id=1449&2&format=44",
+        "lat": 47.56,
+        "lon": 10.76
+    }
+]
