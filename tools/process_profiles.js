@@ -43,8 +43,8 @@ function downloadImage(url, profileId) {
 
 
 // Configuration
-const MATCH_DIST_KM = 0.5; // 500m
-const MATCH_TIME_DAYS = 7;
+const MATCH_DIST_KM = 1.0; // 1km
+const MATCH_TIME_DAYS = 2; // 48hrs
 const RECENT_WINDOW_DAYS = 2;
 
 // Helper to fetch JSON
@@ -195,7 +195,19 @@ function getDistance(lat1, lon1, lat2, lon2) {
     console.log(`Matched profiles to ${mtachedCount} incidents.`);
     console.log(`Found ${recentProfiles.length} recent profiles in region.`);
 
-    // 4. Save
+    // 4. Download images for recent profiles
+    console.log('Downloading images for recent profiles...');
+    for (const p of recentProfiles) {
+        const imgUrl = `https://lawis.at/lawis_api/v2_3/files/profiles/snowprofile_${p.profil_id}.png?v=${p.revision || 1}`;
+        const destPath = path.join(IMAGES_DIR, `snowprofile_${p.profil_id}.png`);
+        try {
+            await downloadImage(imgUrl, destPath);
+        } catch (e) {
+            console.error(`Error downloading profile image ${p.profil_id}:`, e.message);
+        }
+    }
+
+    // 5. Save
     fs.writeFileSync(INCIDENTS_FILE, JSON.stringify(incidents, null, 2));
 
     // Sort recent by date desc

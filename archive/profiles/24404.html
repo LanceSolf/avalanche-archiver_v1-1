@@ -3,32 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snow Profile: Jöchelspitze Standprofil</title>
+    <title>Profile: Jöchelspitze Standprofil</title>
     <link rel="stylesheet" href="../../styles.css">
+    <style>
+        .profile-layout { display: flex; flex-wrap: wrap; gap: 2rem; margin-top: 2rem; }
+        .profile-meta { flex: 1; min-width: 300px; }
+        .profile-image { flex: 2; min-width: 300px; }
+        .profile-image img { width: 100%; height: auto; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        td { padding: 0.5rem; border-bottom: 1px solid #eee; }
+        td:first-child { font-weight: bold; color: #555; width: 120px; }
+        .back-link { margin-bottom: 1rem; display: block; color: var(--primary-blue); text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="header-content">
-                 <a href="../../index.html" class="logo">Avalanche Archive</a>
-            </div>
-        </header>
+        <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a></div></header>
         
-        <h1>Snow Profile: Jöchelspitze Standprofil</h1>
-        <div style="margin-bottom: 1rem;"><a href="index.html">&larr; Back</a></div>
-        <div class="meta-item"><strong>Date:</strong> 2026-01-11 14:50:00</div>
-        <div class="meta-item"><strong>Elevation:</strong> 1697m</div>
-        <div class="meta-item"><strong>Location:</strong> <a href="map.html?lat=47.27295&lon=10.36491" style="color:#0284c7; text-decoration:underline;">47.27295, 10.36491</a></div>
-        
-        <div style="margin-top:20px; text-align:center;">
-            <img src="https://lawis.at/lawis_api/v2_3/files/profiles/snowprofile_24404.png" style="max-width:100%; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-        </div>
+        <a href="index.html" class="back-link">&larr; Back</a>
 
-        <div style="margin-top:2rem; text-align:center;">
-            <a href="https://lawis.at/profile/24404" target="_blank" style="color:#666; text-decoration:underline;">Source: Lawis Austria</a>
+        <h1>Snow Profile: Jöchelspitze Standprofil</h1>
+        <div class="profile-layout">
+            <div class="profile-meta">
+                <h2>Metadata</h2>
+                <table>
+                    <tr><td>Date</td><td>2026-01-11 14:50:00</td></tr><tr><td>Location</td><td>Jöchelspitze Standprofil</td></tr><tr><td>Elevation</td><td>1697 m</td></tr><tr><td>Aspect</td><td>-</td></tr><tr><td>Incline</td><td>undefined°</td></tr>
+                </table>
+                <div style="margin-top: 2rem;">
+                   <a href="https://lawis.at/profile/24404" target="_blank" class="button">View on LAWIS.at</a>
+                </div>
+            </div>
+            <div class="profile-image">
+                <a href="images/snowprofile_24404.png" target="_blank">
+                    <img src="images/snowprofile_24404.png" alt="Snow Profile Image">
+                </a>
+            </div>
         </div>
-        
-        <div style="margin-top:2rem"><a href="map.html">&larr; Back to Map</a> | <a href="index.html">List View</a></div>
     </div>
 </body>
 </html>

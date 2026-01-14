@@ -252,16 +252,7 @@ a {
 }
 
 /* Footer Link */
-.incident-links a {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  border-bottom: 1px dotted var(--text-secondary);
-}
-
-.incident-links a:hover {
-  color: var(--primary-blue);
-  border-bottom-style: solid;
-}
+/* Footer Link - Use lawis-link class instead */
 
 /* Back Link */
 .back-link {
@@ -279,7 +270,29 @@ a {
     padding: 0 1rem;
   }
 
+
   .incident-detail-container {
     padding: 1.5rem;
   }
+}
+
+/* Generic Lawis Link */
+.lawis-link {
+  margin-top: 1rem;
+  display: inline-block;
+  color: #666;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.lawis-link:hover {
+  color: var(--primary-blue);
+  text-decoration: none;
+}
+
+/* Incident Item Hover (Red Theme) */
+.archive-item.incident-item:hover {
+  border-color: var(--accent-red) !important;
+  color: var(--accent-red) !important;
 }

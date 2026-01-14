@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snow Depth & Weather - Avalanche Archive</title>
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../../styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <style>
         .station-grid {
@@ -280,7 +280,7 @@
 
         async function loadData() {
             try {
-                const response = await fetch('../../data/weather_stations.json?v=' + Date.now());
+                const response = await fetch('../data/weather_stations.json?v=' + Date.now());
                 const data = await response.json();
                 allStations = data;
                 renderStations(data);
@@ -309,6 +309,18 @@
 
                 const card = document.createElement('div');
                 card.className = 'station-card';
+                card.id = `station-${index}`;
+
+                // Link details
+                // map.html resides in tools/ or archive/profiles/
+                // From map.html (in profiles/), back to snow depth: ../snow-depth/index.html
+                // User wants to remove 'archive/' prefix, so we go up two levels from archive/profiles/ to root
+                const linkUrl = `../../snow-depth/index.html`;
+
+                // Construct Map Link with Params
+                const mapLinkBase = '../archive/profiles/map.html';
+                const mapLink = `${mapLinkBase}?lat=${station.lat}&lon=${station.lon}&title=${encodeURIComponent('Selected Station')}&linkUrl=${encodeURIComponent(linkUrl)}&linkText=${encodeURIComponent('View Station Data')}`;
+
 
                 // Customize data grid based on source
                 let dataGridHtml = '';
@@ -368,7 +380,7 @@
                     </button>
                     <div class="station-header">
                         <h2 class="station-name">
-                            <a href="../profiles/map.html?lat=${station.lat}&lon=${station.lon}" target="_blank" style="text-decoration: none; color: inherit; border-bottom: 1px dotted currentColor;" title="View Location on Map">
+                            <a href="${mapLink}" style="text-decoration: none; color: inherit;" title="View Location on Map">
                                 ${station.name}
                             </a>
                         </h2>

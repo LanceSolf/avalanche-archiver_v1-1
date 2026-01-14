@@ -1,56 +1,32 @@
-const https = require('https');
 const fs = require('fs');
+const https = require('https');
 const path = require('path');
 const { processBulletinForPdfs } = require('./pdf_fetcher');
-
-const dataDir = path.join(__dirname, '../data');
-
-// Helper to get YYYY-MM-DD
-function formatDate(date) {
-    return date.toISOString().split('T')[0];
-}
+const { formatDate, log } = require('./lib/utils');
+const { SOURCES, PATHS } = require('./lib/config');
 
 // Determine target date
-// Default: Tomorrow (Date.now() + 24h)
+// Default: Today
 // Override: CLI argument (YYYY-MM-DD)
 let targetDate = new Date();
 if (process.argv[2]) {
     targetDate = new Date(process.argv[2]);
-} else {
-    // Default to today
 }
 
-const dateStr = formatDate(targetDate);
-// Define sources
-const SOURCES = [
-    {
-        name: 'DE-BY',
-        url: (date) => `https://static.avalanche.report/eaws_bulletins/eaws_bulletins/${date}/${date}-DE-BY.json`,
-        type: 'lawinen-warnung'
-    },
-    {
-        name: 'AT-08',
-        url: (date) => `https://static.avalanche.report/eaws_bulletins/eaws_bulletins/${date}/${date}-AT-08.json`,
-        type: 'lawinen-warnung'
-    },
-    {
-        name: 'AT-07',
-        url: (date) => `https://static.avalanche.report/eaws_bulletins/eaws_bulletins/${date}/${date}-AT-07.json`,
-        type: 'avalanche-report'
-    }
-];
-
 // Helper for Cache Directory
-const CACHE_DIR = path.join(dataDir, 'bulletin_cache');
+const CACHE_DIR = PATHS.bulletinCache;
 if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+
+// Stats tracking
+const stats = { fetched: 0, cached: 0, pdfsNew: 0, pdfsUpdated: 0, errors: 0 };
 
 // Helper to fetch and process a single source
 async function fetchAndProcess(source, dateStr) {
     const url = source.url(dateStr);
-    const dest = path.join(dataDir, `${source.name}_${dateStr}.json`);
+    const dest = path.join(PATHS.data, `${source.name}_${dateStr}.json`);
     const cacheFile = path.join(CACHE_DIR, `${source.name}_${dateStr}.json`);
 
-    console.log(`\nFetching ${source.name}: ${url}`);
+    log.info(`Fetching ${source.name}...`);
 
     return new Promise((resolve) => {
         const file = fs.createWriteStream(dest);
@@ -59,52 +35,55 @@ async function fetchAndProcess(source, dateStr) {
                 response.pipe(file);
                 file.on('finish', () => {
                     file.close(async () => {
-                        console.log(`  Saved temp to ${dest}`);
                         try {
                             const contentStr = fs.readFileSync(dest, 'utf-8');
-                            // const content = JSON.parse(contentStr); // Validate JSON
 
                             // Check Cache
                             let isNew = true;
                             if (fs.existsSync(cacheFile)) {
                                 const cacheStr = fs.readFileSync(cacheFile, 'utf-8');
                                 if (contentStr === cacheStr) {
-                                    console.log(`  JSON matches cached version. No changes for ${source.name}. Skipping PDF checks.`);
+                                    log.info(`${source.name}: No changes (cached)`);
+                                    stats.cached++;
                                     isNew = false;
                                 }
                             }
 
                             if (isNew) {
+                                stats.fetched++;
                                 // Process PDFs
                                 const content = JSON.parse(contentStr);
                                 const bulletins = Array.isArray(content) ? content : content.bulletins;
                                 if (bulletins) {
                                     for (const bulletin of bulletins) {
-                                        await processBulletinForPdfs(bulletin, dateStr, source.type);
+                                        const result = await processBulletinForPdfs(bulletin, dateStr, source.type);
+                                        if (result === 'new') stats.pdfsNew++;
+                                        if (result === 'updated') stats.pdfsUpdated++;
                                     }
                                 }
                                 // Update Cache
                                 fs.copyFileSync(dest, cacheFile);
-                                console.log(`  Updated cache: ${cacheFile}`);
+                                log.info(`${source.name}: Updated cache`);
                             }
 
                             // Cleanup JSON file
                             try {
                                 fs.unlinkSync(dest);
-                                // console.log(`  Cleaned up ${dest}`);
                             } catch (cleanupErr) {
-                                console.error(`  Failed to delete JSON: ${cleanupErr.message}`);
+                                log.error(`Failed to delete temp JSON`, cleanupErr);
                             }
 
                             resolve(true);
                         } catch (e) {
-                            console.error(`  Error processing ${source.name} JSON/PDFs:`, e.message);
+                            log.error(`${source.name} processing failed`, e);
+                            stats.errors++;
                             resolve(false);
                         }
                     });
                 });
             } else {
-                console.error(`  Failed to fetch ${source.name}. Status: ${response.statusCode}`);
+                log.warn(`${source.name}: HTTP ${response.statusCode}`);
+                stats.errors++;
                 file.close();
                 fs.unlink(dest, () => { });
                 resolve(false);
@@ -112,7 +91,8 @@ async function fetchAndProcess(source, dateStr) {
         });
 
         req.on('error', (err) => {
-            console.error(`  Network Error for ${source.name}: ${err.message}`);
+            log.error(`${source.name} network error`, err);
+            stats.errors++;
             fs.unlink(dest, () => { });
             resolve(false);
         });
@@ -124,25 +104,30 @@ async function fetchAndProcess(source, dateStr) {
     const dates = [targetDate];
 
     // If running automatically (no CLI arg) and it is evening (UTC Hour >= 15)
-    // 15:00 UTC = 16:00 CET / 17:00 CEST.
-    // Avalanche bulletins usually publish around 17:00 local time.
-    // So picking fetching Next Day's bulletin in the evening makes sense.
+    // Include tomorrow's bulletin
     if (!process.argv[2]) {
         const utcHour = new Date().getUTCHours();
         if (utcHour >= 15) {
             const tomorrow = new Date(targetDate);
             tomorrow.setDate(tomorrow.getDate() + 1);
             dates.push(tomorrow);
-            console.log(`Evening run detected (UTC ${utcHour}:00). Including tomorrow's bulletin.`);
+            log.info(`Evening run (UTC ${utcHour}:00). Including tomorrow.`);
         }
     }
 
     for (const date of dates) {
         const dStr = formatDate(date);
-        console.log(`\n=== Processing Date: ${dStr} ===`);
-        for (const source of SOURCES) {
-            await fetchAndProcess(source, dStr);
-        }
+        log.info(`=== Processing: ${dStr} ===`);
+
+        // Parallel fetch all sources for this date
+        await Promise.all(SOURCES.map(source => fetchAndProcess(source, dStr)));
     }
-    process.exit(0);
+
+    // Summary
+    log.info(`--- Summary ---`);
+    log.info(`Sources fetched: ${stats.fetched}, cached: ${stats.cached}`);
+    log.info(`PDFs new: ${stats.pdfsNew}, updated: ${stats.pdfsUpdated}`);
+    if (stats.errors > 0) log.warn(`Errors: ${stats.errors}`);
+
+    process.exit(stats.errors > 0 ? 1 : 0);
 })();

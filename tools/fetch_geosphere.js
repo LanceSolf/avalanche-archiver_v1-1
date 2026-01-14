@@ -1,231 +1,124 @@
-const https = require('https');
 const fs = require('fs');
-const path = require('path');
+const { fetchJson } = require('./lib/utils');
+const { TAWES_STATIONS, PATHS } = require('./lib/config');
 
-const OUTPUT_FILE = path.join(__dirname, '../data/weather_stations.json');
+const OUTPUT_FILE = PATHS.weatherStations;
+const DATASET = 'tawes-1h-station-messwerte';
 
-// TAWES IDs
-const STATIONS = [
-    { id: '11308', name: 'Warth (1475m)', region: 'Arlberg/Außerfern', lat: 47.250000, lon: 10.183300, elevation: 1475 },
-    { id: '11303', name: 'Schoppernau (839m)', region: 'Bregenzerwald', lat: 47.311389, lon: 10.017778, elevation: 839 },
-    { id: '11111', name: 'Tannheim (1100m)', region: 'Tannheimer Tal', lat: 47.500389, lon: 10.505861, elevation: 1100 }
-];
-
-const DATASET = 'tawes-v1-10min';
-const PARAMS = 'TL,RR,FF,DD'; // Temp, Precip, Wind Speed, Wind Dir
-
-// Calculate dates (Last 7 days)
-const today = new Date();
-const endStr = today.toISOString().split('T')[0];
-const start = new Date();
-start.setDate(today.getDate() - 7);
-const startStr = start.toISOString().split('T')[0];
-// TAWES Historical requires time? Based on test, TAWES IS available via historical endpoint.
-// We'll append T00:00 to be safe.
-const startISO = `${startStr}T00:00:00`;
-const endISO = `${endStr}T23:59:00`;
-
-const urlParams = new URLSearchParams();
-urlParams.append('start', startISO);
-urlParams.append('end', endISO);
-STATIONS.forEach(s => urlParams.append('station_ids', s.id));
-PARAMS.split(',').forEach(p => urlParams.append('parameters', p));
-
-const URL = `https://dataset.api.hub.geosphere.at/v1/station/historical/${DATASET}?${urlParams.toString()}`;
-
-console.log(`Fetching Austrian Weather Data from ${URL}...`);
-
-function fetchGeosphere() {
-    return new Promise((resolve, reject) => {
-        const options = {
-            headers: {
-                'User-Agent': 'AvalancheArchiver/1.0 (contact: admin@example.com)'
-            }
-        };
-        https.get(URL, options, (res) => {
-            if (res.statusCode !== 200) {
-                console.error(`API Error: ${res.statusCode} ${res.statusMessage}`);
-                let errData = '';
-                res.on('data', c => errData += c);
-                res.on('end', () => console.error('Error Details:', errData));
-                resolve([]);
-                return;
-            }
-
-            let data = '';
-            res.on('data', c => data += c);
-            res.on('end', () => {
-                try {
-                    const json = JSON.parse(data);
-                    if (!json.features || json.features.length === 0) {
-                        console.error('Empty features.');
-                    }
-                    resolve(json.features || []);
-                } catch (e) {
-                    console.error('JSON Parse Error:', e);
-                    resolve([]);
-                }
-            });
-        }).on('error', (e) => {
-            console.error('Network Error:', e);
-            resolve([]);
-        });
-    });
-}
-
-(async () => {
-    const features = await fetchGeosphere();
-    console.log(`Received ${features.length} station features.`);
-
-    if (features.length === 0) {
-        console.log('No data received from Geosphere.');
-        return;
-    }
-
-    // Load existing weather data
-    let stationData = [];
+const fetchGeosphere = async () => {
+    // 1. Load Existing Data
+    let existingStations = [];
     if (fs.existsSync(OUTPUT_FILE)) {
         try {
             const raw = fs.readFileSync(OUTPUT_FILE, 'utf8');
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed)) {
-                stationData = parsed;
+                existingStations = parsed;
             } else if (typeof parsed === 'object') {
-                // Legacy object support or empty
-                stationData = Object.values(parsed);
+                existingStations = Object.values(parsed);
             }
         } catch (e) {
-            console.error('Error reading existing data:', e);
-            throw e;
+            console.warn('Could not read existing weather_stations.json');
         }
     }
-    console.log(`Existing stations loaded: ${stationData.length}`);
 
-    // Convert to Map for easy update by ID/Name
-    // Key: Station name (unique enough for our mix of Bavaria/Austria)
-    const dataMap = new Map();
-    stationData.forEach(s => {
-        if (s.name) dataMap.set(s.name, s);
-    });
-    console.log('DEBUG: Initial Map Keys:', Array.from(dataMap.keys()));
+    // 2. Build TAWES Request
+    const now = new Date();
+    // Fetch last 7 days to match previous logic
+    const START_DATE = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();
 
-    // Aggregate TAWES 10min data to Daily
-    features.forEach((f, index) => {
-        const props = f.properties;
-        const sid = props.station;
+    const PARAMS = 'TL,RR,HS,DD,FF,FFX';
+    // TL = Temp, RR = Rain, HS = Snow Height, DD = Wind Dir, FF = Wind Speed, FFX = Gust
 
-        // DEBUG: Log parameters for the first station to check keys
-        if (index === 0) {
-            console.log(`DEBUG Params for ${sid}:`, Object.keys(props.parameters || {}));
-        }
+    const urlParams = new URLSearchParams();
+    urlParams.append('subsequence_start', START_DATE);
+    // Add multiple station IDs
+    TAWES_STATIONS.forEach(s => urlParams.append('station_ids', s.id));
+    PARAMS.split(',').forEach(p => urlParams.append('parameters', p));
 
-        const stationInfo = STATIONS.find(s => String(s.id) === String(sid));
-        if (!stationInfo) {
-            console.warn(`Skipping: Unknown station ID: ${sid}`);
+    const URL = `https://dataset.api.hub.geosphere.at/v1/station/historical/${DATASET}?${urlParams.toString()}`;
+    console.log(`Fetching Austrian Weather Data from ${URL}...`);
+
+    try {
+        const response = await fetchJson(URL, 20000);
+
+        // 3. Process Response
+        if (!response.features || !response.timestamps) {
+            console.error('Invalid Geosphere response format');
             return;
         }
 
-        const tlObj = props.parameters && props.parameters.TL;
-        const rrObj = props.parameters && props.parameters.RR;
-        const ffObj = props.parameters && props.parameters.FF;
-        const ddObj = props.parameters && props.parameters.DD;
+        const timestamps = response.timestamps.map(ts => new Date(ts).toISOString());
 
-        const tlData = tlObj ? tlObj.data : [];
-        const rrData = rrObj ? rrObj.data : [];
-        const ffData = ffObj ? ffObj.data : [];
-        const ddData = ddObj ? ddObj.data : [];
+        for (const feature of response.features) {
+            const stationId = feature.properties.station;
+            // Config IDs match response IDs? Config has simple string '11012', response likely same
+            const meta = TAWES_STATIONS.find(s => String(s.id) === String(stationId));
+            if (!meta) continue;
 
-        if (!props.time && (!tlData || tlData.length === 0)) {
-            return;
-        }
+            const params = feature.properties.parameters;
 
-        let times = [];
-        if (props.time) {
-            times = Array.isArray(props.time) ? props.time : [props.time];
-        } else {
-            // Generate times based on startISO and 10min interval
-            const startDate = new Date(startISO);
-            // Correct for timezone if needed, but startISO is YYYY-MM-DDT00:00:00 (Local/UTC?)
-            // API interprets as UTC usually. TAWES data is UTC.
-            const startMs = startDate.getTime();
-            const count = tlData.length > 0 ? tlData.length : (rrData.length > 0 ? rrData.length : 0);
+            // Transform to our format: { TS, HS, TL, ff, ... }
+            const dataPoints = [];
+            for (let i = 0; i < timestamps.length; i++) {
+                const tl = params.TL && params.TL.data[i] !== null ? params.TL.data[i] : null;
+                const hs = params.HS && params.HS.data[i] !== null ? params.HS.data[i] : null;
+                const rr = params.RR ? params.RR.data[i] : null;
+                const ff = params.FF ? params.FF.data[i] : null;
+                const dd = params.DD ? params.DD.data[i] : null;
 
-            for (let i = 0; i < count; i++) {
-                // 10 minutes = 600,000 ms
-                const t = new Date(startMs + i * 600000);
-                times.push(t.toISOString());
+                if (tl !== null || hs !== null || rr !== null || ff !== null) {
+                    dataPoints.push({
+                        TS: timestamps[i],
+                        TL: tl,
+                        HS: hs,
+                        RR: rr,
+                        ff: ff,
+                        dd: dd
+                    });
+                }
+            }
+
+            // Merge with existing
+            const existingStation = existingStations.find(s => String(s.id) === `AT-${stationId}`);
+            const mergedData = new Map();
+
+            if (existingStation && existingStation.data) {
+                existingStation.data.forEach(d => mergedData.set(d.TS, d));
+            }
+
+            dataPoints.forEach(d => mergedData.set(d.TS, d));
+
+            // Sort and Limit
+            const allData = Array.from(mergedData.values()).sort((a, b) => new Date(a.TS) - new Date(b.TS));
+            const recentData = allData.slice(-1100);
+
+            // Update/Create Station Entry
+            const index = existingStations.findIndex(s => String(s.id) === `AT-${stationId}`);
+            const newEntry = {
+                name: `${meta.name} (TAWES)`,
+                id: `AT-${stationId}`,
+                source: 'Geosphere Austria',
+                lat: meta.lat,
+                lon: meta.lon,
+                elevation: meta.elevation,
+                lastUpdated: new Date().toISOString(),
+                data: recentData
+            };
+
+            if (index >= 0) {
+                existingStations[index] = newEntry;
+            } else {
+                existingStations.push(newEntry);
             }
         }
 
-        // Initialize or Update station entry
-        const stationName = stationInfo.name;
-        let entry = dataMap.get(stationName);
-        if (!entry) {
-            entry = {
-                name: stationName,
-                region: stationInfo.region,
-                source: 'Geosphere Austria (TAWES)',
-                originalUrl: 'https://data.hub.geosphere.at/dataset/tawes-v1-10min',
-                lat: stationInfo.lat,
-                lon: stationInfo.lon,
-                elevation: stationInfo.elevation,
-                data: []
-            };
-            dataMap.set(stationName, entry);
-        } else {
-            entry.region = stationInfo.region;
-            entry.source = 'Geosphere Austria (TAWES)';
-            entry.originalUrl = 'https://data.hub.geosphere.at/dataset/tawes-v1-10min';
-            entry.lat = stationInfo.lat;
-            entry.lon = stationInfo.lon;
-            entry.elevation = stationInfo.elevation;
-            if (!entry.data) entry.data = [];
-        }
+        fs.writeFileSync(OUTPUT_FILE, JSON.stringify(existingStations, null, 2));
+        console.log(`Updated ${TAWES_STATIONS.length} Austrian stations.`);
 
-        // Populate data array (10min resolution)
-        const newData = [];
-        times.forEach((t, index) => {
-            const tl = tlData[index];
-            const rr = rrData[index];
-            const ff = ffData[index];
-            const dd = ddData[index];
+    } catch (e) {
+        console.error('Failed to fetch Geosphere data:', e.message);
+    }
+};
 
-            // Filter out empty records? Bavarian data keeps them but maybe skips nulls. 
-            // We'll create the object.
-
-            // Format TS to match roughly Bavarian or ISO. Bavarian uses "YYYY-MM-DD HH:mm:ss"
-            // We'll use ISO, frontend parses with new Date(TS) which handles both.
-
-            // TS: t (ISO string is "2024-01-05T00:00:00.000Z")
-            // Skip if all main values are null
-            if (tl === null && rr === null && ff === null) return;
-
-            newData.push({
-                TS: t,
-                TL: tl,
-                // HS: null, // Snow depth not available in TL,RR
-                ff: ff,
-                dd: dd,
-                precip: rr
-            });
-        });
-
-        // Merge/Overwrite data
-        // For simplicity, we just replace the data for this window. 
-        // Realistically we might want to merge, but we are fetching last 7 days.
-        // Let's just set it.
-        entry.data = newData;
-    });
-
-    // Write back as Array
-    const keys = Array.from(dataMap.keys());
-    const bavarianCount = keys.filter(k => k.includes('Hochgrat') || k.includes('Fellhorn') || k.includes('Nebelhorn') || k.includes('Schwarzenberg')).length;
-    const austrianCount = keys.filter(k => k.includes('Warth') || k.includes('Tannheim') || k.includes('Reutte') || k.includes('Schoppernau')).length;
-    console.log(`DEBUG: Bavarian Keys: ${bavarianCount}`);
-    console.log(`DEBUG: Austrian Keys: ${austrianCount}`);
-
-    const outputList = Array.from(dataMap.values()).filter(s => !s.name.includes('Reutte'));
-    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(outputList, null, 2));
-    console.log(`Updated weather_stations.json with ${features.length} features. Total stations: ${outputList.length}`);
-
-})();
+fetchGeosphere();

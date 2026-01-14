@@ -5,96 +5,150 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Allgäu Alps West (Kleinwalsertal) - January 2026</title>
     <link rel="stylesheet" href="../../../styles.css">
+    <style>
+        .archive-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+            gap: 1.5rem; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .archive-item { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
+            padding: 1.5rem;
+            text-align: center;
+            color: #1e293b;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        .archive-item:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: #3b82f6;
+        }
+        .date-link { 
+            text-decoration: none; 
+            color: #1e293b; 
+            font-weight: 600;
+        }
+        .date-link:hover { color: #3b82f6; }
+        .date-link h2 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .badge-update { 
+            display: inline-block; 
+            font-size: 0.7rem; 
+            background: #fef3c7; 
+            color: #92400e; 
+            padding: 0.2rem 0.5rem; 
+            border-radius: 4px; 
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+        .obsolete-link {
+            color: #92400e;
+            text-decoration: underline;
+            margin-left: 0.25rem;
+        }
+        .obsolete-link:hover { color: #78350f; }
+        .weather-link { 
+            font-size: 0.85rem;
+            color: #3b82f6;
+            text-decoration: none;
+            margin-top: 0.5rem;
+        }
+        .weather-link:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
-             <div class="header-content">
+            <div class="header-content">
                 <a href="../../../index.html" class="logo">Avalanche Archive</a>
-             </div>
+            </div>
         </header>
 
         <h1>Allgäu Alps West (Kleinwalsertal) - January 2026</h1>
-        <div style="margin-bottom:1rem"><a href="../index.html">&larr; Back</a></div>
+
+        <div style="margin-bottom:1rem;"><a href="../index.html">&larr; Back</a></div>
+
         <div class="archive-list">
             
-                <a href="2026-01-13_20260112-1602.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-13 <span style="font-size:0.85em; color:#666; font-weight:normal;">Updated 12 Jan 2026, 17:02:00</span></span>
+                <div class="archive-item">
+                    <a href="2026-01-14.pdf" class="date-link"><h2>2026-01-14</h2></a>
+                    <a href="../../weather/2026-01-14.html" class="weather-link">Mountain Weather</a>
                     
-                </a>
-            
-                <a href="2026-01-13.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-13</span>
-                    <object><a href="../../weather/2026-01-13.html" style="font-size:0.85rem; color:#0284c7; margin-top:0.25rem; text-decoration:underline; z-index:2;">Mountain Weather</a></object>
-                </a>
-            
-                <a href="2026-01-12_20260112-0700.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-12 <span style="font-size:0.85em; color:#666; font-weight:normal;">Updated 12 Jan 2026, 08:00:00</span></span>
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-13_20260113-0700.pdf" class="date-link"><h2>2026-01-13</h2></a>
+                    <a href="../../weather/2026-01-13.html" class="weather-link">Mountain Weather</a>
+                    <span class="badge-update">Updated 13 January 2026, 07:00:00 <a href="2026-01-13.pdf" class="obsolete-link">view obsolete version</a></span>
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-12_20260112-0700.pdf" class="date-link"><h2>2026-01-12</h2></a>
+                    <a href="../../weather/2026-01-12.html" class="weather-link">Mountain Weather</a>
+                    <span class="badge-update">Updated 12 January 2026, 07:00:00 <a href="2026-01-12.pdf" class="obsolete-link">view obsolete version</a></span>
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-11.pdf" class="date-link"><h2>2026-01-11</h2></a>
                     
-                </a>
-            
-                <a href="2026-01-12.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-12</span>
-                    <object><a href="../../weather/2026-01-12.html" style="font-size:0.85rem; color:#0284c7; margin-top:0.25rem; text-decoration:underline; z-index:2;">Mountain Weather</a></object>
-                </a>
-            
-                <a href="2026-01-11.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-11</span>
                     
-                </a>
-            
-                <a href="2026-01-10.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-10</span>
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-10.pdf" class="date-link"><h2>2026-01-10</h2></a>
                     
-                </a>
-            
-                <a href="2026-01-09.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-09</span>
                     
-                </a>
-            
-                <a href="2026-01-08.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-08</span>
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-09.pdf" class="date-link"><h2>2026-01-09</h2></a>
                     
-                </a>
-            
-                <a href="2026-01-07.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-07</span>
                     
-                </a>
-            
-                <a href="2026-01-06.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-06</span>
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-08.pdf" class="date-link"><h2>2026-01-08</h2></a>
                     
-                </a>
-            
-                <a href="2026-01-05.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-05</span>
                     
-                </a>
-            
-                <a href="2026-01-04.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-04</span>
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-07.pdf" class="date-link"><h2>2026-01-07</h2></a>
                     
-                </a>
-            
-                <a href="2026-01-03.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-03</span>
                     
-                </a>
-            
-                <a href="2026-01-02.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-02</span>
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-06.pdf" class="date-link"><h2>2026-01-06</h2></a>
                     
-                </a>
-            
-                <a href="2026-01-01.pdf" class="archive-item " style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span>2026-01-01</span>
                     
-                </a>
-            
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-05.pdf" class="date-link"><h2>2026-01-05</h2></a>
+                    
+                    
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-04.pdf" class="date-link"><h2>2026-01-04</h2></a>
+                    
+                    
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-03.pdf" class="date-link"><h2>2026-01-03</h2></a>
+                    
+                    
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-02.pdf" class="date-link"><h2>2026-01-02</h2></a>
+                    
+                    
+                </div>
+                <div class="archive-item">
+                    <a href="2026-01-01.pdf" class="date-link"><h2>2026-01-01</h2></a>
+                    
+                    
+                </div>
         </div>
-        <div style="margin-top:2rem"><a href="../index.html">&larr; Back</a></div>
     </div>
 </body>
 </html>

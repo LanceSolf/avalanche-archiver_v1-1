@@ -1,5 +1,49 @@
 [
   {
+    "profil_id": 24428,
+    "datum": "2026-01-13 13:10:00",
+    "country_id": 1,
+    "region_id": 1,
+    "subregion_id": 164,
+    "ort": "Fürmesgumpalpe",
+    "seehoehe": 2300,
+    "latitude": 47.19177,
+    "longitude": 10.20271,
+    "hangneigung": 40,
+    "exposition_id": 3,
+    "loggedon": "2026-01-13 14:49:33",
+    "revision": 1,
+    "location": "Fürmesgumpalpe",
+    "elevation": 2300,
+    "slope": 40,
+    "neigung": 40,
+    "aspect": 3,
+    "exposition": 3,
+    "comments": "ECTN 12@21.0cm: Teilbruch (N) (1)\nECTN 12@21.0cm: Teilbruch (N) (2)",
+    "stability_tests": [
+      {
+        "type": {
+          "text": "ECT"
+        },
+        "step": 12,
+        "height": 21,
+        "result": {
+          "text": "no propagation (N)"
+        }
+      },
+      {
+        "type": {
+          "text": "ECT"
+        },
+        "step": 12,
+        "height": 21,
+        "result": {
+          "text": "no propagation (N)"
+        }
+      }
+    ]
+  },
+  {
     "profil_id": 24410,
     "datum": "2026-01-12 10:45:00",
     "country_id": 1,
@@ -12,81 +56,28 @@
     "hangneigung": 35,
     "exposition_id": 1,
     "loggedon": "2026-01-12 13:49:17",
-    "revision": 2
-  },
-  {
-    "profil_id": 24406,
-    "datum": "2026-01-11 16:15:00",
-    "country_id": 1,
-    "region_id": 1,
-    "subregion_id": 158,
-    "ort": "Nesselwängle / Krinnenalm",
-    "seehoehe": 1500,
-    "latitude": 47.47931,
-    "longitude": 10.59279,
-    "hangneigung": 36,
-    "exposition_id": 3,
-    "loggedon": "2026-01-11 21:07:55",
-    "revision": 1
-  },
-  {
-    "profil_id": 24408,
-    "datum": "2026-01-11 16:00:00",
-    "country_id": 1,
-    "region_id": 1,
-    "subregion_id": 158,
-    "ort": "Nesslwängle-Krinnenalplift",
-    "seehoehe": 1604,
-    "latitude": 47.4798,
-    "longitude": 10.59044,
-    "hangneigung": 35,
-    "exposition_id": 8,
-    "loggedon": "2026-01-12 08:05:53",
-    "revision": 1
-  },
-  {
-    "profil_id": 24404,
-    "datum": "2026-01-11 14:50:00",
-    "country_id": 1,
-    "region_id": 1,
-    "subregion_id": 158,
-    "ort": "Jöchelspitze Standprofil",
-    "seehoehe": 1697,
-    "latitude": 47.27295,
-    "longitude": 10.36491,
-    "hangneigung": 3,
-    "exposition_id": 5,
-    "loggedon": "2026-01-11 20:20:51",
-    "revision": 1
-  },
-  {
-    "profil_id": 24401,
-    "datum": "2026-01-11 10:30:00",
-    "country_id": 1,
-    "region_id": 1,
-    "subregion_id": 158,
-    "ort": "Lechleitner Alpe",
-    "seehoehe": 1780,
-    "latitude": 47.27033,
-    "longitude": 10.20808,
-    "hangneigung": 34,
-    "exposition_id": 1,
-    "loggedon": "2026-01-11 17:59:47",
-    "revision": 2
-  },
-  {
-    "profil_id": 24403,
-    "datum": "2026-01-11 10:15:00",
-    "country_id": 1,
-    "region_id": 1,
-    "subregion_id": 158,
-    "ort": "Lechleitner  Alpe",
-    "seehoehe": 1820,
-    "latitude": 47.27012,
-    "longitude": 10.2166,
-    "hangneigung": 34,
-    "exposition_id": 1,
-    "loggedon": "2026-01-11 19:49:34",
-    "revision": 1
+    "revision": 2,
+    "comments": "ECT 31: No break\nCT (KB) 2@60cm\nProfil im Bereich der Anrisskante einer mittelgroßen Lawine vom Vortag – ausgelöst durch einzelnen Skifahrer",
+    "stability_tests": [
+      {
+        "type": {
+          "text": "ECT"
+        },
+        "step": 31,
+        "result": {
+          "text": "no break"
+        }
+      },
+      {
+        "type": {
+          "text": "CT"
+        },
+        "step": 2,
+        "height": 60,
+        "result": {
+          "text": "no break (KB)"
+        }
+      }
+    ]
   }
 ]

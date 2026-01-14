@@ -1,80 +1,8 @@
 const fs = require('fs');
-const https = require('https');
-const path = require('path');
+const { fetchJson } = require('./lib/utils');
+const { WEATHER_STATIONS, PATHS } = require('./lib/config');
 
-const STATIONS = [
-    {
-        name: 'Hochgrat (1715m) / Hörmoos (1300m)',
-        id: '7',
-        apiUrl: 'https://api-la-dok.bayern.de/public/weatherWeb/7',
-        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=7',
-        lat: 47.493444,
-        lon: 10.073861,
-        elevation: 1720
-    },
-    {
-        name: 'Fellhorn (1967m)',
-        id: '8',
-        apiUrl: 'https://api-la-dok.bayern.de/public/weatherWeb/8',
-        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=8',
-        lat: 47.340806,
-        lon: 10.22425,
-        elevation: 1960
-    },
-    {
-        name: 'Nebelhorn (2075m)',
-        id: '4',
-        apiUrl: 'https://api-la-dok.bayern.de/public/weatherWeb/4',
-        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=4',
-        lat: 47.420889,
-        lon: 10.351056,
-        elevation: 2220
-    },
-    {
-        name: 'Schwarzenberg (1172m)',
-        id: '19',
-        apiUrl: 'https://api-la-dok.bayern.de/public/weatherWeb/19',
-        originalUrl: 'https://lawinenwarndienst.bayern.de/schnee-wetter-bayern/automatische-wetter-schnee-messstation/?weatherid=19',
-        lat: 47.427834,
-        lon: 10.409694,
-        elevation: 1355
-    }
-];
-
-const OUTPUT_FILE = path.join(__dirname, '../data/weather_stations.json');
-
-const fetchStationData = (url) => {
-    return new Promise((resolve, reject) => {
-        const options = {
-            headers: {
-                'User-Agent': 'AvalancheArchiver/1.0 (contact: admin@example.com)'
-            },
-            timeout: 10000 // 10s timeout
-        };
-        const req = https.get(url, options, (res) => {
-            if (res.statusCode !== 200) {
-                res.resume(); // Consume response to free memory
-                reject(new Error(`Status Code: ${res.statusCode}`));
-                return;
-            }
-            let data = '';
-            res.on('data', (chunk) => data += chunk);
-            res.on('end', () => {
-                try {
-                    resolve(JSON.parse(data));
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        });
-
-        req.on('error', reject);
-        req.on('timeout', () => {
-            req.destroy();
-            reject(new Error('Request Timeout'));
-        });
-    });
-};
+const OUTPUT_FILE = PATHS.weatherStations;
 
 const main = async () => {
     console.log('Fetching weather station data...');
@@ -88,10 +16,11 @@ const main = async () => {
             }
         }
 
-        const results = await Promise.all(STATIONS.map(async (station) => {
+        const results = await Promise.all(WEATHER_STATIONS.map(async (station) => {
             console.log(`Fetching ${station.name}...`);
             try {
-                const newData = await fetchStationData(station.apiUrl);
+                // Use shared fetchJson with 10s timeout
+                const newData = await fetchJson(station.apiUrl, 10000);
 
                 // Find existing station data to merge with
                 const existingStation = existingData.find(s => s.id === station.id) || { data: [] };

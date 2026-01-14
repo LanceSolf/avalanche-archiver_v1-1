@@ -1,48 +1,10 @@
-const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { downloadImage } = require('./lib/utils'); // Using downloadImage as generic file downloader
+const { REGION_PDF_MAP, PATHS } = require('./lib/config');
 
-const dataDir = path.join(__dirname, '../data');
-
-// Configuration for which regions need PDFs
-// Map RegionID -> Slug
-const REGION_PDF_MAP = {
-    'DE-BY-11': 'allgau-prealps',
-    'DE-BY-12': 'allgau-alps-central',
-    'AT-08-01': 'allgau-alps-west', // Kleinwalsertal
-    'AT-07-01': 'allgau-alps-east'  // Außerfern (Tannheimer Tal)
-};
-
-async function downloadPdf(url, destPath) {
-    return new Promise((resolve, reject) => {
-        fs.mkdirSync(path.dirname(destPath), { recursive: true });
-
-        const file = fs.createWriteStream(destPath);
-        const request = https.get(url, (response) => {
-            if (response.statusCode === 200) {
-                response.pipe(file);
-                file.on('finish', () => {
-                    file.close(() => resolve(true));
-                });
-            } else {
-                file.close();
-                fs.unlink(destPath, () => { });
-                reject(new Error(`Status ${response.statusCode}`));
-            }
-        });
-
-        request.on('error', (err) => {
-            fs.unlink(destPath, () => { });
-            reject(err);
-        });
-
-        request.setTimeout(30000, () => {
-            request.destroy();
-            fs.unlink(destPath, () => { });
-            reject(new Error('Request timed out'));
-        });
-    });
-}
+// Using downloadImage from utils which handles generic file download
+const downloadPdf = downloadImage;
 
 // sourceType: 'lawinen-warnung' (Bavaria/Vorarlberg) or 'avalanche-report' (Tyrol/Euregio)
 async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-warnung') {
@@ -81,7 +43,7 @@ async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-w
 
         for (const slug of matchedSlugs) {
             // Base filename: YYYY-MM-DD.pdf
-            const baseDest = path.join(dataDir, 'pdfs', slug, `${dateStr}.pdf`);
+            const baseDest = path.join(PATHS.pdfs, slug, `${dateStr}.pdf`);
 
             // If file doesn't exist, simple download
             if (!fs.existsSync(baseDest)) {
@@ -105,16 +67,7 @@ async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-w
                 const statExisting = fs.statSync(baseDest);
                 const statNew = fs.statSync(tempDest);
 
-                // If sizes differ significantly or usually just binary comparison, assume update.
-                // For PDFs, even a tiny change implies a rebuild.
-                // Let's use exact size match as a proxy for identity, or simple buffer compare if needed.
-                // But size + buffer compare is best.
-                // If sizes differ significantly or usually just binary comparison, assume update.
-                // For PDFs, dynamic generation (timestamps/IDs) can cause binary diffs even if content is same.
-                // We rely on file size stability: meaningful content changes usually change the size.
                 let isDifferent = (statExisting.size !== statNew.size);
-
-                // Removed strict buffer comparison to avoid duplicates for identical-size downloads.
 
                 if (isDifferent) {
                     // Double check with buffer comparison to be sure (avoid size-only false positives)
@@ -144,7 +97,7 @@ async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-w
                         }
                     }
 
-                    let versionDest = path.join(dataDir, 'pdfs', slug, `${dateStr}${suffix}.pdf`);
+                    let versionDest = path.join(PATHS.pdfs, slug, `${dateStr}${suffix}.pdf`);
 
                     // Check if this specific version already exists
                     if (fs.existsSync(versionDest)) {
@@ -157,7 +110,7 @@ async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-w
                             // Same timestamp but different content? Extremely rare. 
                             // Fallback to appending v2 to the timestamp
                             suffix += '_v2';
-                            versionDest = path.join(dataDir, 'pdfs', slug, `${dateStr}${suffix}.pdf`);
+                            versionDest = path.join(PATHS.pdfs, slug, `${dateStr}${suffix}.pdf`);
                         }
                     }
 

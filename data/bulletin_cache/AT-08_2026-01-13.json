@@ -2,7 +2,7 @@
   "bulletins": [
     {
       "avalancheActivity": {
-        "comment": "One single person can trigger slab avalanches in the old snow. If the fracture sweeps away the entire snowpack, the release can grow to medium size. Danger zones occur especially on steep shady slopes and in wind-loaded gullies and bowls in all aspects. Whumpf noises and fractures on the snowpack surface are alarm signals. Also remote triggerings cannot be ruled out. In addition, small-sized fresh snowdrifts require special caution in high altitude ridgeline terrain and pass zones. Activities in backcountry demand experience in evaluating the terrain and assessing dangers.  In zones with rain impact, increasingly frequent wet snowslides and avalanches are also possible.",
+        "comment": "One single person can trigger slab avalanches in the old snow. If the fracture sweeps away the entire snowpack, the release can grow to medium size. Danger zones occur especially on steep shady slopes and in wind-loaded gullies and bowls in all aspects. Whumpf noises and fractures on the snowpack surface are alarm signals. Also remote triggerings cannot be ruled out. In addition, small-sized fresh snowdrifts require special caution in high altitude ridgeline terrain and pass zones. Activities in backcountry demand experience in evaluating the terrain and assessing dangers.  In zones with rain impact, increasingly frequent wet snowslides and avalanches are possible. Also gliding snow activity is increasing again.",
         "highlights": "Considerable avalanche danger at high altitudes"
       },
       "avalancheProblems": [
@@ -43,7 +43,7 @@
             "SW"
           ],
           "elevation": {
-            "upperBound": "1800"
+            "upperBound": "2000"
           },
           "validTimePeriod": "all_day"
         }
@@ -74,7 +74,7 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-12T16:00:00+00:00",
+      "publicationTime": "2026-01-13T07:00:00+00:00",
       "regions": [
         {
           "regionID": "AT-08-05-01",
@@ -119,7 +119,7 @@
           }
         }
       ],
-      "unscheduled": false,
+      "unscheduled": true,
       "validTime": {
         "startTime": "2026-01-12T16:00:00+00:00",
         "endTime": "2026-01-13T16:00:00+00:00"
@@ -130,7 +130,7 @@
     },
     {
       "avalancheActivity": {
-        "comment": "Avalanche danger is considerable above 1800m, moderate below that altitude. The main problem is the drifted snow. One single winter sports enthusiast can trigger small-to-medium sized slab avalanches in wind-loaded zones, particularly on steep NW-E-SE facing slopes and in gullies and bowls. In zones with rain impact, increasingly frequent wet snowslides and avalanches will also be possible during the course of the day.",
+        "comment": "Avalanche danger is considerable above 1800m, moderate below that altitude. The main problem is the drifted snow. One single winter sports enthusiast can trigger small-to-medium sized slab avalanches in wind-loaded zones, particularly on steep NW-E-SE facing slopes and in gullies and bowls. In zones with rain impact, increasingly frequent wet snowslides and avalanches will be possible during the course of the day.  Also gliding snow activity is increasing again.",
         "highlights": "Considerable avalanche danger at higher altitudes"
       },
       "avalancheProblems": [
@@ -202,7 +202,7 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-12T16:02:29+00:00",
+      "publicationTime": "2026-01-13T07:00:00+00:00",
       "regions": [
         {
           "regionID": "AT-08-07",

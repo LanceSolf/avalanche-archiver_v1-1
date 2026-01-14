@@ -437,18 +437,16 @@ async function ensurePdfLink(inc) {
     const iDate = dateStr.split(' ')[0].split('T')[0];
 
     // Priority slugs based on heuristics, but we will check all
-    const slugs = [
-        'allgau-alps-central',
-        'allgau-alps-west',
-        'allgau-alps-east',
-        'allgau-prealps'
-    ];
-
-    // Determine a "primary" slug for copy target if we need to copy from Daily
+    // Determine a "primary" slug based on region
     let primarySlug = 'allgau-alps-central';
     if (inc.regionId === 2) primarySlug = 'allgau-alps-west';
     else if (inc.regionId === 1) primarySlug = 'allgau-alps-east';
-    // ... (keep refined logic if needed, but for now simple mapping is better than strict)
+    // Note: subregionId 158 is Kleinwalsertal/Ifen area (uses AT-08 Vorarlberg bulletin = allgau-alps-west)
+    if (inc.subregionId === 158) primarySlug = 'allgau-alps-west';
+
+    // Create ordered slugs array with primarySlug first to prioritize correct region
+    const allSlugs = ['allgau-alps-central', 'allgau-alps-west', 'allgau-alps-east', 'allgau-prealps'];
+    const slugs = [primarySlug, ...allSlugs.filter(s => s !== primarySlug)];
 
     const dateObj = new Date(iDate);
     if (isNaN(dateObj.getTime())) return;
@@ -458,7 +456,7 @@ async function ensurePdfLink(inc) {
 
     let foundPath = null;
 
-    // 1. Check if it already exists in Incident Archive (any slug)
+    // 1. Check if it already exists in Incident Archive (prioritize correct region first)
     for (const slug of slugs) {
         const checkPath = path.join(INCIDENT_PDF_DIR, slug, ym, `${iDate}.pdf`);
         if (fs.existsSync(checkPath)) {
