@@ -2,12 +2,12 @@ name: Daily Avalanche Fetch
 
 on:
   schedule:
-    # Run 3 times daily (times in UTC, CET = UTC+1, CEST = UTC+2):
-    # 06:00 CET (05:00 UTC) - Morning, catches overnight updates
+    # Run 3 times daily (times in UTC, assuming CET = UTC+1):
+    # 06:00 CET = 05:00 UTC (Morning update)
     - cron: "0 5 * * *"
-    # 12:00 CET (11:00 UTC) - Midday, catches morning weather report
-    - cron: "0 11 * * *"
-    # 18:00 CET (17:00 UTC) - Evening, catches afternoon bulletin + next day weather
+    # 14:00 CET = 13:00 UTC (Early afternoon)
+    - cron: "0 13 * * *"
+    # 18:00 CET = 17:00 UTC (Evening update)
     - cron: "0 17 * * *"
   workflow_dispatch:
 
