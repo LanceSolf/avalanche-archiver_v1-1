@@ -46,7 +46,7 @@ export default {
                 const data = await request.json();
 
                 // Basic Validation
-                if (!data.image && !data.comment) {
+                if (!data.image && !data.comment && (!data.images || data.images.length === 0)) {
                     return new Response("Missing content", { status: 400, headers: corsHeaders });
                 }
 

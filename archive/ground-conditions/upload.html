@@ -225,14 +225,16 @@
                             document.getElementById('lon').value = '';
                             document.getElementById('locationStatus').innerText = '';
                         } else {
-                            throw new Error('Upload failed');
+                            const errorText = await res.text();
+                            throw new Error('Upload failed (' + res.status + '): ' + errorText);
                         }
 
                     } catch(err) {
-                        alert('Error uploading');
+                        console.error(err);
+                        alert('Error uploading: ' + err.message);
                         const statusDiv = document.getElementById('status');
                         statusDiv.className = 'status-msg error';
-                        statusDiv.innerText = 'Error uploading report.';
+                        statusDiv.innerText = 'Error: ' + err.message;
                     } finally {
                         btn.disabled = false;
                         btn.innerText = 'Submit Report';
