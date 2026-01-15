@@ -59,7 +59,7 @@ export default {
                     comment: data.comment || "",
                     lat: data.lat || null,
                     lon: data.lon || null,
-                    image: data.image || null, // Base64 string
+                    images: data.images || (data.image ? [data.image] : []), // Array of Base64 strings
                     approved: true // Auto-approve for now, change logic if needed
                 };
 

@@ -566,13 +566,18 @@ function generateUploadPage() {
                 </div>
 
                 <div class="form-group">
-                    <label>Photo (Optional)</label>
-                    <input type="file" id="photo" accept="image/*">
+                    <label>Photos (Optional)</label>
+                    <input type="file" id="photo" accept="image/*" multiple>
+                    <div style="font-size:0.85rem; color:#64748b; margin-top:0.25rem;">You can select multiple images.</div>
                     <div id="locationStatus" style="font-size:0.85rem; color:#64748b; margin-top:0.5rem;"></div>
                 </div>
 
                 <div class="form-group">
-                    <label>Location (Tap to mark)</label>
+                    <label>Location</label>
+                    <div style="margin-bottom:0.5rem;">
+                        <button type="button" id="useLocationBtn" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; width:auto; padding:0.5rem 1rem;">📍 Use Current Location</button>
+                    </div>
+                    <p style="font-size:0.85rem; color:#64748b; margin:0 0 0.5rem 0;">Tap the map or use the button above to drop a pin. <strong>You can drag the pin to adjust.</strong></p>
                     <div id="pickerMap" class="map-picker"></div>
                     <input type="hidden" id="lat">
                     <input type="hidden" id="lon">
@@ -611,13 +616,38 @@ function generateUploadPage() {
             let marker;
             function setLocation(lat, lng) {
                 if(marker) map.removeLayer(marker);
-                marker = L.marker([lat, lng]).addTo(map);
+                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+                
                 document.getElementById('lat').value = lat;
                 document.getElementById('lon').value = lng;
+                
+                marker.on('dragend', function(event) {
+                    const position = marker.getLatLng();
+                    document.getElementById('lat').value = position.lat;
+                    document.getElementById('lon').value = position.lng;
+                });
             }
 
             map.on('click', function(e) {
                 setLocation(e.latlng.lat, e.latlng.lng);
+            });
+            
+            document.getElementById('useLocationBtn').addEventListener('click', function() {
+                if(navigator.geolocation) {
+                     const btn = this;
+                     const originalText = btn.innerText;
+                     btn.innerText = 'Locating...';
+                     navigator.geolocation.getCurrentPosition(pos => {
+                         setLocation(pos.coords.latitude, pos.coords.longitude);
+                         map.setView([pos.coords.latitude, pos.coords.longitude], 13);
+                         btn.innerText = originalText;
+                     }, err => {
+                         alert('Could not get location. Please check browser permissions.');
+                         btn.innerText = originalText;
+                     });
+                 } else {
+                     alert('Geolocation is not supported by your browser');
+                 }
             });
 
             // 3. EXIF Extraction
@@ -666,18 +696,22 @@ function generateUploadPage() {
                     comment: document.getElementById('comment').value,
                     lat: document.getElementById('lat').value,
                     lon: document.getElementById('lon').value,
-                    // TODO: Handle Image Upload (Base64)
+                    images: []
                 };
 
-                // Read Image as Base64
+                // Read Images as Base64
                 const fileInput = document.getElementById('photo');
                 if (fileInput.files.length > 0) {
-                     const reader = new FileReader();
-                     reader.onload = async function() {
-                         data.image = reader.result; // Base64 string
-                         await sendData(data);
-                     };
-                     reader.readAsDataURL(fileInput.files[0]);
+                     const promises = Array.from(fileInput.files).map(file => {
+                         return new Promise((resolve) => {
+                             const reader = new FileReader();
+                             reader.onload = (e) => resolve(e.target.result);
+                             reader.readAsDataURL(file);
+                         });
+                     });
+                     
+                     data.images = await Promise.all(promises);
+                     await sendData(data);
                 } else {
                     await sendData(data);
                 }
