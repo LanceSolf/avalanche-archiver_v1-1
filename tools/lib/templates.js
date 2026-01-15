@@ -605,7 +605,7 @@ function generateUploadPage() {
                 d.setDate(today.getDate() - i);
                 const opt = document.createElement('option');
                 opt.value = d.toISOString();
-                opt.text = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString();
+                opt.text = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString('en-US', { weekday: 'long' });
                 dateSelect.add(opt);
             }
 
