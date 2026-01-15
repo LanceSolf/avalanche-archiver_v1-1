@@ -12,7 +12,8 @@
     "fetch:profiles": "node tools/process_profiles.js",
     "fetch:geosphere": "node tools/fetch_geosphere.js",
     "enrich:profiles": "node tools/enrich_profiles.js",
-    "fetch:all": "npm-run-all -p fetch:daily fetch:weather fetch:report fetch:incidents fetch:profiles fetch:geosphere && npm run enrich:profiles",
+    "fetch:uploads": "node tools/fetch_uploads.js",
+    "fetch:all": "npm-run-all -p fetch:daily fetch:weather fetch:report fetch:incidents fetch:profiles fetch:geosphere fetch:uploads && npm run enrich:profiles",
     "serve": "serve .",
     "lint": "eslint tools snow-depth",
     "lint:fix": "eslint tools snow-depth --fix"

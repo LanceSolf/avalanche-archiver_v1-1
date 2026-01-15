@@ -435,6 +435,9 @@ function generateGroundConditionsPage(data) {
                 <span style="font-size:1rem; color:#1e293b;">Uploaded by ${u.user}</span>
                 <span style="font-size:0.85rem; color:#64748b; font-style:italic;">"${u.comment.substring(0, 30)}${u.comment.length > 30 ? '...' : ''}"</span>
             </div>
+             <div style="margin-top:0.5rem; text-align:right; border-top:1px solid #f1f5f9; padding-top:0.5rem;">
+                <button onclick="event.preventDefault(); openDeleteModal('${u.id}', this)" style="color:#ef4444; background:none; border:none; padding:0; font-size:0.8rem; cursor:pointer; text-decoration:underline;">Remove Report</button>
+            </div>
         </a>`;
     }).join('');
 
@@ -458,6 +461,14 @@ function generateGroundConditionsPage(data) {
         .action-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
         .action-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; display: block; }
         .map-container { height: 400px; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 2rem; border: 1px solid #e2e8f0; }
+        
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: white; padding: 2rem; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .modal h3 { margin-top: 0; color: #ef4444; }
+        .modal-actions { margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem; }
+        .btn-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
+        .btn-confirm { background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -493,6 +504,24 @@ function generateGroundConditionsPage(data) {
         <h2>Recent Reports</h2>
         ${uploads.length > 0 ? `<div class="archive-list">${uploadCards}</div>` : '<p style="text-align:center; color:#64748b; padding:2rem;">No reports in the last 7 days. Be the first!</p>'}
 
+        <!-- Delete Modal -->
+        <div id="deleteModal" class="modal-overlay">
+            <div class="modal">
+                <h3>Remove Report?</h3>
+                <p>Are you sure you want to remove this report?</p>
+                <div style="margin: 1rem 0;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                        <input type="checkbox" id="confirmAuth">
+                        <span style="font-size:0.9rem;">I confirm I am the author of this report or have authority to remove it.</span>
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button id="btnDelete" class="btn-confirm" onclick="confirmDelete()">Remove</button>
+                </div>
+            </div>
+        </div>
+
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
         <script>
             const uploads = ${JSON.stringify(uploads)};
@@ -508,6 +537,70 @@ function generateGroundConditionsPage(data) {
                     marker.bindPopup(\`<b>\${u.user}</b><br>\${u.date}<br><a href="\${link}">View Report</a>\`);
                 }
             });
+
+            // DELETE LOGIC
+            let deleteTargetId = null;
+            let deleteTargetBtn = null;
+            const modal = document.getElementById('deleteModal');
+            const check = document.getElementById('confirmAuth');
+            const btnDelete = document.getElementById('btnDelete');
+
+            function openDeleteModal(id, btnElement) {
+                deleteTargetId = id;
+                deleteTargetBtn = btnElement;
+                modal.style.display = 'flex';
+                check.checked = false;
+                btnDelete.style.opacity = '0.5';
+                btnDelete.style.pointerEvents = 'none';
+            }
+
+            function closeModal() {
+                modal.style.display = 'none';
+                deleteTargetId = null;
+            }
+
+            check.addEventListener('change', function() {
+                if(this.checked) {
+                    btnDelete.style.opacity = '1';
+                    btnDelete.style.pointerEvents = 'auto';
+                } else {
+                    btnDelete.style.opacity = '0.5';
+                    btnDelete.style.pointerEvents = 'none';
+                }
+            });
+
+            async function confirmDelete() {
+                if(!deleteTargetId) return;
+                
+                btnDelete.innerText = 'Removing...';
+                try {
+                    const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev/delete';
+                    const res = await fetch(WORKER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: deleteTargetId })
+                    });
+                    
+                    if(res.ok) {
+                        alert('Report removed. It will disappear permanently on the next site update.');
+                        // Visually remove
+                        const card = deleteTargetBtn.closest('.archive-item');
+                        if(card) {
+                            card.style.opacity = '0.5';
+                            card.style.pointerEvents = 'none';
+                            card.innerHTML += '<div style="color:red; font-weight:bold; text-align:center;">REMOVED</div>';
+                        }
+                        closeModal();
+                    } else {
+                        alert('Error removing report.');
+                    }
+                } catch(e) {
+                    alert('Error: ' + e.message);
+                } finally {
+                    btnDelete.innerText = 'Remove';
+                    closeModal();
+                }
+            }
         </script>
     </div>
 </body>
@@ -904,20 +997,24 @@ function generateWebcamPage(webcams) {
  * Generate User Upload Detail Page
  */
 function generateUserUploadDetailPage(upload) {
+    const imageGallery = (upload.images && upload.images.length > 0)
+        ? upload.images.map(img => `<img src="${img}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto 1rem auto;">`).join('')
+        : (upload.image ? `<img src="${upload.image}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;">` : '');
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report by ${upload.user}</title>
-    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../../../styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
     <div class="container">
         <header>
             <div class="header-content">
-                <a href="../../index.html" class="logo">Avalanche Archive</a>
+                <a href="../../../index.html" class="logo">Avalanche Archive</a>
                 <div class="date-nav"><span>Report Detail</span></div>
             </div>
         </header>
@@ -932,14 +1029,16 @@ function generateUserUploadDetailPage(upload) {
                 </div>
             </div>
 
-            ${upload.image ? `<div style="margin-bottom:2rem;"><img src="${upload.image}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;"></div>` : ''}
+            <div style="margin-bottom:2rem;">
+                ${imageGallery}
+            </div>
 
             <p style="font-size:1.1rem; line-height:1.7; color:#334155;">${upload.comment}</p>
 
             ${(upload.lat && upload.lon) ? `
             <div style="margin-top:2rem;">
                 <h3>Location</h3>
-                <div id="map" style="height:300px; width:100%; border-radius:8px;"></div>
+                <div id="map" style="height:200px; width:100%; max-width:400px; border-radius:8px; border:1px solid #cbd5e1;"></div>
                 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
                 <script>
                     const map = L.map('map').setView([${upload.lat}, ${upload.lon}], 13);

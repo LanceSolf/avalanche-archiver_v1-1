@@ -9,7 +9,7 @@ async function fetchUploads() {
     console.log(`Fetching uploads from ${WORKER_URL}...`);
 
     return new Promise((resolve, reject) => {
-        https.get(WORKER_URL + '?limit=50', (res) => {
+        https.get(WORKER_URL + '/list?limit=50', (res) => {
             let data = '';
             res.on('data', (chunk) => data += chunk);
             res.on('end', () => {

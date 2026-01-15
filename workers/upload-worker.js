@@ -40,6 +40,22 @@ export default {
             }
         }
 
+        if (request.method === "POST" && url.pathname === "/delete") {
+            try {
+                const data = await request.json();
+                if (!data.id) {
+                    return new Response("Missing ID", { status: 400, headers: corsHeaders });
+                }
+
+                await env.UPLOADS.delete(data.id);
+                return new Response(JSON.stringify({ success: true }), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" }
+                });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+            }
+        }
+
         // HANDLE UPLOAD
         if (request.method === "POST" && url.pathname === "/upload") {
             try {
