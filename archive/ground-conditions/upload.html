@@ -6,7 +6,7 @@
     <title>Skier Upload</title>
     <link rel="stylesheet" href="../../styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
+    <style> 
         .upload-form { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
         .form-group { margin-bottom: 1.5rem; }
         label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b; }
@@ -19,7 +19,6 @@
         .success { background: #dcfce7; color: #166534; }
         .error { background: #fee2e2; color: #991b1b; }
 
-        /* Modal Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.3s; }
         .modal { background: white; padding: 2rem; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align:center; }
         .modal h3 { margin-top: 0; color: #ef4444; }
@@ -27,14 +26,12 @@
         .btn-action-primary { background: #0ea5e9; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight:600; }
         .btn-action-secondary { background: #e2e8f0; color: #64748b; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; cursor: pointer; }
 
-        /* Animations */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
         
         .shake { animation: shake 0.4s ease-in-out; }
         .map-error { border: 2px solid #ef4444 !important; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2); }
 
-        /* Edge-style Native Bubble */
         .native-style-bubble {
             position: absolute;
             background: #ffffff;
@@ -59,7 +56,6 @@
             border-style: solid;
             border-color: #ffffff transparent transparent transparent;
         }
-        /* Top placement */
         .native-style-bubble.top { bottom: 100%; left: 0; margin-bottom: 10px; }
         .native-style-bubble.top::after { top: 100%; left: 20px; }
         
@@ -231,13 +227,6 @@
                 mapContainer.classList.add('shake');
                 bubble.classList.add('visible');
                 
-                // Align bubble to top left of map
-                // Note: bubble is relative to container if container has position. 
-                // We added position:relative to .form-group containing this.
-                // Simple positioning:
-                // bubble is absolute. top: -height.
-                // Reset styles if needed or rely on CSS classes 'top'
-                
                 // Scroll
                 mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
@@ -358,7 +347,7 @@
 
                     if(res.ok) {
                         statusDiv.className = 'status-msg success';
-                        statusDiv.innerText = 'Report Submitted! (Pending approval/display on next site build)';
+                        statusDiv.innerText = 'Report Submitted! Should be displayed on next site update. (Updates daily @06:00, 14:00 & 18:00 CET)';
                         form.reset();
                         // Clear map
                         if(marker) map.removeLayer(marker);
@@ -389,10 +378,7 @@
             window.confirmSubmitWithoutImage = function() {
                 bypassImageCheck = true;
                 noImageModal.style.display = 'none';
-                // Trigger submit again, this time bypassing helper
-                // We can just call performUpload directly since validation passed
-                performUpload(); // But strictly we should re-validate location just in case? 
-                // We know location is valid because we reached check 2.
+                performUpload(); 
             };
         </script>
     </div>

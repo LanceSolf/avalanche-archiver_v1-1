@@ -428,15 +428,15 @@ function generateGroundConditionsPage(data) {
     const uploadCards = uploads.map(u => {
         const dateStr = new Date(u.date).toLocaleDateString();
         return `
-        <a href="uploads/${u.id || new Date(u.date).getTime()}.html" class="archive-item">
-            <div style="display:flex; flex-direction:column; gap:0.25rem;">
+        <a href="uploads/${u.id || new Date(u.date).getTime()}.html" class="archive-item" style="display:flex; flex-direction:column; justify-content:space-between; text-align:left; align-items:stretch;">
+            <div style="display:flex; flex-direction:column; gap:0.25rem; flex-grow: 1;">
                 <span style="font-size:0.85rem; color:#64748b; font-weight:500;">${dateStr}</span>
                  ${u.image ? '<span style="font-size:1.1rem; flex-shrink:0;" title="Has Image">📷</span>' : ''}
                 <span style="font-size:1rem; color:#1e293b;">Uploaded by ${u.user}</span>
                 <span style="font-size:0.85rem; color:#64748b; font-style:italic;">"${u.comment.substring(0, 30)}${u.comment.length > 30 ? '...' : ''}"</span>
             </div>
-             <div style="margin-top:0.5rem; text-align:right; border-top:1px solid #f1f5f9; padding-top:0.5rem;">
-                <button onclick="event.preventDefault(); openDeleteModal('${u.id}', this)" style="color:#ef4444; background:none; border:none; padding:0; font-size:0.8rem; cursor:pointer; text-decoration:underline;">Remove Report</button>
+             <div style="margin-top:1rem; text-align:right; border-top:1px solid #f1f5f9; padding-top:0.5rem;">
+                <button onclick="event.preventDefault(); openDeleteModal('${u.id}', this)" style="color:#ef4444; background:none; border:none; padding:0; font-size:0.8rem; cursor:pointer; text-decoration:none;">Remove Report</button>
             </div>
         </a>`;
     }).join('');
@@ -522,9 +522,44 @@ function generateGroundConditionsPage(data) {
             </div>
         </div>
 
+        <!-- Generic Message Modal -->
+        <div id="messageModal" class="modal-overlay">
+            <div class="modal">
+                <h3 id="msgTitle">Title</h3>
+                <p id="msgText">Text</p>
+                <div class="modal-actions">
+                    <button class="btn-cancel" style="background:var(--primary-blue); color:white;" onclick="closeMessageModal()">OK</button>
+                </div>
+            </div>
+        </div>
+
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
         <script>
             const uploads = ${JSON.stringify(uploads)};
+
+            function formatMapDate(isoStr) {
+                const date = new Date(isoStr);
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                const inputDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const timeStr = hours + ':' + minutes;
+                
+                if (inputDate.getTime() === today.getTime()) {
+                    return 'Today @' + timeStr;
+                } else if (inputDate.getTime() === yesterday.getTime()) {
+                    return 'Yesterday @' + timeStr;
+                } else {
+                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    return days[date.getDay()] + ' ' + date.getDate() + ' @' + timeStr;
+                }
+            }
+
             const map = L.map('map').setView([47.45, 10.3], 9); // Center on Allgau
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
@@ -534,7 +569,7 @@ function generateGroundConditionsPage(data) {
                 if (u.lat && u.lon) {
                     const marker = L.marker([u.lat, u.lon]).addTo(map);
                     const link = 'uploads/' + (u.id || new Date(u.date).getTime()) + '.html';
-                    marker.bindPopup(\`<b>\${u.user}</b><br>\${u.date}<br><a href="\${link}">View Report</a>\`);
+                    marker.bindPopup(\`<b>\${u.user}</b><br>\${formatMapDate(u.date)}<br><a href="\${link}">View Report</a>\`);
                 }
             });
 
@@ -569,6 +604,22 @@ function generateGroundConditionsPage(data) {
                 }
             });
 
+            // Message Modal Logic
+            const msgModal = document.getElementById('messageModal');
+            const msgTitle = document.getElementById('msgTitle');
+            const msgText = document.getElementById('msgText');
+
+            function showMessage(title, text, isError = false) {
+                msgTitle.innerText = title;
+                msgTitle.style.color = isError ? '#ef4444' : '#0f172a';
+                msgText.innerText = text;
+                msgModal.style.display = 'flex';
+            }
+
+            function closeMessageModal() {
+                msgModal.style.display = 'none';
+            }
+
             async function confirmDelete() {
                 if(!deleteTargetId) return;
                 
@@ -582,7 +633,8 @@ function generateGroundConditionsPage(data) {
                     });
                     
                     if(res.ok) {
-                        alert('Report removed. It will disappear permanently on the next site update.');
+                        closeModal(); // Close delete confirmation first
+                        showMessage('Report Removed', 'It will disappear permanently on the next site update. (Updates daily @06:00, 14:00 & 18:00 CET)');
                         // Visually remove
                         const card = deleteTargetBtn.closest('.archive-item');
                         if(card) {
@@ -590,15 +642,16 @@ function generateGroundConditionsPage(data) {
                             card.style.pointerEvents = 'none';
                             card.innerHTML += '<div style="color:red; font-weight:bold; text-align:center;">REMOVED</div>';
                         }
-                        closeModal();
                     } else {
-                        alert('Error removing report.');
+                        closeModal();
+                        showMessage('Error', 'Error removing report.', true);
                     }
                 } catch(e) {
-                    alert('Error: ' + e.message);
+                    closeModal();
+                    showMessage('Error', 'Error: ' + e.message, true);
                 } finally {
                     btnDelete.innerText = 'Remove';
-                    closeModal();
+                    // closeModal is handled in if/else blocks to allow smooth transition to message modal
                 }
             }
         </script>
@@ -619,7 +672,7 @@ function generateUploadPage() {
     <title>Skier Upload</title>
     <link rel="stylesheet" href="../../styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
+    <style> 
         .upload-form { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
         .form-group { margin-bottom: 1.5rem; }
         label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b; }
@@ -627,10 +680,72 @@ function generateUploadPage() {
         input[type="file"] { width: 100%; padding: 0.5rem; border: 1px dashed #cbd5e1; border-radius: 6px; }
         button { background: #0284c7; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
         button:hover { background: #0369a1; }
-        .map-picker { height: 300px; width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 0.5rem; }
+        .map-picker { height: 300px; width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 0.5rem; position: relative; }
         .status-msg { margin-top: 1rem; padding: 1rem; border-radius: 6px; display: none; }
         .success { background: #dcfce7; color: #166534; }
         .error { background: #fee2e2; color: #991b1b; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.3s; }
+        .modal { background: white; padding: 2rem; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align:center; }
+        .modal h3 { margin-top: 0; color: #ef4444; }
+        .modal-actions { margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem; }
+        .btn-action-primary { background: #0ea5e9; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight:600; }
+        .btn-action-secondary { background: #e2e8f0; color: #64748b; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; cursor: pointer; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        
+        .shake { animation: shake 0.4s ease-in-out; }
+        .map-error { border: 2px solid #ef4444 !important; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2); }
+
+        .native-style-bubble {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 12px 16px;
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            max-width: 250px;
+        }
+        .native-style-bubble.visible { opacity: 1; pointer-events: auto; }
+        .native-style-bubble::after {
+            content: '';
+            position: absolute;
+            border-width: 6px;
+            border-style: solid;
+            border-color: #ffffff transparent transparent transparent;
+        }
+        .native-style-bubble.top { bottom: 100%; left: 0; margin-bottom: 10px; }
+        .native-style-bubble.top::after { top: 100%; left: 20px; }
+        
+        .native-style-icon {
+            background: #f97316;
+            color: white;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            font-weight: bold;
+            font-family: sans-serif;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .native-style-text {
+            color: #1e293b;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 13px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -665,7 +780,7 @@ function generateUploadPage() {
                     <div id="locationStatus" style="font-size:0.85rem; color:#64748b; margin-top:0.5rem;"></div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="position:relative;">
                     <label>Location</label>
                     <div style="margin-bottom:0.5rem;">
                         <button type="button" id="useLocationBtn" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; width:auto; padding:0.5rem 1rem;">📍 Use Current Location</button>
@@ -674,6 +789,15 @@ function generateUploadPage() {
                     <div id="pickerMap" class="map-picker"></div>
                     <input type="hidden" id="lat">
                     <input type="hidden" id="lon">
+
+                    <!-- Native Error Bubble -->
+                    <div id="locationErrorBubble" class="native-style-bubble top">
+                        <div class="native-style-icon">!</div>
+                        <div class="native-style-text">
+                            <strong>It's not alot of good if we don't know where it is!</strong><br>
+                            Please select position on the map.
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -684,6 +808,18 @@ function generateUploadPage() {
                 <button type="submit">Submit Report</button>
                 <div id="status" class="status-msg"></div>
             </form>
+
+            <!-- Sassy No-Image Modal -->
+            <div id="noImageModal" class="modal-overlay">
+                <div class="modal">
+                    <h3 style="font-size:1.5rem; margin-bottom:1rem;">No image? Boooooo! 👎</h3>
+                    <p style="font-size:1.1rem; color:#334155; margin-bottom:2rem;">Just words is soo boring 🥱</p>
+                    <div class="modal-actions">
+                        <button class="btn-action-secondary" onclick="confirmSubmitWithoutImage()">I'm Boring (Submit)</button>
+                        <button class="btn-action-primary" onclick="closeNoImageModal()">Upload Image</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -714,10 +850,14 @@ function generateUploadPage() {
                 document.getElementById('lat').value = lat;
                 document.getElementById('lon').value = lng;
                 
+                // Clear errors
+                clearLocationError();
+
                 marker.on('dragend', function(event) {
                     const position = marker.getLatLng();
                     document.getElementById('lat').value = position.lat;
                     document.getElementById('lon').value = position.lng;
+                    clearLocationError(); 
                 });
             }
 
@@ -733,15 +873,40 @@ function generateUploadPage() {
                      navigator.geolocation.getCurrentPosition(pos => {
                          setLocation(pos.coords.latitude, pos.coords.longitude);
                          map.setView([pos.coords.latitude, pos.coords.longitude], 13);
-                         btn.innerText = originalText;
+                         btn.innerText = '📍 Use Current Location';
                      }, err => {
                          alert('Could not get location. Please check browser permissions.');
-                         btn.innerText = originalText;
+                         btn.innerText = '📍 Use Current Location';
                      });
                  } else {
                      alert('Geolocation is not supported by your browser');
                  }
             });
+
+            // Location Error Helpers
+            const bubble = document.getElementById('locationErrorBubble');
+            const mapContainer = document.getElementById('pickerMap');
+
+            function showLocationError() {
+                // Visuals
+                mapContainer.classList.add('map-error');
+                mapContainer.classList.add('shake');
+                bubble.classList.add('visible');
+                
+                // Scroll
+                mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Auto-hide bubble after 5s but keep red border until fixed?
+                setTimeout(() => {
+                    bubble.classList.remove('visible');
+                    mapContainer.classList.remove('shake');
+                }, 5000);
+            }
+
+            function clearLocationError() {
+                mapContainer.classList.remove('map-error');
+                bubble.classList.remove('visible');
+            }
 
             // 3. EXIF Extraction
             document.getElementById('photo').addEventListener('change', function(e) {
@@ -777,83 +942,110 @@ function generateUploadPage() {
             });
 
             // 4. Submit
+            const form = document.getElementById('uploadForm');
+            const noImageModal = document.getElementById('noImageModal');
+            let bypassImageCheck = false;
+
             document.getElementById('uploadForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const btn = e.target.querySelector('button');
+                
+                // 1. Validate Location
+                const lat = document.getElementById('lat').value;
+                const lon = document.getElementById('lon').value;
+
+                if (!lat || !lon) {
+                    showLocationError();
+                    return;
+                }
+
+                // 2. Validate Image (Sassy Check)
+                const fileInput = document.getElementById('photo');
+                if (fileInput.files.length === 0 && !bypassImageCheck) {
+                    noImageModal.style.display = 'flex';
+                    return;
+                }
+                
+                await performUpload();
+            });
+
+            async function performUpload() {
+                const btn = form.querySelector('button[type="submit"]');
                 btn.disabled = true;
                 btn.innerText = 'Uploading...';
+                
+                const statusDiv = document.getElementById('status');
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'status-msg';
+                statusDiv.innerText = 'Uploading...';
 
-                const data = {
-                    user: document.getElementById('name').value,
-                    date: dateSelect.value,
-                    comment: document.getElementById('comment').value,
-                    lat: document.getElementById('lat').value,
-                    lon: document.getElementById('lon').value,
-                    images: []
-                };
+                try {
+                    const data = {
+                        user: document.getElementById('name').value,
+                        date: dateSelect.value,
+                        comment: document.getElementById('comment').value,
+                        lat: document.getElementById('lat').value,
+                        lon: document.getElementById('lon').value,
+                        images: []
+                    };
 
-                // Read Images as Base64
-                const fileInput = document.getElementById('photo');
-                if (fileInput.files.length > 0) {
-                     const promises = Array.from(fileInput.files).map(file => {
-                         return new Promise((resolve) => {
-                             const reader = new FileReader();
-                             reader.onload = (e) => resolve(e.target.result);
-                             reader.readAsDataURL(file);
+                    // Read Images as Base64
+                    const fileInput = document.getElementById('photo');
+                    if (fileInput.files.length > 0) {
+                         const promises = Array.from(fileInput.files).map(file => {
+                             return new Promise((resolve) => {
+                                 const reader = new FileReader();
+                                 reader.onload = (e) => resolve(e.target.result);
+                                 reader.readAsDataURL(file);
+                             });
                          });
-                     });
-                     
-                     data.images = await Promise.all(promises);
-                     await sendData(data);
-                } else {
-                    await sendData(data);
-                }
-
-                async function sendData(payload) {
-                    try {
-                        const statusDiv = document.getElementById('status');
-                        // POST to Cloudflare Worker
-                        const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev/upload';
-                        
-                        // For demo purposes (mock) -> Switched to Real
-                        // console.log('Would upload:', payload);
-                        
-                        statusDiv.style.display = 'block';
-                        statusDiv.className = 'status-msg';
-                        statusDiv.innerText = 'Uploading...';
-                        
-                        const res = await fetch(WORKER_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if(res.ok) {
-                            statusDiv.className = 'status-msg success';
-                            statusDiv.innerText = 'Report Submitted! (Pending approval/display on next site build)';
-                            e.target.reset();
-                            // Clear map
-                            if(marker) map.removeLayer(marker);
-                            document.getElementById('lat').value = '';
-                            document.getElementById('lon').value = '';
-                            document.getElementById('locationStatus').innerText = '';
-                        } else {
-                            const errorText = await res.text();
-                            throw new Error('Upload failed (' + res.status + '): ' + errorText);
-                        }
-
-                    } catch(err) {
-                        console.error(err);
-                        alert('Error uploading: ' + err.message);
-                        const statusDiv = document.getElementById('status');
-                        statusDiv.className = 'status-msg error';
-                        statusDiv.innerText = 'Error: ' + err.message;
-                    } finally {
-                        btn.disabled = false;
-                        btn.innerText = 'Submit Report';
+                         
+                         data.images = await Promise.all(promises);
                     }
+                    // Support legacy
+                    if(data.images.length > 0) data.image = data.images[0];
+
+                    const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev/upload';
+                    const res = await fetch(WORKER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    if(res.ok) {
+                        statusDiv.className = 'status-msg success';
+                        statusDiv.innerText = 'Report Submitted! Should be displayed on next site update. (Updates daily @06:00, 14:00 & 18:00 CET)';
+                        form.reset();
+                        // Clear map
+                        if(marker) map.removeLayer(marker);
+                        document.getElementById('lat').value = '';
+                        document.getElementById('lon').value = '';
+                        document.getElementById('locationStatus').innerText = '';
+                        bypassImageCheck = false;
+                    } else {
+                        const errorText = await res.text();
+                        throw new Error('Upload failed (' + res.status + '): ' + errorText);
+                    }
+
+                } catch(err) {
+                    console.error(err);
+                    statusDiv.className = 'status-msg error';
+                    statusDiv.innerText = 'Error: ' + err.message;
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = 'Submit Report';
                 }
-            });
+            }
+
+            window.closeNoImageModal = function() {
+                 noImageModal.style.display = 'none';
+                 document.getElementById('photo').click(); 
+            };
+
+            window.confirmSubmitWithoutImage = function() {
+                bypassImageCheck = true;
+                noImageModal.style.display = 'none';
+                performUpload(); 
+            };
         </script>
     </div>
 </body>

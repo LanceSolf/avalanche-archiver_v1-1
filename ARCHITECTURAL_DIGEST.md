@@ -12,7 +12,12 @@
 
 ## 🏗️ The Build Pipeline
 The site is static, generated from raw data.
-1.  **Fetch**: Scripts like `tools/fetch_daily.js` and **`tools/fetch_uploads.js`** download data into `data/`.
+1.  **Fetch**: Scripts download data into `data/`.
+    *   **`tools/fetch_lawis_incidents.js`**: Main incident data.
+    *   **`tools/fetch_weather_report.js`**: Daily weather text.
+    *   **`tools/process_profiles.js`**: Snow profile data.
+    *   **`tools/fetch_uploads.js`**: User-submitted reports (from Cloudflare KV).
+    *   **`tools/fetch_daily.js`**: Orchestrates daily updates.
 2.  **Process**: Data is cleaned and structured.
 3.  **Build**: `node tools/build.js` is the master conductor.
     *   It reads `data/`.
