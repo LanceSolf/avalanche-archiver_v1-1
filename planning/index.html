@@ -10,7 +10,7 @@
     <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
     <!-- ToGeoJSON for GPX parsing -->
-    <script src="https://unpkg.com/@mapbox/togeojson@5.8.1/togeojson.js"></script>
+    <script src="https://unpkg.com/@tmcw/togeojson@5.8.1/dist/togeojson.umd.js"></script>
 
     <style>
         body {
@@ -149,6 +149,7 @@
             border-radius: 3px;
             background: var(--border-color);
             outline: none;
+            appearance: none;
             -webkit-appearance: none;
         }
 
@@ -444,14 +445,14 @@
 
         // Initialize overlay layers when map loads
         map.on('load', () => {
-            // Add Hillshade layer
+            // Add ShadeMap Hillshade layer
             map.addSource('hillshade', {
                 type: 'raster',
                 tiles: [
-                    'https://tiles.wmflabs.org/hillshading/{z}/{x}/{y}.png'
+                    'https://www.shademap.app/api/v1/tile/hillshade/{z}/{x}/{y}.png?apikey=eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImxhbmNlc29sZkBob3RtYWlsLmNvbSIsImNyZWF0ZWQiOjE3Njg2MDA2ODc1MDEsImlhdCI6MTc2ODYwMDY4N30.97EfyaqpKfAq95ekfozAMlVGjvfu25lxgGHoNhbxCec'
                 ],
-                tileSize: 256,
-                attribution: 'Hillshading: WMFLABS'
+                tileSize: 512,
+                attribution: 'Hillshading: © ShadeMap'
             });
 
             map.addLayer({
@@ -462,14 +463,14 @@
                 paint: { 'raster-opacity': 0.6 }
             });
 
-            // Add Slope layer (using hillshade as approximation)
+            // Add ShadeMap Slope layer
             map.addSource('slope', {
                 type: 'raster',
                 tiles: [
-                    'https://tiles.wmflabs.org/hillshading/{z}/{x}/{y}.png'
+                    'https://www.shademap.app/api/v1/tile/slope/{z}/{x}/{y}.png?apikey=eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImxhbmNlc29sZkBob3RtYWlsLmNvbSIsImNyZWF0ZWQiOjE3Njg2MDA2ODc1MDEsImlhdCI6MTc2ODYwMDY4N30.97EfyaqpKfAq95ekfozAMlVGjvfu25lxgGHoNhbxCec'
                 ],
-                tileSize: 256,
-                attribution: 'Slope approximation: WMFLABS'
+                tileSize: 512,
+                attribution: 'Slope shading: © ShadeMap'
             });
 
             map.addLayer({
@@ -478,8 +479,7 @@
                 source: 'slope',
                 layout: { visibility: 'none' },
                 paint: {
-                    'raster-opacity': 0.5,
-                    'raster-hue-rotate': 180
+                    'raster-opacity': 0.5
                 }
             });
 
@@ -597,12 +597,12 @@
             try {
                 const response = await fetch('../gpx/');
                 const html = await response.text();
-                
+
                 // Parse HTML to find .gpx files
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const links = Array.from(doc.querySelectorAll('a')).filter(a => a.href.endsWith('.gpx'));
-                
+
                 const gpxFiles = links.map(a => {
                     const url = new URL(a.href);
                     return url.pathname.split('/').pop();
@@ -618,7 +618,7 @@
 
         function displayGPXList(files) {
             const gpxList = document.getElementById('gpx-list');
-            
+
             if (files.length === 0) {
                 gpxList.innerHTML = '<div class="no-routes">No GPX routes found. Add .gpx files to /gpx/ folder.</div>';
                 return;
@@ -639,7 +639,7 @@
             try {
                 const response = await fetch(`../gpx/${filename}`);
                 const gpxText = await response.text();
-                
+
                 // Parse GPX to GeoJSON
                 const parser = new DOMParser();
                 const gpxDoc = parser.parseFromString(gpxText, 'text/xml');
