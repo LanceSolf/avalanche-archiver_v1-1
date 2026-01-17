@@ -1102,25 +1102,70 @@ function generateWebcamPage(webcams) {
         <!-- Map show webcam locations -->
         <div id="map" style="height: 400px; width: 100%; border-radius: 12px; margin-bottom: 2rem; border:1px solid #e2e8f0;"></div>
 
-        <div class="webcam-grid">
-            ${webcams.map(cam => {
-        const badge = '<span class="badge">LIVE</span>';
+        
+        ${(() => {
+            // Group Definitions
+            const groups = {
+                'Oberjoch & Tannheimer Tal': [
+                    'Bad Hindelang/Oberjoch', 'Zöblen - Obere Halde', 'Neunerköpfle'
+                ],
+                'Allgäu Prealps': [
+                    'Balderschwang Gelbhansekopf', 'Balderschwang', 'Grasgehren - Bolgengrat',
+                    'Ofterschwang Bergbahnen', 'Weiherkopf Bolsterlang', 'Hochgrat', 'Grünten'
+                ]
+            };
 
-        return `
-            <a href="${cam.linkUrl}" target="_blank" class="webcam-card">
-                ${badge}
-                <div style="position:relative;">
-                    <img src="${cam.imageUrl}" class="webcam-img" loading="lazy" alt="${cam.title}">
-                    <div class="play-overlay"><span class="play-icon">▶</span></div>
-                </div>
-                <div style="padding:1rem;">
-                    <h3 style="margin:0; font-size:1rem; font-weight:600;">${cam.title}</h3>
-                    <p style="margin:0.25rem 0 0; color:#475569; font-size:0.9rem;">${cam.location}</p>
-                    <p class="meta-info">Webcam</p>
-                </div>
-            </a>`;
-    }).join('')}
-        </div>
+            // Helper to find which group a cam belongs to
+            const getGroup = (title) => {
+                for (const [groupName, titles] of Object.entries(groups)) {
+                    if (titles.includes(title)) return groupName;
+                }
+                return 'Oberstdorf & Kleinwalsertal';
+            };
+
+            // Bucketing (Defines Order)
+            const buckets = {
+                'Oberstdorf & Kleinwalsertal': [],
+                'Allgäu Prealps': [],
+                'Oberjoch & Tannheimer Tal': []
+            };
+
+            webcams.forEach(cam => {
+                const group = getGroup(cam.title);
+                if (buckets[group]) {
+                    buckets[group].push(cam);
+                }
+            });
+
+            // Render HTML
+            return Object.entries(buckets).map(([groupName, cams]) => {
+                if (cams.length === 0) return '';
+
+                const gridHtml = cams.map(cam => {
+                    const badge = '<span class="badge">LIVE</span>';
+                    return `
+                        <a href="${cam.linkUrl}" target="_blank" class="webcam-card">
+                            ${badge}
+                            <div style="position:relative;">
+                                <img src="${cam.imageUrl}${cam.imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}" class="webcam-img" loading="lazy" alt="${cam.title}">
+                                <div class="play-overlay"><span class="play-icon">▶</span></div>
+                            </div>
+                            <div style="padding:1rem;">
+                                <h3 style="margin:0; font-size:1rem; font-weight:600;">${cam.title}</h3>
+                                <p style="margin:0.25rem 0 0; color:#475569; font-size:0.9rem;">${cam.location}</p>
+                                <p class="meta-info">Webcam</p>
+                            </div>
+                        </a>`;
+                }).join('');
+
+                return `
+                    <h2 style="margin-top:2.5rem; margin-bottom:1rem; color:#1e293b; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem;">${groupName}</h2>
+                    <div class="webcam-grid">
+                        ${gridHtml}
+                    </div>
+                `;
+            }).join('');
+        })()}
 
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
         <script>
