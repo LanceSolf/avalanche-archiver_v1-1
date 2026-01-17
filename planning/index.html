@@ -341,8 +341,8 @@
                 </label>
             </div>
             <div class="opacity-control" id="hillshade-opacity-container" style="display: none;">
-                <input type="range" id="hillshade-opacity" min="0" max="100" value="60">
-                <div class="opacity-label">Opacity: <span id="hillshade-opacity-value">60</span>%</div>
+                <input type="range" id="hillshade-opacity" min="0" max="100" value="100">
+                <div class="opacity-label">Opacity: <span id="hillshade-opacity-value">100</span>%</div>
             </div>
 
             <!-- Slope -->
@@ -356,8 +356,8 @@
                 </label>
             </div>
             <div class="opacity-control" id="slope-opacity-container" style="display: none;">
-                <input type="range" id="slope-opacity" min="0" max="100" value="50">
-                <div class="opacity-label">Opacity: <span id="slope-opacity-value">50</span>%</div>
+                <input type="range" id="slope-opacity" min="0" max="100" value="100">
+                <div class="opacity-label">Opacity: <span id="slope-opacity-value">100</span>%</div>
             </div>
 
             <!-- Satellite -->
@@ -445,14 +445,14 @@
 
         // Initialize overlay layers when map loads
         map.on('load', () => {
-            // Add ShadeMap Hillshade layer
+            // Add WMFLABS Hillshade layer
             map.addSource('hillshade', {
                 type: 'raster',
                 tiles: [
-                    'https://www.shademap.app/api/v1/tile/hillshade/{z}/{x}/{y}.png?apikey=eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImxhbmNlc29sZkBob3RtYWlsLmNvbSIsImNyZWF0ZWQiOjE3Njg2MDA2ODc1MDEsImlhdCI6MTc2ODYwMDY4N30.97EfyaqpKfAq95ekfozAMlVGjvfu25lxgGHoNhbxCec'
+                    'https://tiles.wmflabs.org/hillshading/{z}/{x}/{y}.png'
                 ],
-                tileSize: 512,
-                attribution: 'Hillshading: © ShadeMap'
+                tileSize: 256,
+                attribution: 'Hillshading: © WMFLABS'
             });
 
             map.addLayer({
@@ -460,17 +460,17 @@
                 type: 'raster',
                 source: 'hillshade',
                 layout: { visibility: 'none' },
-                paint: { 'raster-opacity': 0.6 }
+                paint: { 'raster-opacity': 1.0 }
             });
 
-            // Add ShadeMap Slope layer
+            // Add Slope Approximation layer (using hillshade with color adjustment)
             map.addSource('slope', {
                 type: 'raster',
                 tiles: [
-                    'https://www.shademap.app/api/v1/tile/slope/{z}/{x}/{y}.png?apikey=eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImxhbmNlc29sZkBob3RtYWlsLmNvbSIsImNyZWF0ZWQiOjE3Njg2MDA2ODc1MDEsImlhdCI6MTc2ODYwMDY4N30.97EfyaqpKfAq95ekfozAMlVGjvfu25lxgGHoNhbxCec'
+                    'https://tiles.wmflabs.org/hillshading/{z}/{x}/{y}.png'
                 ],
-                tileSize: 512,
-                attribution: 'Slope shading: © ShadeMap'
+                tileSize: 256,
+                attribution: 'Slope approximation (hillshade based)'
             });
 
             map.addLayer({
@@ -479,7 +479,10 @@
                 source: 'slope',
                 layout: { visibility: 'none' },
                 paint: {
-                    'raster-opacity': 0.5
+                    'raster-opacity': 1.0,
+                    'raster-hue-rotate': 120,
+                    'raster-saturation': 0.5,
+                    'raster-contrast': 0.3
                 }
             });
 
