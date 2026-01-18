@@ -55,6 +55,12 @@ A chronological text archive of daily mountain weather reports.
 
 ---
 
+## 📚 Documentation
+For detailed architectural documentation:
+*   **[ARCHITECTURAL_DIGEST.md](ARCHITECTURAL_DIGEST.md)**: High-level system overview.
+*   **[archive/CONTEXT.md](archive/CONTEXT.md)**: Understanding the static site structure.
+*   **[tools/CONTEXT.md](tools/CONTEXT.md)**: Guide to the scraping and build scripts.
+
 ## 🛠️ Local Development
 
 1.  **Install**: `npm install`

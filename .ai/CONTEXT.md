@@ -1,40 +1,112 @@
-# 🧠 AI Context & Rules
+# Project Context & Architecture
 
-## Identity
-You are the **Avalanche Archiver Maintainer**. You are assisting a user who enjoys "Vibe Coding"—fast, iterative, and visually pleasing development.
+> **Master Entry Point for AI Agents**
+> *Read this file first to understand the system map.*
 
-## 🎨 Vibe & Style Guidelines
-*   **Visuals**: We like clean, modern, "alpine" aesthetics. Whites, blues (`#0284c7`), and clear typography.
-*   **Code**: Prefer readable, modern JavaScript.
-*   **Attitude**: Be proactive. If you see a hardcoded string that should be dynamic, point it out (but don't obsess over it if we're prototyping).
+## System Overview
+The **Avalanche Archiver** is a Node.js-based system that:
+1.  **Scrapes** daily avalanche bulletins, weather reports, and incidents from public sources (Bayern, Tirol, Vorarlberg).
+2.  **Archives** these assets (PDFs, JSON, Images) permanently.
+3.  **Builds** a static HTML website to browse this historical data.
 
-## ⚠️ Operational Rules (CRITICAL)
+## System Map (Mermaid)
 
-1.  **NO TOUCH ARCHIVE**: Never edit files in `archive/*`. These are generated.
-    *   *Why?* Because `node tools/build.js` will overwrite them instantly.
-    *   *Instead*: Edit `tools/lib/templates.js` or the specific builder script in `tools/lib/builders/`.
+```mermaid
+graph TD
+    subgraph Sources
+        LWD[Lawinenwarndienst]
+        LAWIS[Lawis.at]
+        WETTER[Weather Reports]
+        STATIONS[Station Data]
+        GEO[Geosphere Austria]
+    end
 
-2.  **TEMPLATES ARE KING**: The UI for incident pages, weather reports, and profile pages lives in `tools/lib/templates.js`.
-    *   *Wanted to change a header?* Go to `templates.js`.
-    *   *Wanted to add a link?* Go to `templates.js`.
+    subgraph "Engine (tools/)"
+        DAILY[fetch_daily.js]
+        INC[fetch_lawis_incidents.js]
+        W_TEXT[fetch_weather_report.js]
+        W_STAT[fetch_weather.js]
+        W_GEO[fetch_geosphere.js]
+        ENRICH[enrich_profiles.js]
+        BUILD[build.js]
+    end
 
-3.  **CHECK CONFIG**: If adding a new region, check `tools/config.js` and `tools/lib/builders/buildRegions.js` or `buildPdfArchive.js`.
+    subgraph "Data Storage (data/)"
+        PDFs[PDFs]
+        JSON[JSON Metadata]
+        IMG[Images]
+    end
 
-4.  **RESPECT THE BUILD**: After making changes to templates or builders, you usually need to run `node tools/build.js` to see the effect.
-    *   *Pro-tip*: You can `npx serve .` to view the site, but you must rebuild to update the static files.
+    subgraph "Output (archive/)"
+        A_REGIONS[Regional Archives]
+        A_INC[Incidents]
+        A_WET[Weather]
+        A_PROF[Profiles]
+    end
 
-5.  **DYNAMICS**: User uploads are handled by Cloudflare Workers.
-    *   *Frontend*: `archive/ground-conditions/upload.html` POSTs to `UPLOAD_WORKER_URL`.
-    *   *Backend*: `workers/upload-worker.js` stores data in KV.
-    *   *Sync*: `tools/fetch_uploads.js` downloads approved uploads to `data/uploads.json` before build.
+    LWD --> DAILY
+    LAWIS --> INC
+    WETTER --> W_TEXT
+    STATIONS --> W_STAT
+    GEO --> W_GEO
 
-## 📂 File System Intelligence
-*   `tools/` = 🧠 BRAIN (Logic)
-*   `data/` = 💾 MEMORY (Raw inputs)
-*   `archive/` = 🖼️ OUTPUT (Don't touch!)
-*   `workers/` = ☁️ CLOUDFLARE (Serverless logic)
+    DAILY --> PDFs
+    DAILY --> JSON
+    INC --> JSON
+    INC --> IMG
+    
+    W_TEXT --> JSON
+    W_STAT --> JSON
+    W_GEO --> JSON
+    
+    JSON --> ENRICH
+    ENRICH --> JSON
 
-## 🛠️ Maintenance Protocol
-**IF** you change the folder structure, build logic, or add new tools:
-1.  **YOU MUST** update `ARCHITECTURAL_DIGEST.md` to reflect the new reality.
-2.  Do not leave the map outdated. An outdated map is worse than no map.
+    daily_job --> DAILY
+    daily_job --> INC
+    daily_job --> W_TEXT
+    daily_job --> W_STAT
+    daily_job --> W_GEO
+    daily_job --> ENRICH
+
+    BUILD --> PDFs
+    BUILD --> JSON
+    BUILD --> IMG
+
+    BUILD --> A_REGIONS
+    BUILD --> A_INC
+    BUILD --> A_WET
+    BUILD --> A_PROF
+```
+
+## Documentation Index
+
+### 📂 Archive Output (`archive/`)
+*The user-facing website.*
+- [Root Context](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/CONTEXT.md)
+- **Regions**:
+    - [Allgäu Alps Central](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/allgau-alps-central/CONTEXT.md)
+    - [Allgäu Alps East](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/allgau-alps-east/CONTEXT.md)
+    - [Allgäu Alps West](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/allgau-alps-west/CONTEXT.md)
+    - [Allgäu Prealps](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/allgau-prealps/CONTEXT.md)
+- **Features**:
+    - [Incidents](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/incidents/CONTEXT.md) - Accident reports & analysis.
+    - [Weather](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/weather/CONTEXT.md) - Mountain station data.
+    - [Profiles](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/profiles/CONTEXT.md) - Snowpack analysis.
+    - [Snow Depth](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/snow-depth/CONTEXT.md) - 3D Map.
+    - [Ground & Webcams](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/archive/ground-conditions/CONTEXT.md) - User uploads.
+
+### 🗺️ Planning Module (`planning/`)
+*Interactive Route Planner.*
+- [Planning Context](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/planning/CONTEXT.md) (To be created)
+
+
+### 🛠️ Tools & Logic (`tools/`)
+*The scraping and build logic.*
+- [Tools Context](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/tools/CONTEXT.md)
+- **Config**: `tools/lib/config.js` (Central registry for all URLs and paths).
+
+## Key Workflows
+1.  **Daily Fetch**: `npm run fetch:all` (Orchestrates `fetch:daily`, `fetch:weather`, `fetch:report`, `fetch:geosphere`, `fetch:incidents`, `enrich:profiles`).
+2.  **Build Site**: `npm run build` (Generates `archive/` from `data/`).
+3.  **Serve**: `npm run serve` (Local preview).

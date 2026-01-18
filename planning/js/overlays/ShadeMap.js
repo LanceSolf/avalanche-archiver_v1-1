@@ -254,9 +254,27 @@ class ShadeMap {
         this.active = isActive;
         if (!isActive) {
             this.removeLayer();
+            this.map.off('moveend', this._boundUpdate);
         } else {
             this.update();
+            // Debounce update on moveend
+            if (!this._boundUpdate) {
+                this._boundUpdate = this._debounce(() => this.update(), 500);
+            }
+            this.map.on('moveend', this._boundUpdate);
         }
+    }
+
+    _debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
 
     removeLayer() {
@@ -281,14 +299,19 @@ class ShadeMap {
 
         try {
             const bounds = this.map.getBounds();
-            const zoom = Math.floor(this.map.getZoom());
+            // Ensure minimum zoom of 11 for terrain detail, but cap at current + 2 to avoid massive downloads
+            let zoom = Math.floor(this.map.getZoom());
+            zoom = Math.max(zoom, 11);
+
+            // High resolution for crisp shadows
+            const resolution = 300;
 
             const shadowImage = await this.shadowCalc.generateShadowLayer({
                 north: bounds.getNorth(),
                 south: bounds.getSouth(),
                 east: bounds.getEast(),
                 west: bounds.getWest()
-            }, zoom, this.currentTime, 64); // Reduced resolution to 64
+            }, zoom, this.currentTime, resolution);
 
             // Update Map
             this.removeLayer();

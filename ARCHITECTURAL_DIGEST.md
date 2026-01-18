@@ -41,6 +41,12 @@ The site is static, generated from raw data.
 *   **`tools/lib/builders/*.js`**: Specific logic for building different sections.
 *   **`styles.css`**: Global styles.
 
+## 📚 Detailed Documentation
+We now have granular `CONTEXT.md` files for every section of the system.
+See **[.ai/CONTEXT.md](.ai/CONTEXT.md)** for the master index.
+*   **Archive Structure**: [archive/CONTEXT.md](archive/CONTEXT.md)
+*   **Tools Engine**: [tools/CONTEXT.md](tools/CONTEXT.md)
+
 ## 🛑 Common Pitfalls (Don't do these!)
 *   ❌ **Don't edit `archive/incidents/2026-01-15.html`**. It will be deleted/overwritten next time we build.
 *   ❌ **Don't ask "Where is the HTML source?"** for an incident page. It doesn't exist. It's constructed dynamically in `templates.js`.

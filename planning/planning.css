@@ -601,7 +601,7 @@ input:checked+.slider:before {
         width: 100%;
         max-width: 100%;
         border-radius: 16px 16px 0 0;
-        max-height: 50vh;
+        max-height: 30vh;
         transform: translateY(0);
         padding-bottom: env(safe-area-inset-bottom, 20px);
         /* Safe area */

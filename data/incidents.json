@@ -2644,5 +2644,113 @@
     },
     "pdf_path": "incident_bulletins/allgau-alps-central/2026-01/2026-01-11.pdf",
     "linked_profiles": []
+  },
+  {
+    "id": 999999,
+    "date": "2026-01-18 12:00:00",
+    "location": "TEST INCIDENT",
+    "regionId": 1,
+    "subregionId": 158,
+    "lat": 47.47361,
+    "lon": 10.58445,
+    "url": "https://lawis.at/incident/9678",
+    "details": {
+      "id": 9678,
+      "valid_time": true,
+      "date": "2019-01-31T10:00:00+01:00",
+      "reported": {
+        "date": "2019-02-15T11:43:52+01:00",
+        "name": "LWD Tirol",
+        "email": null
+      },
+      "involved": {
+        "dead": 0,
+        "injured": 0,
+        "uninjured": 1,
+        "sweeped": 0,
+        "buried_partial": 0,
+        "buried_total": 0,
+        "equipment": {
+          "standard": {
+            "id": 0,
+            "text": "unknown"
+          },
+          "lvs": {
+            "id": 0,
+            "text": "unknown"
+          },
+          "airbag": {
+            "id": 0,
+            "text": "unknown"
+          }
+        },
+        "ascent_descent": {
+          "id": 2,
+          "text": "descent"
+        }
+      },
+      "danger": {
+        "rating": {
+          "id": 3,
+          "level": 3,
+          "text": "considerable"
+        },
+        "problem": {
+          "id": 2,
+          "text": "wind-drifted snow"
+        }
+      },
+      "avalanche": {
+        "extent": {
+          "length": 60,
+          "width": 30
+        },
+        "breakheight": null,
+        "type": {
+          "id": 1,
+          "text": "slab"
+        },
+        "size": {
+          "id": 1,
+          "text": "1: small avalanche"
+        },
+        "release": {
+          "id": 1,
+          "text": "artificial"
+        },
+        "humidity": {
+          "id": 1,
+          "text": "dry"
+        }
+      },
+      "location": {
+        "name": "Krinnenspitze",
+        "elevation": 1960,
+        "longitude": 10.58445,
+        "latitude": 47.47361,
+        "slope_angle": 37,
+        "aspect": {
+          "id": 6,
+          "text": "SW"
+        },
+        "country": {
+          "id": 1,
+          "code": "AT",
+          "text": "Österreich"
+        },
+        "region": {
+          "id": 1,
+          "text": "Tirol"
+        },
+        "subregion": {
+          "id": 158,
+          "text": "Allgäuer Alpen"
+        }
+      },
+      "images": [],
+      "comments_en": null
+    },
+    "linked_profiles": [],
+    "pdf_path": "incident_bulletins/allgau-alps-east/2019-01/2019-01-31.pdf"
   }
 ]

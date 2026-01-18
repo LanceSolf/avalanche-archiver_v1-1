@@ -32,7 +32,8 @@ const map = new maplibregl.Map({
     // Mobile Gestures
     dragPan: true,        // One finger to move
     touchZoomRotate: true, // Two fingers to zoom/rotate
-    touchPitch: true      // Two fingers to tilt
+    touchPitch: true,      // Two fingers to tilt
+    maxPitch: 85           // Allow steeper angles
 });
 
 // Add standard scale control
@@ -107,7 +108,12 @@ map.on('load', () => {
 });
 
 // Create ShadeMap instance
-const shadeMap = new ShadeMap(map);
+let shadeMap;
+try {
+    shadeMap = new ShadeMap(map);
+} catch (e) {
+    console.error('Failed to initialize ShadeMap:', e);
+}
 
 // UI References
 const shademapToggle = document.getElementById('shademap-toggle');
@@ -122,13 +128,15 @@ const now = new Date();
 const initialMinutes = now.getHours() * 60 + now.getMinutes();
 shademapTimeSlider.value = initialMinutes;
 updateTimeDisplay(initialMinutes);
-shadeMap.setMinutes(initialMinutes);
+if (shadeMap) {
+    shadeMap.setMinutes(initialMinutes);
+}
 
 function updateShademapLink() {
     const center = map.getCenter();
     const zoom = map.getZoom();
     // ShadeMap format: @lat,lng,zoomz,timestampt
-    const date = shadeMap.currentTime || new Date();
+    const date = (shadeMap && shadeMap.currentTime) ? shadeMap.currentTime : new Date();
     const timestamp = date.getTime();
 
     const url = `https://shademap.app/@${center.lat.toFixed(5)},${center.lng.toFixed(5)},${zoom.toFixed(2)}z,${timestamp}t`;
@@ -152,7 +160,7 @@ shademapToggle.addEventListener('change', (e) => {
         updateShademapLink();
         map.on('move', updateShademapLink);
 
-        shadeMap.toggle(true);
+        if (shadeMap) shadeMap.toggle(true);
     } else {
         // Hide bottom slider
         shademapBottomContainer.style.display = 'none';
@@ -160,7 +168,7 @@ shademapToggle.addEventListener('change', (e) => {
         shademapLinkContainer.style.display = 'none';
         map.off('move', updateShademapLink);
 
-        shadeMap.toggle(false);
+        if (shadeMap) shadeMap.toggle(false);
     }
 });
 
@@ -173,7 +181,7 @@ shademapTimeSlider.addEventListener('input', (e) => {
     // Debounce the calculation
     clearTimeout(sliderTimeout);
     sliderTimeout = setTimeout(() => {
-        shadeMap.setMinutes(minutes);
+        if (shadeMap) shadeMap.setMinutes(minutes);
         updateShademapLink(); // Update link with new time
     }, 100); // 100ms debounce
 });
@@ -246,7 +254,16 @@ const terrainToggle = document.getElementById('terrain-toggle');
 terrainToggle.addEventListener('change', (e) => {
     if (e.target.checked) {
         map.setTerrain({ source: 'terrarium', exaggeration: 1.5 });
-        map.easeTo({ pitch: 60, duration: 1000 });
+
+        // Prevent being buried in terrain: Zoom out if too close (Zoom > 12.5)
+        const currentZoom = map.getZoom();
+        const targetZoom = currentZoom > 12.5 ? 12.5 : currentZoom;
+
+        map.easeTo({
+            pitch: 60,
+            zoom: targetZoom,
+            duration: 1000
+        });
     } else {
         map.setTerrain(null);
         map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
@@ -293,10 +310,10 @@ btnResetNorth.addEventListener('click', () => {
 });
 
 ctrlTiltUp.addEventListener('click', () => {
-    map.easeTo({ pitch: Math.min(map.getPitch() + 15, 85), duration: 300 });
+    map.easeTo({ pitch: Math.max(map.getPitch() - 5, 0), duration: 200 }); // Smaller step, faster duration
 });
 ctrlTiltDown.addEventListener('click', () => {
-    map.easeTo({ pitch: Math.max(map.getPitch() - 15, 0), duration: 300 });
+    map.easeTo({ pitch: Math.min(map.getPitch() + 5, 82), duration: 200 }); // Max 82 degrees
 });
 ctrlRotateLeft.addEventListener('click', () => {
     map.easeTo({ bearing: map.getBearing() - 22.5, duration: 300 });
@@ -360,14 +377,24 @@ function initGPXUpload() {
                     // Adjust padding based on device and mode
                     let padding = 50;
                     if (is3D) {
-                        padding = isMobile ? 100 : 200;
+                        const h = map.getCanvas().height;
+
+
+                        // Dynamic Asymmetric Padding
+                        // Goal: Push route into the bottom 30% of the screen (Foreground)
+                        padding = {
+                            top: h * 0.65,    // Push down from horizon significantly
+                            bottom: 20,       // Keep close to bottom edge
+                            left: 50,
+                            right: isMobile ? 20 : 350 // Account for desktop sidebar
+                        };
                     } else {
                         padding = isMobile ? 20 : 50;
                     }
 
                     map.fitBounds(bounds, {
                         padding: padding,
-                        maxZoom: is3D ? 12.5 : 15
+                        maxZoom: 12.5 // "1km scale" / Safe 3D zoom level
                     });
                 }
 
