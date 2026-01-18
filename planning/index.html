@@ -52,100 +52,99 @@
             <div class="sidebar-handle-bar"></div>
         </div>
 
-        <div class="panel-header">
-            <h2>🗺️ Planning Tool</h2>
-        </div>
-
-        <!-- Base Map Info -->
-
-
-        <!-- Overlay Layers -->
-        <div class="control-section">
-            <h3>Overlay Layers</h3>
-
-            <!-- Satellite -->
-            <div class="layer-control">
-                <label>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="satellite-toggle">
-                        <span class="slider"></span>
-                    </div>
-                    Satellite Imagery
-                </label>
-            </div>
-            <div class="opacity-control" id="satellite-opacity-container" style="display: none;">
-                <input type="range" id="satellite-opacity" min="0" max="100" value="100">
-                <div class="opacity-label">Opacity: <span id="satellite-opacity-value">100</span>%</div>
-            </div>
-            <!-- External Link for EOS LandViewer -->
-            <div id="satellite-link-container"
-                style="display: none; padding-left: 0.5rem; margin-top: 0.25rem; margin-bottom: 0.75rem;">
-                <a id="satellite-link" href="#" target="_blank"
-                    style="font-size: 0.8rem; color: #0284c7; text-decoration: none;">
-                    Check Recent Snow (EOS) <span style="font-size: 0.7em;">↗</span>
-                </a>
+        <div class="panel-scroll-container">
+            <div class="panel-header">
+                <h2>🗺️ Planning Tool</h2>
             </div>
 
-            <!-- Slope -->
-            <div class="layer-control">
-                <label>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="slope-toggle">
-                        <span class="slider"></span>
-                    </div>
-                    Slope Angle
-                </label>
-            </div>
-            <div class="opacity-control" id="slope-opacity-container" style="display: none;">
-                <input type="range" id="slope-opacity" min="0" max="100" value="70">
-                <div class="opacity-label">Opacity: <span id="slope-opacity-value">70</span>%</div>
-            </div>
-
-            <!-- Simple Shade Map -->
-            <div class="layer-control">
-                <label>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="shademap-toggle">
-                        <span class="slider"></span>
-                    </div>
-                    Simple Shade Map
-                </label>
-            </div>
-            <!-- External Link for ShadeMap, hidden by default -->
-            <div id="shademap-link-container" style="display: none; padding-left: 0.5rem; margin-top: 0.25rem;">
-                <a id="shademap-link" href="#" target="_blank"
-                    style="font-size: 0.8rem; color: #0284c7; text-decoration: none;">
-                    More accurate (external link) <span style="font-size: 0.7em;">↗</span>
-                </a>
-            </div>
-
+            <!-- Overlay Layers -->
             <div class="control-section">
-                <h3>3D Terrain</h3>
+                <h3>Overlay Layers</h3>
+
+                <!-- Satellite -->
                 <div class="layer-control">
                     <label>
                         <div class="toggle-switch">
-                            <input type="checkbox" id="terrain-toggle">
+                            <input type="checkbox" id="satellite-toggle">
                             <span class="slider"></span>
                         </div>
-                        Enable 3D
+                        Satellite Imagery
                     </label>
                 </div>
+                <div class="opacity-control" id="satellite-opacity-container" style="display: none;">
+                    <input type="range" id="satellite-opacity" min="0" max="100" value="100">
+                    <div class="opacity-label">Opacity: <span id="satellite-opacity-value">100</span>%</div>
+                </div>
+                <!-- External Link for EOS LandViewer -->
+                <div id="satellite-link-container"
+                    style="display: none; padding-left: 0.5rem; margin-top: 0.25rem; margin-bottom: 0.75rem;">
+                    <a id="satellite-link" href="#" target="_blank"
+                        style="font-size: 0.8rem; color: #0284c7; text-decoration: none;">
+                        Check Recent Snow (EOS) <span style="font-size: 0.7em;">↗</span>
+                    </a>
+                </div>
+
+                <!-- Slope -->
+                <div class="layer-control">
+                    <label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="slope-toggle">
+                            <span class="slider"></span>
+                        </div>
+                        Slope Angle
+                    </label>
+                </div>
+                <div class="opacity-control" id="slope-opacity-container" style="display: none;">
+                    <input type="range" id="slope-opacity" min="0" max="100" value="70">
+                    <div class="opacity-label">Opacity: <span id="slope-opacity-value">70</span>%</div>
+                </div>
+
+                <!-- Simple Shade Map -->
+                <div class="layer-control">
+                    <label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="shademap-toggle">
+                            <span class="slider"></span>
+                        </div>
+                        Simple Shade Map
+                    </label>
+                </div>
+                <!-- External Link for ShadeMap, hidden by default -->
+                <div id="shademap-link-container" style="display: none; padding-left: 0.5rem; margin-top: 0.25rem;">
+                    <a id="shademap-link" href="#" target="_blank"
+                        style="font-size: 0.8rem; color: #0284c7; text-decoration: none;">
+                        More accurate (external link) <span style="font-size: 0.7em;">↗</span>
+                    </a>
+                </div>
+
+                <div class="control-section">
+                    <h3>3D Terrain</h3>
+                    <div class="layer-control">
+                        <label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="terrain-toggle">
+                                <span class="slider"></span>
+                            </div>
+                            Enable 3D
+                        </label>
+                    </div>
+                </div>
+
+
             </div>
 
-
-        </div>
-
-        <!-- GPX Routes -->
-        <div class="control-section">
-            <h3>GPX Routes</h3>
-            <div class="gpx-upload-container">
-                <input type="file" id="gpx-file-input" accept=".gpx" class="hidden-input">
-                <label for="gpx-file-input" class="upload-btn">
-                    📂 Upload GPX
-                </label>
-                <div id="gpx-status" class="gpx-status" style="display: none;">
-                    <span id="gpx-filename">filename.gpx</span>
-                    <button id="btn-clear-gpx" class="clear-btn" title="Remove GPX">✕</button>
+            <!-- GPX Routes -->
+            <div class="control-section">
+                <h3>GPX Routes</h3>
+                <div class="gpx-upload-container">
+                    <input type="file" id="gpx-file-input" accept=".gpx" class="hidden-input">
+                    <label for="gpx-file-input" class="upload-btn">
+                        📂 Upload GPX
+                    </label>
+                    <div id="gpx-status" class="gpx-status" style="display: none;">
+                        <span id="gpx-filename">filename.gpx</span>
+                        <button id="btn-clear-gpx" class="clear-btn" title="Remove GPX">✕</button>
+                    </div>
                 </div>
             </div>
         </div>
