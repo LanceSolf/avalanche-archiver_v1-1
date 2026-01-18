@@ -103,6 +103,17 @@ body {
     flex-direction: column;
     backdrop-filter: blur(10px);
     border-left: 1px solid rgba(255, 255, 255, 0.5);
+    overflow-y: auto;
+    /* Scrollable content */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+/* Hide scrollbar for Chrome/Safari/Opera */
+.control-panel::-webkit-scrollbar {
+    display: none;
 }
 
 .control-panel.minimized {
