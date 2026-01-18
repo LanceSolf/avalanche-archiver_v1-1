@@ -534,6 +534,7 @@ input:checked+.slider:before {
     width: 100%;
     height: 12px;
     -webkit-appearance: none;
+    appearance: none;
     background: linear-gradient(to right, #1e3a8a 0%, #3b82f6 25%, #fbbf24 50%, #f59e0b 75%, #1e3a8a 100%);
     border-radius: 6px;
     outline: none;
@@ -578,9 +579,12 @@ input:checked+.slider:before {
         left: 0;
         /* Full width on mobile */
         width: 100%;
-        border-radius: 12px 12px 0 0;
+        max-width: 100%;
+        border-radius: 16px 16px 0 0;
         max-height: 50vh;
         transform: translateY(0);
+        padding-bottom: env(safe-area-inset-bottom, 20px);
+        /* Safe area */
     }
 
     .control-panel.minimized {
@@ -595,6 +599,9 @@ input:checked+.slider:before {
         width: 60px;
         height: 24px;
         border-radius: 8px 8px 0 0;
+        /* Horizontal handle on top */
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-bottom: none;
     }
 
     .sidebar-handle-bar {
@@ -605,11 +612,30 @@ input:checked+.slider:before {
     .map-header {
         top: 10px;
         left: 10px;
+        right: 10px;
+        /* Ensure it doesn't go off screen */
     }
 
     .back-button {
         padding: 0.5rem 1rem;
         font-size: 0.875rem;
+    }
+
+    /* Move Map Controls to Bottom Right on Mobile */
+    .custom-map-controls {
+        top: auto !important;
+        left: auto !important;
+        bottom: 140px;
+        /* Above the minimized bottom sheet height approx */
+        right: 16px;
+        align-items: flex-end;
+    }
+
+    .legend {
+        bottom: 140px;
+        /* Match controls height roughly */
+        left: 16px;
+        max-width: 120px;
     }
 }
 
@@ -622,6 +648,8 @@ input:checked+.slider:before {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    transition: all 0.3s ease;
+    /* Smooth movement if resized */
 }
 
 .control-group {
@@ -636,15 +664,17 @@ input:checked+.slider:before {
 }
 
 .map-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    /* Larger touch target */
+    height: 44px;
+    /* Larger touch target */
     border: none;
     background: transparent;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     color: #1e293b;
     transition: all 0.2s ease;
     position: relative;
@@ -730,9 +760,20 @@ input:checked+.slider:before {
     margin-bottom: 2px;
 }
 
-.legend-item span {
-    width: 15px;
-    height: 15px;
-    margin-right: 5px;
-    border-radius: 3px;
+
+/* Status Indicator */
+.shademap-status {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 2000;
+    display: none;
+    backdrop-filter: blur(4px);
 }

@@ -355,8 +355,18 @@ function initGPXUpload() {
 
                 if (hasFeatures) {
                     const is3D = terrainToggle.checked;
+                    const isMobile = window.innerWidth <= 768;
+
+                    // Adjust padding based on device and mode
+                    let padding = 50;
+                    if (is3D) {
+                        padding = isMobile ? 100 : 200;
+                    } else {
+                        padding = isMobile ? 20 : 50;
+                    }
+
                     map.fitBounds(bounds, {
-                        padding: is3D ? 200 : 50,
+                        padding: padding,
                         maxZoom: is3D ? 12.5 : 15
                     });
                 }
