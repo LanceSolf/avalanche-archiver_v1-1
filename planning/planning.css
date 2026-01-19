@@ -612,8 +612,8 @@ input:checked+.slider:before {
     }
 
     .control-panel.minimized {
-        transform: translateY(100%);
-        /* Slide down on mobile */
+        transform: translateY(calc(100% - 24px));
+        /* Show only handle height to lock with bottom drawer */
     }
 
     .sidebar-handle {

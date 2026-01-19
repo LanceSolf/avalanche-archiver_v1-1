@@ -161,6 +161,16 @@ shademapToggle.addEventListener('change', (e) => {
         map.on('move', updateShademapLink);
 
         if (shadeMap) shadeMap.toggle(true);
+
+        // Mobile Workflow: Auto-close Control drawer and Open Time Slider
+        if (window.innerWidth <= 768) {
+            // Minimize Control Panel
+            controlPanel.classList.add('minimized');
+            controlPanel.style.transform = '';
+
+            // Ensure Time Slider is Open (not minimized)
+            shademapBottomContainer.classList.remove('minimized');
+        }
     } else {
         // Hide bottom slider
         shademapBottomContainer.style.display = 'none';
@@ -560,8 +570,35 @@ sidebarHandle.addEventListener('click', (e) => {
 });
 
 // Bottom Slider Toggle
+// Bottom Slider Toggle
 if (bottomDrawerToggle && bottomDrawerContainer) {
     bottomDrawerToggle.addEventListener('click', () => {
+        const isMinimizing = !bottomDrawerContainer.classList.contains('minimized');
         bottomDrawerContainer.classList.toggle('minimized');
+
+        // On mobile, if we are opening/closing the bottom drawer, we want the Side Drawer (Control Panel)
+        // to "lock" onto it or move out of the way.
+        if (window.innerWidth <= 768) {
+            // If Bottom Drawer is OPEN (not minimized) -> Close Control Panel (minimized)
+            // If Bottom Drawer is CLOSED (minimized) -> Restore Control Panel (Default)
+            // However, just adding/removing 'minimized' might put Control Panel BEHIND bottom drawer or overlaps weirdly.
+            // The user asked for "closes to lock into... moves with it".
+
+            // Simplest interpretation: 
+            // Time Slider OPEN -> Control Panel CLOSED (so handle sits on top)
+            // Time Slider CLOSED -> Control Panel DEFAULT
+
+            if (isMinimizing) {
+                // Bottom Drawer is CLOSING -> Minimize it
+                // Control Panel should probably return to Default
+                controlPanel.classList.remove('minimized');
+                controlPanel.style.transform = '';
+            } else {
+                // Bottom Drawer is OPENING
+                // Control Panel should Minimize (snap shut)
+                controlPanel.classList.add('minimized');
+                controlPanel.style.transform = '';
+            }
+        }
     });
 }
