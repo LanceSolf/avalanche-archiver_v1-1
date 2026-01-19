@@ -140,7 +140,7 @@ function buildProfilePages() {
                     }
                     if (!map) return;
                     
-                    // Remove existing static CircleMarkers
+                    // Remove existing static CircleMarkers immediately to prevent flashing
                     map.eachLayer(layer => {
                         if (layer instanceof L.CircleMarker) {
                             map.removeLayer(layer);
@@ -155,10 +155,10 @@ function buildProfilePages() {
                                 color: "#0284c7", fillColor: "#0284c7", fillOpacity: 0.7, radius: 8, weight:2
                             }).addTo(map);
                             const backParam = window.location.search; // Pass current context if any
-                            marker.bindPopup(\`<b>\${p.ort}</b><br><span style="font-size:0.8rem">\${p.datum}</span><br><a href="\${p.profil_id || p.id}.html\${backParam}" style="color:#0284c7; font-weight:bold;">View Profile →</a>\`);
+                            marker.bindPopup(\`<b>\${p.ort}</b><br><span style="font-size:0.8rem">\${p.datum}</span><br><a href="\${p.profil_id || p.id}.html\${backParam}" target="_top" style="color:#0284c7; font-weight:bold;">View Profile →</a>\`);
                         }
                     });
-                }, 1000); // Delay to ensure static script ran
+                }, 0); // Run immediately to avoid flash
             });
         </script>`;
 
