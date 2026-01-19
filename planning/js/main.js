@@ -252,8 +252,10 @@ layers.forEach(layer => {
 const terrainToggle = document.getElementById('terrain-toggle');
 
 terrainToggle.addEventListener('change', (e) => {
+    const realityLink = document.getElementById('realitymaps-link-container');
     if (e.target.checked) {
         map.setTerrain({ source: 'terrarium', exaggeration: 1.5 });
+        if (realityLink) realityLink.style.display = 'block';
 
         // Prevent being buried in terrain: Zoom out if too close (Zoom > 12.5)
         const currentZoom = map.getZoom();
@@ -266,6 +268,7 @@ terrainToggle.addEventListener('change', (e) => {
         });
     } else {
         map.setTerrain(null);
+        if (realityLink) realityLink.style.display = 'none';
         map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
     }
 });
@@ -437,12 +440,14 @@ function getTranslateY(element) {
 let startY = 0;
 let startTransformY = 0;
 let isDragging = false;
+let hasMoved = false; // Track if a move occurred to distinguish drag from tap
 
 // Touch Start
 sidebarHandle.addEventListener('touchstart', (e) => {
     if (window.innerWidth > 768) return; // Desktop ignore
 
     isDragging = true;
+    hasMoved = false;
     startY = e.touches[0].clientY;
     startTransformY = getTranslateY(controlPanel);
 
@@ -454,6 +459,12 @@ sidebarHandle.addEventListener('touchmove', (e) => {
     if (!isDragging || window.innerWidth > 768) return;
 
     const deltaY = e.touches[0].clientY - startY;
+
+    // Ignore micro-movements to allow cleaner taps
+    if (Math.abs(deltaY) > 5) hasMoved = true;
+
+    if (!hasMoved) return;
+
     const newY = startTransformY + deltaY;
 
     // Limits: 0 (Top/Expanded) to Height (Bottom/Closed)
@@ -475,66 +486,76 @@ sidebarHandle.addEventListener('touchend', (e) => {
 
     controlPanel.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
 
+    // If it was just a tap (no significant move), let the click handler handle it
+    if (!hasMoved) return;
+
     const finalY = getTranslateY(controlPanel);
     const panelHeight = controlPanel.offsetHeight;
     const windowHeight = window.innerHeight;
-
-    // Snap Points
-    // Default visible height is set in CSS as 30vh (calc(100% - 30vh))
-    // We calculate the Y value for that default state
     const defaultVisibleHeight = windowHeight * 0.30;
     const defaultY = panelHeight - defaultVisibleHeight;
 
-    // Logic:
-    // 1. If pulled significantly UP from Default -> Expand (Y=0)
-    // 2. If pulled DOWN from Default -> Shut (Y=100% / panelHeight)
-    // 3. Otherwise -> Default
+    // Drag Logic:
+    // If dragged DOWN beyond Default -> Snap Closed
+    // Otherwise -> Stay put (Free positioning)
 
-    // Thresholds
-    const expandThreshold = defaultY * 0.7; // If above 70% of default Y
-    const closeThreshold = defaultY + (panelHeight - defaultY) * 0.3; // If pushed down a bit
+    const closeThreshold = defaultY + 50;
 
-    if (finalY < expandThreshold) {
-        // Snap to Expanded
-        controlPanel.style.transform = 'translateY(0)';
-        controlPanel.classList.remove('minimized');
-    } else if (finalY > closeThreshold) {
-        // Snap to Closed
-        controlPanel.style.transform = ''; // Clear inline, let CSS .minimized handle it
+    if (finalY > closeThreshold) {
+        // Snap Closed
+        controlPanel.style.transform = '';
         controlPanel.classList.add('minimized');
+    } else if (finalY > defaultY - 20 && finalY < defaultY + 20) {
+        // Snap to Default (Magnet)
+        controlPanel.style.transform = '';
+        controlPanel.classList.remove('minimized');
     } else {
-        // Snap to Default
-        controlPanel.style.transform = ''; // Clear inline, let CSS Default handle it
+        // Stay Free
+        controlPanel.style.transform = `translateY(${finalY}px)`;
         controlPanel.classList.remove('minimized');
     }
 });
 
 // Click Toggle (Desktop and Mobile fallback)
 sidebarHandle.addEventListener('click', (e) => {
-    // Determine if this was a click or a drag-release
-    // Since we handle touchend, drag logic usually finishes before click fires.
-    // However, if we simply toggled, isDragging would be false.
-    // We can rely on a small heuristic: if we just snapped, don't toggle.
-    // But simplest is to just allow toggle on click for Desktop,
-    // and for Mobile ONLY toggle if it's currently 'shut' or 'default'?
-
-    // For simplicity, let's keep the standard toggle behavior but respect the drag state
     if (window.innerWidth > 768) {
         controlPanel.classList.toggle('minimized');
     } else {
-        // On mobile, if we are expanded, click might minimize?
-        // Or if minimized, click opens to default?
-        // Let's say click cycles: Minimized -> Default -> (Expanded?) -> Minimized
+        // On mobile, check if we engaged in a drag just now
+        if (hasMoved) {
+            hasMoved = false;
+            return; // Do nothing, drag logic already handled position
+        }
 
-        // But 'toggle' works on the .minimized class.
-        // If .minimized is present (Closed) -> Click removes it -> Goes to Default.
-        // If .minimized is NOT present (Default or Expanded) -> Click adds it -> Goes to Closed.
-        // This feels natural: Tap to close, Tap to open (to default).
-        // To expand, you MUST drag. This seems consistent with standard UI.
+        // Smart Toggle Logic
+        // 1. If Expanded (> Default Height, i.e. Y < DefaultY) -> Snap to Default
+        // 2. If at Default -> Snap to Closed
+        // 3. If Closed -> Snap to Default
 
-        // Reset any inline transform to ensure CSS classes take over
-        controlPanel.style.transform = '';
-        controlPanel.classList.toggle('minimized');
+        const panelHeight = controlPanel.offsetHeight;
+        const windowHeight = window.innerHeight;
+        const defaultVisibleHeight = windowHeight * 0.30; // Matches CSS 30vh
+        const defaultY = panelHeight - defaultVisibleHeight; // Y value at Default state
+
+        const currentY = getTranslateY(controlPanel);
+        const isClosed = controlPanel.classList.contains('minimized');
+
+        // Threshold tolerance
+        const isExpandedHigh = currentY < (defaultY - 50);
+
+        if (isClosed) {
+            // Open to Default
+            controlPanel.style.transform = '';
+            controlPanel.classList.remove('minimized');
+        } else if (isExpandedHigh) {
+            // Snap back to Default
+            controlPanel.style.transform = '';
+            controlPanel.classList.remove('minimized');
+        } else {
+            // We are at Default (or close enough), so Close it
+            controlPanel.style.transform = '';
+            controlPanel.classList.add('minimized');
+        }
     }
 });
 
