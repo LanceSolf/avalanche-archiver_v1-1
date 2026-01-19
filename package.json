@@ -4,6 +4,7 @@
   "description": "Daily avalanche bulletin archiver",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "test:smoke": "node tools/test_smoke.js",
     "build": "node tools/build.js",
     "fetch:daily": "node tools/fetch_daily.js",
     "fetch:weather": "node tools/fetch_weather.js",

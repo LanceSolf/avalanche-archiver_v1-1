@@ -21,6 +21,16 @@ if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
 const stats = { fetched: 0, cached: 0, pdfsNew: 0, pdfsUpdated: 0, errors: 0 };
 
 // Helper to fetch and process a single source
+/**
+ * Fetches JSON metadata for a source and triggers PDF processing.
+ * 
+ * @param {object} source - Source configuration object from config.js
+ * @param {string} source.name - Unique identifier (e.g. 'DE-BY')
+ * @param {function} source.url - Function returning API URL: (date) => string
+ * @param {string} source.type - 'lawinen-warnung' or 'avalanche-report'
+ * @param {string} dateStr - Date string in YYYY-MM-DD format
+ * @returns {Promise<boolean>} True if successful, false otherwise
+ */
 async function fetchAndProcess(source, dateStr) {
     const url = source.url(dateStr);
     const dest = path.join(PATHS.data, `${source.name}_${dateStr}.json`);

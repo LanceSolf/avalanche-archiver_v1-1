@@ -426,9 +426,116 @@ const sidebarHandle = document.getElementById('sidebar-handle');
 const bottomDrawerContainer = document.getElementById('bottom-slider-container');
 const bottomDrawerToggle = document.getElementById('bottom-drawer-toggle');
 
-// Sidebar Toggle
-sidebarHandle.addEventListener('click', () => {
-    controlPanel.classList.toggle('minimized');
+// Helper to get current translateY
+function getTranslateY(element) {
+    const style = window.getComputedStyle(element);
+    const matrix = new WebKitCSSMatrix(style.transform);
+    return matrix.m42;
+}
+
+// Mobile Drawer Drag Logic
+let startY = 0;
+let startTransformY = 0;
+let isDragging = false;
+
+// Touch Start
+sidebarHandle.addEventListener('touchstart', (e) => {
+    if (window.innerWidth > 768) return; // Desktop ignore
+
+    isDragging = true;
+    startY = e.touches[0].clientY;
+    startTransformY = getTranslateY(controlPanel);
+
+    controlPanel.style.transition = 'none'; // Disable transition for direct tracking
+}, { passive: true });
+
+// Touch Move
+sidebarHandle.addEventListener('touchmove', (e) => {
+    if (!isDragging || window.innerWidth > 768) return;
+
+    const deltaY = e.touches[0].clientY - startY;
+    const newY = startTransformY + deltaY;
+
+    // Limits: 0 (Top/Expanded) to Height (Bottom/Closed)
+    const panelHeight = controlPanel.offsetHeight;
+
+    if (newY < 0) {
+        controlPanel.style.transform = `translateY(0px)`;
+    } else if (newY > panelHeight) {
+        controlPanel.style.transform = `translateY(${panelHeight}px)`;
+    } else {
+        controlPanel.style.transform = `translateY(${newY}px)`;
+    }
+}, { passive: true });
+
+// Touch End
+sidebarHandle.addEventListener('touchend', (e) => {
+    if (!isDragging || window.innerWidth > 768) return;
+    isDragging = false;
+
+    controlPanel.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+
+    const finalY = getTranslateY(controlPanel);
+    const panelHeight = controlPanel.offsetHeight;
+    const windowHeight = window.innerHeight;
+
+    // Snap Points
+    // Default visible height is set in CSS as 30vh (calc(100% - 30vh))
+    // We calculate the Y value for that default state
+    const defaultVisibleHeight = windowHeight * 0.30;
+    const defaultY = panelHeight - defaultVisibleHeight;
+
+    // Logic:
+    // 1. If pulled significantly UP from Default -> Expand (Y=0)
+    // 2. If pulled DOWN from Default -> Shut (Y=100% / panelHeight)
+    // 3. Otherwise -> Default
+
+    // Thresholds
+    const expandThreshold = defaultY * 0.7; // If above 70% of default Y
+    const closeThreshold = defaultY + (panelHeight - defaultY) * 0.3; // If pushed down a bit
+
+    if (finalY < expandThreshold) {
+        // Snap to Expanded
+        controlPanel.style.transform = 'translateY(0)';
+        controlPanel.classList.remove('minimized');
+    } else if (finalY > closeThreshold) {
+        // Snap to Closed
+        controlPanel.style.transform = ''; // Clear inline, let CSS .minimized handle it
+        controlPanel.classList.add('minimized');
+    } else {
+        // Snap to Default
+        controlPanel.style.transform = ''; // Clear inline, let CSS Default handle it
+        controlPanel.classList.remove('minimized');
+    }
+});
+
+// Click Toggle (Desktop and Mobile fallback)
+sidebarHandle.addEventListener('click', (e) => {
+    // Determine if this was a click or a drag-release
+    // Since we handle touchend, drag logic usually finishes before click fires.
+    // However, if we simply toggled, isDragging would be false.
+    // We can rely on a small heuristic: if we just snapped, don't toggle.
+    // But simplest is to just allow toggle on click for Desktop,
+    // and for Mobile ONLY toggle if it's currently 'shut' or 'default'?
+
+    // For simplicity, let's keep the standard toggle behavior but respect the drag state
+    if (window.innerWidth > 768) {
+        controlPanel.classList.toggle('minimized');
+    } else {
+        // On mobile, if we are expanded, click might minimize?
+        // Or if minimized, click opens to default?
+        // Let's say click cycles: Minimized -> Default -> (Expanded?) -> Minimized
+
+        // But 'toggle' works on the .minimized class.
+        // If .minimized is present (Closed) -> Click removes it -> Goes to Default.
+        // If .minimized is NOT present (Default or Expanded) -> Click adds it -> Goes to Closed.
+        // This feels natural: Tap to close, Tap to open (to default).
+        // To expand, you MUST drag. This seems consistent with standard UI.
+
+        // Reset any inline transform to ensure CSS classes take over
+        controlPanel.style.transform = '';
+        controlPanel.classList.toggle('minimized');
+    }
 });
 
 // Bottom Slider Toggle

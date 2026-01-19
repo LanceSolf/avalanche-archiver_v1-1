@@ -14,6 +14,7 @@
             padding: 0; 
         }
         .archive-item { 
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -32,13 +33,27 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             border-color: #3b82f6;
         }
-        .date-link { 
-            text-decoration: none; 
-            color: #1e293b; 
-            font-weight: 600;
+        .pdf-full-link {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
-        .date-link:hover { color: #3b82f6; }
-        .date-link h2 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .archive-item h2 { 
+            margin: 0; 
+            font-size: 1rem; 
+            font-weight: 600; 
+            /* Text should be visible but clicks pass through to overlay or are covered */
+            pointer-events: none; 
+        }
+        /* Links that must separate from the main card link */
+        .link-container {
+            position: relative;
+            z-index: 2;
+        }
+        
         .badge-update { 
             display: inline-block; 
             font-size: 0.7rem; 
@@ -49,6 +64,12 @@
             margin-top: 0.5rem;
             font-weight: 500;
         }
+        /* Ensure links inside badge are clickable */
+        .badge-update a {
+            position: relative;
+            z-index: 2;
+        }
+
         .obsolete-link {
             color: #92400e;
             text-decoration: underline;
@@ -60,6 +81,7 @@
             color: #3b82f6;
             text-decoration: none;
             margin-top: 0.5rem;
+            display: inline-block;
         }
         .weather-link:hover { text-decoration: underline; }
     </style>
@@ -80,104 +102,124 @@
         <div class="archive-list">
             
                 <div class="archive-item">
-                    <a href="2026-01-20.pdf" class="date-link"><h2>2026-01-20</h2></a>
-                    <a href="../../weather/2026-01-20.html" class="weather-link">Mountain Weather</a>
-                    
+                    <a href="2026-01-20.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-20</h2>
+                    <div class="link-container"><a href="../../weather/2026-01-20.html" class="weather-link">Mountain Weather</a></div>
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-19.pdf" class="date-link"><h2>2026-01-19</h2></a>
-                    <a href="../../weather/2026-01-19.html" class="weather-link">Mountain Weather</a>
-                    
+                    <a href="2026-01-19.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-19</h2>
+                    <div class="link-container"><a href="../../weather/2026-01-19.html" class="weather-link">Mountain Weather</a></div>
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-18.pdf" class="date-link"><h2>2026-01-18</h2></a>
-                    <a href="../../weather/2026-01-18.html" class="weather-link">Mountain Weather</a>
-                    
+                    <a href="2026-01-18.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-18</h2>
+                    <div class="link-container"><a href="../../weather/2026-01-18.html" class="weather-link">Mountain Weather</a></div>
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-17.pdf" class="date-link"><h2>2026-01-17</h2></a>
-                    <a href="../../weather/2026-01-17.html" class="weather-link">Mountain Weather</a>
-                    
+                    <a href="2026-01-17.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-17</h2>
+                    <div class="link-container"><a href="../../weather/2026-01-17.html" class="weather-link">Mountain Weather</a></div>
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-16.pdf" class="date-link"><h2>2026-01-16</h2></a>
-                    <a href="../../weather/2026-01-16.html" class="weather-link">Mountain Weather</a>
-                    
+                    <a href="2026-01-16.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-16</h2>
+                    <div class="link-container"><a href="../../weather/2026-01-16.html" class="weather-link">Mountain Weather</a></div>
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-15.pdf" class="date-link"><h2>2026-01-15</h2></a>
-                    <a href="../../weather/2026-01-15.html" class="weather-link">Mountain Weather</a>
-                    
+                    <a href="2026-01-15.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-15</h2>
+                    <div class="link-container"><a href="../../weather/2026-01-15.html" class="weather-link">Mountain Weather</a></div>
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-14.pdf" class="date-link"><h2>2026-01-14</h2></a>
-                    <a href="../../weather/2026-01-14.html" class="weather-link">Mountain Weather</a>
-                    
+                    <a href="2026-01-14.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-14</h2>
+                    <div class="link-container"><a href="../../weather/2026-01-14.html" class="weather-link">Mountain Weather</a></div>
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-13.pdf" class="date-link"><h2>2026-01-13</h2></a>
-                    <a href="../../weather/2026-01-13.html" class="weather-link">Mountain Weather</a>
-                    
+                    <a href="2026-01-13.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-13</h2>
+                    <div class="link-container"><a href="../../weather/2026-01-13.html" class="weather-link">Mountain Weather</a></div>
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-12_20260111-1600.pdf" class="date-link"><h2>2026-01-12</h2></a>
-                    <a href="../../weather/2026-01-12.html" class="weather-link">Mountain Weather</a>
-                    <span class="badge-update">Updated 11 January 2026, 16:00:00 <a href="2026-01-12.pdf" class="obsolete-link">view obsolete version</a></span>
+                    <a href="2026-01-12_20260111-1600.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-12</h2>
+                    <div class="link-container"><a href="../../weather/2026-01-12.html" class="weather-link">Mountain Weather</a></div>
+                    <div class="link-container"><span class="badge-update">Updated 11 January 2026, 16:00:00 <a href="2026-01-12.pdf" class="obsolete-link">view obsolete version</a></span></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-11.pdf" class="date-link"><h2>2026-01-11</h2></a>
+                    <a href="2026-01-11.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-11</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-10.pdf" class="date-link"><h2>2026-01-10</h2></a>
+                    <a href="2026-01-10.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-10</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-09.pdf" class="date-link"><h2>2026-01-09</h2></a>
+                    <a href="2026-01-09.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-09</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-08.pdf" class="date-link"><h2>2026-01-08</h2></a>
+                    <a href="2026-01-08.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-08</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-07.pdf" class="date-link"><h2>2026-01-07</h2></a>
+                    <a href="2026-01-07.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-07</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-06.pdf" class="date-link"><h2>2026-01-06</h2></a>
+                    <a href="2026-01-06.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-06</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-05.pdf" class="date-link"><h2>2026-01-05</h2></a>
+                    <a href="2026-01-05.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-05</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-04.pdf" class="date-link"><h2>2026-01-04</h2></a>
+                    <a href="2026-01-04.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-04</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-03.pdf" class="date-link"><h2>2026-01-03</h2></a>
+                    <a href="2026-01-03.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-03</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-02.pdf" class="date-link"><h2>2026-01-02</h2></a>
+                    <a href="2026-01-02.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-02</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
                 <div class="archive-item">
-                    <a href="2026-01-01.pdf" class="date-link"><h2>2026-01-01</h2></a>
+                    <a href="2026-01-01.pdf" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>2026-01-01</h2>
                     
-                    
+                    <div class="link-container"></div>
                 </div>
         </div>
     </div>

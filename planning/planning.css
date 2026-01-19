@@ -87,7 +87,7 @@ body {
     width: auto;
     min-width: 220px;
     max-width: 300px;
-    background: rgba(255, 255, 255, 0.98);
+    background: rgba(240, 240, 240, 0.75);
     border-radius: 12px 0 0 12px;
     padding: 1rem 1rem 1rem 1.5rem;
     /* Reduced right padding */
@@ -101,7 +101,7 @@ body {
 
     display: flex;
     flex-direction: column;
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); Removed per user request for clearer view */
     border-left: 1px solid rgba(255, 255, 255, 0.5);
     /* Remove overflow here to prevent clipping absolute children (handle) */
 }
@@ -231,8 +231,8 @@ body {
     transform: translateX(-50%);
     width: 80%;
     max-width: 800px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    background: rgba(240, 240, 240, 0.75);
+    /* backdrop-filter: blur(10px); Removed per user request */
     padding: 0 2rem 1rem 2rem;
     /* Adjusted padding */
     border-radius: 16px 16px 0 0;
@@ -601,8 +601,12 @@ input:checked+.slider:before {
         width: 100%;
         max-width: 100%;
         border-radius: 16px 16px 0 0;
-        max-height: 30vh;
-        transform: translateY(0);
+        height: 85vh;
+        /* Allow expansion up to 85% of screen */
+        max-height: 85vh;
+        /* Default state: translated down so only ~30% is visible (managed by JS class or default) */
+        /* calculating 100% of element height - 30vh visible */
+        transform: translateY(calc(100% - 30vh));
         padding-bottom: env(safe-area-inset-bottom, 20px);
         /* Safe area */
     }

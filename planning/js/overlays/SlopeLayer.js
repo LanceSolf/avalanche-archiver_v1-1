@@ -133,7 +133,7 @@ class SlopeLayer {
         this.id = 'slope-layer';
         this.sourceId = 'slope-source';
         this._visible = false;
-        this.opacity = 0.7;
+        this.opacity = 0.5;
 
         registerSlopeProtocol();
     }

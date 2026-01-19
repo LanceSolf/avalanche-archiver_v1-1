@@ -161,12 +161,13 @@ function buildPdfArchive() {
                     }
                 }
 
-                // Card with weather link inside, below the date, update badge at bottom
+                // Card with whole-area PDF link (overlay), but weather/update links on top
                 cardsHtml += `
                 <div class="archive-item">
-                    <a href="${item.file}" class="date-link"><h2>${d}</h2></a>
-                    ${hasWeather ? `<a href="../../weather/${d}.html" class="weather-link">Mountain Weather</a>` : ''}
-                    ${labelHtml}
+                    <a href="${item.file}" class="pdf-full-link" aria-label="Download PDF"></a>
+                    <h2>${d}</h2>
+                    ${hasWeather ? `<div class="link-container"><a href="../../weather/${d}.html" class="weather-link">Mountain Weather</a></div>` : ''}
+                    <div class="link-container">${labelHtml}</div>
                 </div>`;
             });
 
@@ -186,6 +187,7 @@ function buildPdfArchive() {
             padding: 0; 
         }
         .archive-item { 
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -204,13 +206,27 @@ function buildPdfArchive() {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             border-color: #3b82f6;
         }
-        .date-link { 
-            text-decoration: none; 
-            color: #1e293b; 
-            font-weight: 600;
+        .pdf-full-link {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
-        .date-link:hover { color: #3b82f6; }
-        .date-link h2 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .archive-item h2 { 
+            margin: 0; 
+            font-size: 1rem; 
+            font-weight: 600; 
+            /* Text should be visible but clicks pass through to overlay or are covered */
+            pointer-events: none; 
+        }
+        /* Links that must separate from the main card link */
+        .link-container {
+            position: relative;
+            z-index: 2;
+        }
+        
         .badge-update { 
             display: inline-block; 
             font-size: 0.7rem; 
@@ -221,6 +237,12 @@ function buildPdfArchive() {
             margin-top: 0.5rem;
             font-weight: 500;
         }
+        /* Ensure links inside badge are clickable */
+        .badge-update a {
+            position: relative;
+            z-index: 2;
+        }
+
         .obsolete-link {
             color: #92400e;
             text-decoration: underline;
@@ -232,6 +254,7 @@ function buildPdfArchive() {
             color: #3b82f6;
             text-decoration: none;
             margin-top: 0.5rem;
+            display: inline-block;
         }
         .weather-link:hover { text-decoration: underline; }
     </style>

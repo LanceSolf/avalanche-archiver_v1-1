@@ -7,6 +7,19 @@ const { REGION_PDF_MAP, PATHS } = require('./lib/config');
 const downloadPdf = downloadImage;
 
 // sourceType: 'lawinen-warnung' (Bavaria/Vorarlberg) or 'avalanche-report' (Tyrol/Euregio)
+/**
+ * Extracts and downloads the official PDF URL from a bulletin JSON object.
+ * Checks for version conflicts and archives updates with timestamp suffixes.
+ * 
+ * @param {object} bulletin - The raw JSON bulletin object
+ * @param {string[]|object[]} bulletin.regions - List of region IDs covered
+ * @param {string} [bulletin.id] - Bulletin UUID (varies by API)
+ * @param {string} [bulletin.bulletinID] - Alternative UUID field
+ * @param {string} [bulletin.publicationTime] - Timestamp of publication
+ * @param {string} dateStr - Date string YYYY-MM-DD
+ * @param {string} [sourceType='lawinen-warnung'] - API Type to determine PDF URL format
+ * @returns {Promise<string>} 'new', 'updated', or undefined
+ */
 async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-warnung') {
     if (!bulletin.regions) return;
 
@@ -41,6 +54,8 @@ async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-w
         console.log(`Found relevant bulletin ${uuid} for regions: ${matchedSlugs.join(', ')}`);
         console.log(`PDF URL: ${url}`);
 
+        let resultStatus;
+
         for (const slug of matchedSlugs) {
             // Base filename: YYYY-MM-DD.pdf
             const baseDest = path.join(PATHS.pdfs, slug, `${dateStr}.pdf`);
@@ -50,6 +65,7 @@ async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-w
                 try {
                     console.log(`  Downloading to: ${slug}/${dateStr}.pdf`);
                     await downloadPdf(url, baseDest);
+                    if (!resultStatus) resultStatus = 'new';
                 } catch (e) {
                     console.error(`  Failed to download PDF: ${e.message}`);
                 }
@@ -81,6 +97,7 @@ async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-w
 
                 if (isDifferent) {
                     console.log(`  Update detected for ${slug}/${dateStr}.pdf!`);
+                    if (resultStatus !== 'new') resultStatus = 'updated';
 
                     let suffix = '_v2';
                     if (bulletin.publicationTime) {
@@ -134,6 +151,7 @@ async function processBulletinForPdfs(bulletin, dateStr, sourceType = 'lawinen-w
                 }
             }
         }
+        return resultStatus;
     }
 }
 

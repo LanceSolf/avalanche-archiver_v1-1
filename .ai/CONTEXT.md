@@ -105,8 +105,22 @@ graph TD
 *The scraping and build logic.*
 - [Tools Context](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/tools/CONTEXT.md)
 - **Config**: `tools/lib/config.js` (Central registry for all URLs and paths).
+- **UI Source Files**:
+    - **Shared Templates**: `tools/lib/templates.js` (Generates incidents, weather, profiles).
+    - **Single Page Apps**:
+        - [Snow Depth App](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/snow-depth/index.html)
+        - [Planning App](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/planning/index.html)
+
 
 ## Key Workflows
 1.  **Daily Fetch**: `npm run fetch:all` (Orchestrates `fetch:daily`, `fetch:weather`, `fetch:report`, `fetch:geosphere`, `fetch:incidents`, `enrich:profiles`).
 2.  **Build Site**: `npm run build` (Generates `archive/` from `data/`).
 3.  **Serve**: `npm run serve` (Local preview).
+
+## 🧠 AI Resources
+*Helper files specifically for AI agents.*
+- **[Data Models](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/.ai/DATA_MODELS.md)**: Type definitions for `weather_stations.json`, `incidents.json`, etc.
+- **Workflows**:
+    - [Add New Region](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/.agent/workflows/add_region.md)
+    - [Debug Scraper](file:///c:/Users/User/Documents/GitHub/avalanche-archiver_v1-1/.agent/workflows/debug_scraper.md)
+
