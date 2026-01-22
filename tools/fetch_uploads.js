@@ -52,4 +52,9 @@ async function main() {
     }
 }
 
-main();
+// Allow running directly or importing
+if (require.main === module) {
+    main();
+}
+
+module.exports = { fetchUploads: main };

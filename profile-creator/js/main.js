@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = {
         meta: {
             location: '',
+            lat: '',
+            lon: '',
             date: new Date().toISOString().split('T')[0],
             elevation: '',
             aspect: '',
@@ -27,9 +29,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const addLayerBtnBottom = document.getElementById('add-layer-btn-bottom');
     const addTestBtn = document.getElementById('add-test-btn');
     const downloadBtn = document.getElementById('download-btn');
+    const uploadBtn = document.getElementById('upload-site-btn');
+
+    // Map Modal Elements
+    const mapModal = document.getElementById('map-modal');
+    const openMapBtn = document.getElementById('open-map-btn');
+    const closeMapBtn = document.getElementById('close-map-btn');
+    const confirmLocBtn = document.getElementById('confirm-loc-btn');
+    const useLocBtn = document.getElementById('use-loc-btn');
 
     // Inputs
     const locationInput = document.getElementById('meta-location');
+    const latInput = document.getElementById('meta-lat');
+    const lonInput = document.getElementById('meta-lon');
     const dateInput = document.getElementById('meta-date');
     const elevInput = document.getElementById('meta-elevation');
     const aspInput = document.getElementById('meta-aspect');
@@ -41,6 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listeners
     locationInput.addEventListener('input', (e) => { state.meta.location = e.target.value; update(); });
+    latInput.addEventListener('input', (e) => { state.meta.lat = e.target.value; update(); });
+    lonInput.addEventListener('input', (e) => { state.meta.lon = e.target.value; update(); });
     dateInput.addEventListener('input', (e) => { state.meta.date = e.target.value; update(); });
     elevInput.addEventListener('input', (e) => { state.meta.elevation = e.target.value; update(); });
     aspInput.addEventListener('input', (e) => { state.meta.aspect = e.target.value; update(); });
@@ -60,6 +74,256 @@ document.addEventListener('DOMContentLoaded', () => {
             link.click();
         });
     }
+
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', uploadToSite);
+    }
+
+    // --- Map Logic ---
+    let map;
+    let marker;
+
+    if (openMapBtn) {
+        openMapBtn.addEventListener('click', () => {
+            mapModal.style.display = 'flex';
+            setTimeout(() => {
+                initMap();
+                map.invalidateSize();
+            }, 100);
+        });
+    }
+
+    if (closeMapBtn) {
+        closeMapBtn.addEventListener('click', () => {
+            mapModal.style.display = 'none';
+        });
+    }
+
+    if (confirmLocBtn) {
+        confirmLocBtn.addEventListener('click', () => {
+            if (marker) {
+                const pos = marker.getLatLng();
+                latInput.value = pos.lat.toFixed(5);
+                lonInput.value = pos.lng.toFixed(5);
+                state.meta.lat = pos.lat.toFixed(5);
+                state.meta.lon = pos.lng.toFixed(5);
+                update();
+            }
+            mapModal.style.display = 'none';
+        });
+    }
+
+    if (useLocBtn) {
+        useLocBtn.addEventListener('click', () => {
+            const originalText = useLocBtn.innerText;
+            useLocBtn.innerText = 'Locating...';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    latInput.value = pos.coords.latitude.toFixed(5);
+                    lonInput.value = pos.coords.longitude.toFixed(5);
+                    state.meta.lat = pos.coords.latitude.toFixed(5);
+                    state.meta.lon = pos.coords.longitude.toFixed(5);
+                    update();
+                    useLocBtn.innerText = originalText;
+                }, () => {
+                    alert('Could not get location.');
+                    useLocBtn.innerText = originalText;
+                });
+            } else {
+                alert('Geolocation not supported.');
+                useLocBtn.innerText = originalText;
+            }
+        });
+    }
+
+    function initMap() {
+        if (map) return;
+
+        // Default to Alps center or existing coords
+        let startLat = 47.4;
+        let startLon = 10.3;
+        let zoom = 9;
+
+        if (state.meta.lat && state.meta.lon) {
+            startLat = parseFloat(state.meta.lat);
+            startLon = parseFloat(state.meta.lon);
+            zoom = 13;
+        }
+
+        map = L.map('picker-map').setView([startLat, startLon], zoom);
+
+        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            minZoom: 0, maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        });
+
+        const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            minZoom: 0, maxZoom: 17,
+            attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)'
+        });
+
+        function updateLayers() {
+            var z = map.getZoom();
+            if (z < 13) {
+                if (map.hasLayer(topoLayer)) map.removeLayer(topoLayer);
+                if (!map.hasLayer(osmLayer)) map.addLayer(osmLayer);
+            } else {
+                if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+                if (!map.hasLayer(topoLayer)) map.addLayer(topoLayer);
+            }
+        }
+
+        map.on('zoomend', updateLayers);
+        updateLayers();
+
+        if (state.meta.lat && state.meta.lon) {
+            marker = L.marker([startLat, startLon], { draggable: true }).addTo(map);
+        }
+
+        map.on('click', (e) => {
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([e.latlng.lat, e.latlng.lng], { draggable: true }).addTo(map);
+        });
+    }
+
+    // Check for Edit Mode
+    let editingId = null;
+    checkEditMode();
+
+    async function checkEditMode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('edit');
+        if (editId) {
+            try {
+                // Fetch data
+                const res = await fetch(`https://avalanche-archiver-uploads.bigdoggybollock.workers.dev/get?id=${editId}`);
+                if (!res.ok) throw new Error('Profile not found');
+                const data = await res.json();
+
+                // Populate State
+                editingId = data.id;
+                state.meta.location = data.location || '';
+                state.meta.date = data.date ? data.date.split('T')[0] : ''; // handled by worker ISO string usually
+                state.meta.elevation = data.elevation || '';
+                state.meta.aspect = data.aspect || '';
+                state.meta.lat = data.lat || '';
+                state.meta.lon = data.lon || '';
+                state.meta.observer = data.user !== 'Anonymous' ? data.user : '';
+
+                // Parse Air Temp from comment if not explicit (legacy) or use stored field if we add it
+                // We didn't store airTemp explicitly in payload before, so regex check:
+                const tempMatch = data.comment ? data.comment.match(/Air Temp: ([\d.-]+)C/) : null;
+                if (tempMatch) state.meta.airTemp = tempMatch[1];
+
+                // Layers & Tests (New uploads will have this, legacy won't)
+                if (data.layers) {
+                    state.layers = data.layers;
+                } else {
+                    console.warn('Legacy profile: No raw layer data available.');
+                    alert('This is an older profile without raw layer data. You can edit the metadata, but the snow layers cannot be restored automatically.');
+                }
+
+                if (data.tests) {
+                    state.tests = data.tests;
+                }
+
+                // Update UI Inputs
+                locationInput.value = state.meta.location;
+                if (state.meta.lat) latInput.value = state.meta.lat;
+                if (state.meta.lon) lonInput.value = state.meta.lon;
+                dateInput.value = state.meta.date;
+                elevInput.value = state.meta.elevation;
+                aspInput.value = state.meta.aspect;
+                observerInput.value = state.meta.observer;
+                if (state.meta.airTemp) airTempInput.value = state.meta.airTemp;
+
+                // Update Upload Button Text
+                if (uploadBtn) uploadBtn.innerText = 'Update Profile';
+
+                // Re-render
+                renderLayersList();
+                renderTestsList();
+                update();
+
+                // Init map params if needed
+                if (state.meta.lat && state.meta.lon) {
+                    // pre-set map center? handled in initMap but we might want to trigger it? nah
+                }
+
+            } catch (e) {
+                console.error('Error loading edit data', e);
+                alert('Error loading profile for editing: ' + e.message);
+            }
+        }
+    }
+
+    // Use current location logic
+    // --- Upload Logic ---
+    async function uploadToSite() {
+        if (!state.meta.lat || !state.meta.lon) {
+            alert('Please provide coordinates (Latitude and Longitude) before uploading.');
+            return;
+        }
+
+        const uploadBtn = document.getElementById('upload-site-btn');
+        const statusDiv = document.getElementById('upload-status');
+
+        uploadBtn.disabled = true;
+        uploadBtn.innerText = editingId ? 'Updating...' : 'Uploading...';
+        statusDiv.innerText = 'Converting image...';
+        statusDiv.className = '';
+
+        try {
+            // Get Image
+            const canvas = document.getElementById('profile-canvas');
+            const dataUrl = canvas.toDataURL('image/png');
+
+            // Payload
+            const payload = {
+                id: editingId || undefined, // Send ID if editing to overwrite
+                user: state.meta.observer || 'Anonymous',
+                date: state.meta.date,
+                location: state.meta.location,
+                elevation: state.meta.elevation,
+                aspect: state.meta.aspect,
+                comment: `Snow Profile generated via Profile Creator.\nLocation: ${state.meta.location}\nElevation: ${state.meta.elevation}m, Aspect: ${state.meta.aspect}\nAir Temp: ${state.meta.airTemp}C`,
+                lat: state.meta.lat,
+                lon: state.meta.lon,
+                image: dataUrl,
+                type: 'profile',
+                layers: state.layers, // Store raw data for future edits
+                tests: state.tests
+            };
+
+            statusDiv.innerText = 'Sending to server...';
+
+            const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev/upload';
+            const res = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                statusDiv.innerText = editingId ? '✅ Update Successful! Rebuild needed.' : '✅ Upload Successful! It will appear on the site after the next build.';
+                statusDiv.style.color = '#059669';
+                setTimeout(() => {
+                    uploadBtn.innerText = editingId ? 'Update Profile' : 'Upload to Site';
+                    uploadBtn.disabled = false;
+                }, 3000);
+            } else {
+                throw new Error(await res.text());
+            }
+
+        } catch (err) {
+            console.error(err);
+            statusDiv.innerText = '❌ Error: ' + err.message;
+            statusDiv.style.color = '#dc2626';
+            uploadBtn.innerText = editingId ? 'Update Profile' : 'Upload to Site';
+            uploadBtn.disabled = false;
+        }
+    }
+
 
     // Helper functions
     function update() {
@@ -149,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <input type="text" class="test-result" data-index="${index}" value="${test.result}" placeholder="CT 12">
                     </div>
                     <div>
-                        <label style="font-size:0.7rem; display:block;">Depth (cm)</label>
+                        <label style="font-size:0.7rem; display:block;">Height (cm)</label>
                         <input type="number" class="test-depth" data-index="${index}" value="${test.depth}" placeholder="0">
                     </div>
                     <div>

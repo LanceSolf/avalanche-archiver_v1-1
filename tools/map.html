@@ -21,20 +21,6 @@
     <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <style>
-        #map_fbb93dbc855b55889085e3060026212b {
-            position: relative;
-            width: 100.0%;
-            height: 100.0%;
-            left: 0.0%;
-            top: 0.0%;
-        }
-
-        .leaflet-container {
-            font-size: 1rem;
-        }
-    </style>
-
-    <style>
         html,
         body {
             width: 100%;
@@ -42,15 +28,19 @@
             margin: 0;
             padding: 0;
         }
-    </style>
 
-    <style>
-        #map {
+        #main_map {
             position: absolute;
             top: 0;
             bottom: 0;
             right: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .leaflet-container {
+            font-size: 1rem;
         }
     </style>
 
@@ -58,15 +48,14 @@
         L_NO_TOUCH = false;
         L_DISABLE_3D = false;
     </script>
-
-
 </head>
 
 <body>
-
+    <div id="main_map"></div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // 1. Parse URL Parameters
             const urlParams = new URLSearchParams(window.location.search);
             const lat = parseFloat(urlParams.get('lat'));
             const lon = parseFloat(urlParams.get('lon'));
@@ -81,275 +70,130 @@
             const linkUrl = urlParams.get('linkUrl');
             const linkText = urlParams.get('linkText') || 'View Details';
 
-            setTimeout(() => {
-                for (let key in window) {
-                    if (window[key] instanceof L.Map) {
-                        const map = window[key];
-                        const points = [];
+            // 2. Determine Initial View
+            let startCenter = [47.4099, 10.2797]; // Default Allgäu
+            let startZoom = 10;
 
-                        // Determine titles based on context
-                        const profileTitle = customTitle || locationName || ((context === 'coords') ? 'Relevant Profile' : 'Selected Profile');
-                        const incidentTitle = (context === 'coords') ? 'Selected Incident' : 'Avalanche Incident';
-
-                        // Add profile marker (Blue Circle)
-                        if (!isNaN(lat) && !isNaN(lon)) {
-                            const mapBackUrl = 'map.html' + window.location.search;
-                            const backParam = `?back=${encodeURIComponent(mapBackUrl)}`;
-
-                            let popup = `<b>${profileTitle}</b>`;
-                            if (profileId) {
-                                popup += `<br><a href="${profileId}.html${backParam}" target="_parent" style="color:#0284c7; font-weight:bold;">View Profile →</a>`;
-                            } else if (linkUrl) {
-                                popup += `<br><a href="${linkUrl}" target="_parent" style="color:#0284c7; font-weight:bold;">${linkText} →</a>`;
-                            }
-
-                            const profileIcon = L.divIcon({
-                                className: 'profile-marker',
-                                html: '<div style="background:#0284c7; width:24px; height:24px; border-radius:50%; border:3px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>',
-                                iconSize: [24, 24],
-                                iconAnchor: [12, 12]
-                            });
-
-                            profileMarker = L.marker([lat, lon], { icon: profileIcon }).addTo(map);
-                            profileMarker.bindPopup(popup);
-                            points.push([lat, lon]);
-                        }
-
-                        // Add incident marker (Red Circle)
-                        if (!isNaN(incLat) && !isNaN(incLon)) {
-                            const incidentIcon = L.divIcon({
-                                className: 'incident-marker',
-                                html: '<div style="background:#ef4444; width:24px; height:24px; border-radius:50%; border:3px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>',
-                                iconSize: [24, 24],
-                                iconAnchor: [12, 12]
-                            });
-
-                            const href = incFilename
-                                ? `../incidents/${incFilename}`
-                                : incId ? `../incidents/index.html` : '';
-
-                            const popupContent = href
-                                ? `<b>${incidentTitle}</b><br><a href="${href}" style="color:#ef4444; font-weight:bold;">View Incident →</a>`
-                                : `<b>${incidentTitle}</b>`;
-
-                            incidentMarker = L.marker([incLat, incLon], { icon: incidentIcon }).addTo(map)
-                                .bindPopup(popupContent);
-                            points.push([incLat, incLon]);
-                        }
-
-                        // Adjust View
-                        if (points.length === 1) {
-                            map.setView(points[0], 15);
-                        } else if (points.length > 1) {
-                            const bounds = L.latLngBounds(points);
-                            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-                        }
-
-                        // Open appropriate popup
-                        if (context === 'coords' && incidentMarker) {
-                            incidentMarker.openPopup();
-                        } else if (profileMarker) {
-                            profileMarker.openPopup();
-                        } else if (incidentMarker) {
-                            incidentMarker.openPopup();
-                        }
-
-                        // Adjust View
-                        if (points.length === 1) {
-                            map.setView(points[0], 15);
-                        } else if (points.length > 1) {
-                            const bounds = L.latLngBounds(points);
-                            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-                        }
-                        break;
-                    }
-                }
-            }, 500);
-        });
-    </script>
-
-
-    <div class="folium-map" id="map_fbb93dbc855b55889085e3060026212b"></div>
-
-</body>
-<script>
-
-
-    var map_fbb93dbc855b55889085e3060026212b = L.map(
-        "map_fbb93dbc855b55889085e3060026212b",
-        {
-            center: [47.4099, 10.2797],
-            crs: L.CRS.EPSG3857,
-            ...{
-                "zoom": 10,
-                "zoomControl": true,
-                "preferCanvas": false,
+            if (!isNaN(lat) && !isNaN(lon)) {
+                startCenter = [lat, lon];
+                startZoom = 15;
+            } else if (!isNaN(incLat) && !isNaN(incLon)) {
+                startCenter = [incLat, incLon];
+                startZoom = 15;
             }
 
-        }
-    );
-
-
-
-
-
-    var tile_layer_fa578ed10cbf01b93d9dc232e0e14cad = L.tileLayer(
-        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-            "minZoom": 0,
-            "maxZoom": 19,
-            "maxNativeZoom": 19,
-            "noWrap": false,
-            "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
-            "subdomains": "abc",
-            "detectRetina": false,
-            "tms": false,
-            "opacity": 1,
-        }
-
-    );
-
-
-    tile_layer_fa578ed10cbf01b93d9dc232e0e14cad.addTo(map_fbb93dbc855b55889085e3060026212b);
-
-
-    var circle_marker_facaecfc726e32d1ffcff9593a6fb722 = L.circleMarker(
-        [47.35351, 10.11609],
-        { "bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3 }
-    ).addTo(map_fbb93dbc855b55889085e3060026212b);
-
-
-    var popup_887fe2d6c11d7d4d3e6b3ad2984a8d95 = L.popup({
-        "maxWidth": 200,
-    });
-
-
-
-    var html_514e1802ff23db90c581678b7d357799 = $(`<div id="html_514e1802ff23db90c581678b7d357799" style="width: 100.0%; height: 100.0%;"><a href="24410.html" target="_blank" style="font-size:14px; font-weight:bold;">View Profile<br>2026-01-12 10:45:00</a></div>`)[0];
-    popup_887fe2d6c11d7d4d3e6b3ad2984a8d95.setContent(html_514e1802ff23db90c581678b7d357799);
-
-
-
-    circle_marker_facaecfc726e32d1ffcff9593a6fb722.bindPopup(popup_887fe2d6c11d7d4d3e6b3ad2984a8d95)
-        ;
-
-
-
-
-    var circle_marker_33ee1e97c5af4bc6fc847d88462685f7 = L.circleMarker(
-        [47.47931, 10.59279],
-        { "bubblingMouseEvents": true, "color": "grey", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "grey", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3 }
-    ).addTo(map_fbb93dbc855b55889085e3060026212b);
-
-
-    var popup_fa8cfc51cacf8bdc62dfb49661017db1 = L.popup({
-        "maxWidth": 200,
-    });
-
-
-
-    var html_baca7c9e6ce52948762197022ffe6a52 = $(`<div id="html_baca7c9e6ce52948762197022ffe6a52" style="width: 100.0%; height: 100.0%;"><a href="24406.html" target="_blank" style="font-size:14px; font-weight:bold;">View Profile<br>2026-01-11 16:15:00</a></div>`)[0];
-    popup_fa8cfc51cacf8bdc62dfb49661017db1.setContent(html_baca7c9e6ce52948762197022ffe6a52);
-
-
-
-    circle_marker_33ee1e97c5af4bc6fc847d88462685f7.bindPopup(popup_fa8cfc51cacf8bdc62dfb49661017db1)
-        ;
-
-
-
-
-    var circle_marker_65d1792d04050df2eb956bc680374604 = L.circleMarker(
-        [47.4798, 10.59044],
-        { "bubblingMouseEvents": true, "color": "grey", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "grey", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3 }
-    ).addTo(map_fbb93dbc855b55889085e3060026212b);
-
-
-    var popup_a1d632d9baeb2072eef6fc05053f4372 = L.popup({
-        "maxWidth": 200,
-    });
-
-
-
-    var html_0a1e63e1ab5429a9b9e728c9d441528f = $(`<div id="html_0a1e63e1ab5429a9b9e728c9d441528f" style="width: 100.0%; height: 100.0%;"><a href="24408.html" target="_blank" style="font-size:14px; font-weight:bold;">View Profile<br>2026-01-11 16:00:00</a></div>`)[0];
-    popup_a1d632d9baeb2072eef6fc05053f4372.setContent(html_0a1e63e1ab5429a9b9e728c9d441528f);
-
-
-
-    circle_marker_65d1792d04050df2eb956bc680374604.bindPopup(popup_a1d632d9baeb2072eef6fc05053f4372)
-        ;
-
-
-
-
-    var circle_marker_918011a3a53d723ddb0139cc9bcbe1fe = L.circleMarker(
-        [47.27295, 10.36491],
-        { "bubblingMouseEvents": true, "color": "grey", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "grey", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3 }
-    ).addTo(map_fbb93dbc855b55889085e3060026212b);
-
-
-    var popup_8644cb8d83511cc4e6557656aaff2c7f = L.popup({
-        "maxWidth": 200,
-    });
-
-
-
-    var html_a99140ba8090758290e0bc75af862bde = $(`<div id="html_a99140ba8090758290e0bc75af862bde" style="width: 100.0%; height: 100.0%;"><a href="24404.html" target="_blank" style="font-size:14px; font-weight:bold;">View Profile<br>2026-01-11 14:50:00</a></div>`)[0];
-    popup_8644cb8d83511cc4e6557656aaff2c7f.setContent(html_a99140ba8090758290e0bc75af862bde);
-
-
-
-    circle_marker_918011a3a53d723ddb0139cc9bcbe1fe.bindPopup(popup_8644cb8d83511cc4e6557656aaff2c7f)
-        ;
-
-
-
-
-    var circle_marker_6790f66af5b941321d85faae1b270faf = L.circleMarker(
-        [47.27033, 10.20808],
-        { "bubblingMouseEvents": true, "color": "grey", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "grey", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3 }
-    ).addTo(map_fbb93dbc855b55889085e3060026212b);
-
-
-    var popup_55ca036afbb1402b8754a20cc6b82881 = L.popup({
-        "maxWidth": 200,
-    });
-
-
-
-    var html_936f6c25372cdbefe20d7b7604094764 = $(`<div id="html_936f6c25372cdbefe20d7b7604094764" style="width: 100.0%; height: 100.0%;"><a href="24401.html" target="_blank" style="font-size:14px; font-weight:bold;">View Profile<br>2026-01-11 10:30:00</a></div>`)[0];
-    popup_55ca036afbb1402b8754a20cc6b82881.setContent(html_936f6c25372cdbefe20d7b7604094764);
-
-
-
-    circle_marker_6790f66af5b941321d85faae1b270faf.bindPopup(popup_55ca036afbb1402b8754a20cc6b82881)
-        ;
-
-
-
-
-    var circle_marker_83d50a780914c40aca2756509e5429b5 = L.circleMarker(
-        [47.27012, 10.2166],
-        { "bubblingMouseEvents": true, "color": "grey", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "grey", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 3 }
-    ).addTo(map_fbb93dbc855b55889085e3060026212b);
-
-
-    var popup_f418d404d70622052198ee8f4e91c7c2 = L.popup({
-        "maxWidth": 200,
-    });
-
-
-
-    var html_7cd41a03d9ee99bbf8b71cc8e39def27 = $(`<div id="html_7cd41a03d9ee99bbf8b71cc8e39def27" style="width: 100.0%; height: 100.0%;"><a href="24403.html" target="_blank" style="font-size:14px; font-weight:bold;">View Profile<br>2026-01-11 10:15:00</a></div>`)[0];
-    popup_f418d404d70622052198ee8f4e91c7c2.setContent(html_7cd41a03d9ee99bbf8b71cc8e39def27);
-
-
-
-    circle_marker_83d50a780914c40aca2756509e5429b5.bindPopup(popup_f418d404d70622052198ee8f4e91c7c2)
-        ;
-
-
-
-</script>
+            // 3. Initialize Map
+            // Expose globally as 'map' for external scripts (buildProfilePages.js compatibility)
+            // Note: We use 'var' or attach to window explicitly for global scope compatibility
+            window.map = L.map("main_map", {
+                center: startCenter,
+                zoom: startZoom,
+                crs: L.CRS.EPSG3857,
+                zoomControl: true,
+                preferCanvas: false
+            });
+
+            // 4. Define Tile Layers
+            const osmLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                minZoom: 0,
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            });
+
+            const topoLayer = L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+                minZoom: 0,
+                maxZoom: 17,
+                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+            });
+
+            // 5. Dynamic Layer Switching
+            function updateLayers() {
+                const zoom = window.map.getZoom();
+                if (zoom < 13) {
+                    if (window.map.hasLayer(topoLayer)) window.map.removeLayer(topoLayer);
+                    if (!window.map.hasLayer(osmLayer)) window.map.addLayer(osmLayer);
+                } else {
+                    if (window.map.hasLayer(osmLayer)) window.map.removeLayer(osmLayer);
+                    if (!window.map.hasLayer(topoLayer)) window.map.addLayer(topoLayer);
+                }
+            }
+
+            window.map.on('zoomend', updateLayers);
+            updateLayers(); // Initial set
+
+            // 6. Add Dynamic Markers (Incident / Profile)
+            const points = [];
+            let profileMarker, incidentMarker;
+
+            // Title Logic
+            let profileTitle = customTitle;
+            if (!profileTitle) {
+                if (context === 'coords') {
+                    profileTitle = 'Relevant Profile';
+                } else if (incId) {
+                    profileTitle = 'Selected Profile';
+                } else {
+                    profileTitle = locationName || 'Selected Profile';
+                }
+            }
+            const incidentTitle = (context === 'coords') ? 'Selected Incident' : 'Avalanche Incident';
+
+            // Add Profile Marker
+            if (!isNaN(lat) && !isNaN(lon)) {
+                const mapBackUrl = 'map.html' + window.location.search;
+                const backParam = `?back=${encodeURIComponent(mapBackUrl)}`;
+
+                let popup = `<b>${profileTitle}</b>`;
+                if (profileId) {
+                    popup += `<br><a href="${profileId}.html${backParam}" target="_parent" style="color:#0284c7; font-weight:bold;">View Profile →</a>`;
+                } else if (linkUrl) {
+                    popup += `<br><a href="${linkUrl}" target="_parent" style="color:#0284c7; font-weight:bold;">${linkText} →</a>`;
+                }
+
+                const profileIcon = L.divIcon({
+                    className: 'profile-marker',
+                    html: '<div style="background:#0284c7; width:24px; height:24px; border-radius:50%; border:3px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+
+                profileMarker = L.marker([lat, lon], { icon: profileIcon }).addTo(window.map);
+                profileMarker.bindPopup(popup);
+                points.push([lat, lon]);
+            }
+
+            // Add Incident Marker
+            if (!isNaN(incLat) && !isNaN(incLon)) {
+                const incidentIcon = L.divIcon({
+                    className: 'incident-marker',
+                    html: '<div style="background:#ef4444; width:24px; height:24px; border-radius:50%; border:3px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+
+                const href = incFilename
+                    ? `../incidents/${incFilename}`
+                    : incId ? `../incidents/index.html` : '';
+
+                const popupContent = href
+                    ? `<b>${incidentTitle}</b><br><a href="${href}" style="color:#ef4444; font-weight:bold;">View Incident →</a>`
+                    : `<b>${incidentTitle}</b>`;
+
+                incidentMarker = L.marker([incLat, incLon], { icon: incidentIcon }).addTo(window.map)
+                    .bindPopup(popupContent);
+                points.push([incLat, incLon]);
+            }
+
+            // Open appropriate popup
+            if (context === 'coords' && incidentMarker) {
+                incidentMarker.openPopup();
+            } else if (profileMarker) {
+                profileMarker.openPopup();
+            } else if (incidentMarker) {
+                incidentMarker.openPopup();
+            }
+        });
+    </script>
+</body>
 
 </html>

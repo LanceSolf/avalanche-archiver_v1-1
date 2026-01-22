@@ -59,22 +59,122 @@ function buildProfilePages() {
             }
         });
     }
-    console.log(`Total profiles to build: ${profiles.length}`);
+
+    // Load User Uploads
+    const uploadsPath = path.join(PATHS.data, 'uploads.json');
+    if (fs.existsSync(uploadsPath)) {
+        try {
+            const uploads = JSON.parse(fs.readFileSync(uploadsPath, 'utf8'));
+            uploads.filter(u => u.type === 'profile').forEach((u, i) => {
+                const id = `user-${new Date(u.date).getTime()}-${i}`;
+
+                // Metadata: Prefer explicit fields, fallback to comment parsing
+                let location = u.location && u.location !== 'Unknown' ? u.location : 'User Upload';
+                let elevation = u.elevation || '';
+                let aspect = u.aspect || '';
+
+                if (u.comment) {
+                    // Fallback/Legacy parsing if direct fields are missing
+                    if (location === 'User Upload') {
+                        const locMatch = u.comment.match(/Location: (.*?)(\n|$)/);
+                        if (locMatch) location = locMatch[1].trim();
+                    }
+                    if (!elevation) {
+                        const elevMatch = u.comment.match(/Elevation: (\d+)/);
+                        if (elevMatch) elevation = elevMatch[1];
+                    }
+                    if (!aspect) {
+                        const aspMatch = u.comment.match(/Aspect: ([A-Z]+)/);
+                        if (aspMatch) aspect = aspMatch[1];
+                    }
+                }
+
+                // Handle Image (Base64 -> File)
+                // Handle Image (Base64 -> File)
+                // Worker stores image in 'images' array or 'image', check both
+                const base64Img = u.image || (u.images && u.images.length > 0 ? u.images[0] : null);
+
+                if (base64Img && base64Img.startsWith('data:image')) {
+                    const base64Data = base64Img.replace(/^data:image\/png;base64,/, "");
+                    const imgName = `snowprofile_${id}.png`;
+
+                    // Create source directory if not exists (it acts as a cache/source)
+                    if (!fs.existsSync(PATHS.profileImages)) fs.mkdirSync(PATHS.profileImages, { recursive: true });
+
+                    const destImgPath = path.join(PATHS.profileImages, imgName);
+                    fs.writeFileSync(destImgPath, base64Data, 'base64');
+                }
+
+                profiles.push({
+                    profil_id: id,
+                    original_id: u.id, // KV Key for API operations
+                    ort: `${location} (${u.user})`,
+                    datum: u.date,
+                    seehoehe: elevation,
+                    exposition: aspect,
+                    neigung: '?',
+                    region: 'User Uploads',
+                    latitude: parseFloat(u.lat),
+                    longitude: parseFloat(u.lon),
+                    comments: u.comment, // Pass full comment for detail page
+                    isUserUpload: true
+                });
+            });
+            console.log(`Integrated ${profiles.filter(p => p.isUserUpload).length} user uploads.`);
+        } catch (err) {
+            console.error('Error processing user uploads:', err);
+        }
+    }
+    // --- FILTER: Ephemeral Feed (Last 21 days) ---
+    // 21 days = 21 * 24 * 60 * 60 * 1000 = 1,814,400,000 ms
+    const cutoffTime = Date.now() - 1814400000;
+
+    // Collect IDs of profiles linked to incidents to PROTECT them from deletion
+    const incidentLinkedIds = new Set();
+    if (fs.existsSync(PATHS.incidents)) {
+        try {
+            const incs = JSON.parse(fs.readFileSync(PATHS.incidents, 'utf8'));
+            incs.forEach(inc => {
+                if (inc.linked_profiles) {
+                    inc.linked_profiles.forEach(lp => incidentLinkedIds.add(String(lp.id)));
+                }
+            });
+        } catch (e) { console.error('Error reading incidents for profile protection:', e); }
+    }
+
+    // Filter the MAIN list to what we want to BUILD/KEEP on disk
+    // Rule: Keep if Recent (<21 days) OR Incident-Linked
+    profiles = profiles.filter(p => {
+        const pId = String(p.profil_id || p.id);
+        const isRecent = new Date(p.datum).getTime() >= cutoffTime;
+        const isLinked = incidentLinkedIds.has(pId);
+
+        return isRecent || isLinked;
+    });
+
+    console.log(`Building ${profiles.length} profiles (Recent < 21d OR Incident-Linked).`);
+
+    // Create the SUBSET for the Index Page (Feed) - STRICTLY RECENT ONLY
+    const recentProfiles = profiles.filter(p => new Date(p.datum).getTime() >= cutoffTime);
+    console.log(`Index Feed will show ${recentProfiles.length} recent profiles.`);
+
+    // -------------------------------------------
 
     const profilesDir = path.join(PATHS.archive, 'profiles');
     if (!fs.existsSync(profilesDir)) fs.mkdirSync(profilesDir, { recursive: true });
 
     // --- CLEANUP: Remove stale profile pages ---
-    // Only keep profiles that are in the current 'profiles' list.
+    // Only keep profiles that are in the 'profiles' list (Recent + Linked).
     try {
         const expectedFiles = new Set(profiles.map(p => `${p.profil_id || p.id}.html`));
         expectedFiles.add('index.html');
         expectedFiles.add('map.html');
+        // keep images dir
 
         const existingFiles = fs.readdirSync(profilesDir);
         existingFiles.forEach(file => {
             if (file.endsWith('.html') && !expectedFiles.has(file)) {
-                // console.log(`Cleaning up stale profile: ${file}`);
+                // console.log(`Cleaning up stale/expired profile: ${file}`);
                 try {
                     fs.unlinkSync(path.join(profilesDir, file));
                 } catch (err) {
@@ -100,32 +200,33 @@ function buildProfilePages() {
     // Sort by date descending
     profiles.sort((a, b) => new Date(b.datum).getTime() - new Date(a.datum).getTime());
 
-    profiles.forEach(p => {
-        // Image handling - LAWIS uses "snowprofile_{id}.png" naming
-        // Incident linked profiles might have local_path
-        const pId = p.profil_id || p.id;
-        // console.log(`Building page for profile: ${pId}`);
-        const imgName = `snowprofile_${pId}.png`;
-        const imgPath = path.join(PATHS.profileImages, imgName);
+    profiles.forEach((p, index) => {
+        try {
+            // Image handling - LAWIS uses "snowprofile_{id}.png" naming
+            // Incident linked profiles might have local_path
+            const pId = p.profil_id || p.id;
+            // console.log(`Building page for profile: ${pId}`);
+            const imgName = `snowprofile_${pId}.png`;
+            const imgPath = path.join(PATHS.profileImages, imgName);
 
-        // Copy image
-        const destImgDir = path.join(profilesDir, 'images');
-        if (!fs.existsSync(destImgDir)) fs.mkdirSync(destImgDir, { recursive: true });
+            // Copy image
+            const destImgDir = path.join(profilesDir, 'images');
+            if (!fs.existsSync(destImgDir)) fs.mkdirSync(destImgDir, { recursive: true });
 
-        if (fs.existsSync(imgPath)) {
-            fs.copyFileSync(imgPath, path.join(destImgDir, imgName));
+            if (fs.existsSync(imgPath)) {
+                fs.copyFileSync(imgPath, path.join(destImgDir, imgName));
+            }
+
+            const html = generateProfileDetailPage(p, `images/${imgName}`, '../../', 'index.html');
+            fs.writeFileSync(path.join(profilesDir, `${pId}.html`), html);
+        } catch (err) {
+            console.error(`Error generating page for profile ${p.profil_id || p.id}:`, err);
         }
-
-        const html = generateProfileDetailPage(p, `images/${imgName}`, '../../', 'index.html');
-        fs.writeFileSync(path.join(profilesDir, `${pId}.html`), html);
         count++;
     });
 
-    // 4. Create Recent Profiles Subset (Last 48h)
-    const cutoffTime = Date.now() - 172800000;
-    const recentProfiles = profiles.filter(p => new Date(p.datum).getTime() >= cutoffTime);
-
     // 5. Inject Dynamic Markers into Map HTML
+    // (Profiles array is already filtered to recent, so use it directly)
     if (fs.existsSync(path.join(profilesDir, 'map.html'))) {
         let mapContent = fs.readFileSync(path.join(profilesDir, 'map.html'), 'utf8');
 
@@ -147,15 +248,19 @@ function buildProfilePages() {
                         }
                     });
                     
-                    // Add Recent Profiles
+                    // Add Recent Profiles (Strictly Recent Only)
                     const profiles = ${JSON.stringify(recentProfiles)};
                     profiles.forEach(p => {
                         if (p.latitude && p.longitude) {
+                            // Differentiate user uploads with Orange (#f97316), matching the UI button
+                            const isUser = p.isUserUpload; 
+                            const color = isUser ? "#f97316" : "#0284c7";
+                            
                             const marker = L.circleMarker([p.latitude, p.longitude], {
-                                color: "#0284c7", fillColor: "#0284c7", fillOpacity: 0.7, radius: 8, weight:2
+                                color: color, fillColor: color, fillOpacity: 0.7, radius: isUser ? 9 : 8, weight: 2
                             }).addTo(map);
                             const backParam = window.location.search; // Pass current context if any
-                            marker.bindPopup(\`<b>\${p.ort}</b><br><span style="font-size:0.8rem">\${p.datum}</span><br><a href="\${p.profil_id || p.id}.html\${backParam}" target="_top" style="color:#0284c7; font-weight:bold;">View Profile →</a>\`);
+                            marker.bindPopup(\`<b>\${p.ort}</b><br><span style="font-size:0.8rem">\${p.datum}</span><br><a href="\${p.profil_id || p.id}.html\${backParam}" target="_top" style="color:\${color}; font-weight:bold;">View Profile →</a>\`);
                         }
                     });
                 }, 0); // Run immediately to avoid flash
@@ -196,7 +301,7 @@ function buildProfilePages() {
     <div class="container">
         <header><div class="header-content"><a href="../../index.html" class="logo">Avalanche Archive</a><div class="date-nav"><span>Snow Profiles</span></div></div></header>
         
-        <h1>Latest Snow Profiles (Last 48 Hours)</h1>
+        <h1>Latest Snow Profiles (Last 21 Days)</h1>
 
         <!-- Requested Back Link -->
         <div style="margin-bottom: 1rem;"><a href="../../index.html">&larr; Back</a></div>
@@ -208,12 +313,15 @@ function buildProfilePages() {
         <div style="margin-top: 1rem; margin-bottom: 0rem;"><a href="../../index.html">&larr; Back</a></div>
 
         <div class="profile-list">
-            ${recentProfiles.map(p => {
-        const hs = getHS(p.profile);
-        const tests = formatTests(p.stability_tests);
-        const comments = p.comments_en || translateComments(p.comments);
+            ${(() => {
+            console.log('Building profile list HTML...');
+            return recentProfiles.map(p => {
+                try {
+                    const hs = getHS(p.profile);
+                    const tests = formatTests(p.stability_tests);
+                    const comments = p.comments_en || translateComments(p.comments);
 
-        return `
+                    return `
             <div class="station-card">
                 <div class="station-header">
                     <h2 class="station-name"><a href="${p.profil_id || p.id}.html" style="color:inherit; text-decoration:none;">${p.ort}</a></h2>
@@ -227,21 +335,34 @@ function buildProfilePages() {
                 </div>
                 ${tests.length > 0 ? `<div style="margin-bottom:0.75rem;">
                     ${tests.map(t => {
-            const style = t.isSafe
-                ? 'background:#dcfce7; color:#166534; border:1px solid #bbf7d0;'
-                : 'background:#fee2e2; color:#991b1b; border:1px solid #fca5a5;';
-            return `<span class="stability-tag" style="${style}">${t.text}</span>`;
-        }).join('')}
+                        const style = t.isSafe
+                            ? 'background:#dcfce7; color:#166534; border:1px solid #bbf7d0;'
+                            : 'background:#fee2e2; color:#991b1b; border:1px solid #fca5a5;';
+                        return `<span class="stability-tag" style="${style}">${t.text}</span>`;
+                    }).join('')}
                 </div>` : ''}
                 ${comments ? `<div style="font-size:0.85rem; color:#4b5563; background:#f9fafb; padding:8px; border-radius:6px; margin-bottom:1rem; border:1px solid #f3f4f6;">
                     <strong>Comments:</strong><br>${comments.replace(/\n/g, '<br>')}
                 </div>` : ''}
                 <a href="${p.profil_id || p.id}.html" class="source-link">View Detail &rarr;</a>
+                
+                ${p.isUserUpload ? `
+                <div style="margin-top:0.5rem; display:flex; gap:0.5rem; border-top:1px solid #f3f4f6; padding-top:0.5rem;">
+                    <a href="../../profile-creator/index.html?edit=${p.original_id || p.profil_id}" class="action-btn" style="text-decoration:none; color:#0284c7; font-size:0.85rem; font-weight:600;">Edit</a>
+                    <button onclick="requestDelete('${p.original_id || p.profil_id}')" class="action-btn" style="background:none; border:none; color:#ef4444; font-size:0.85rem; font-weight:600; cursor:pointer; margin-left:auto;">Remove</button>
+                </div>
+                ` : ''}
+
             </div>`;
-    }).join('')}
+                } catch (err) {
+                    console.error('Error in profile list map:', err);
+                    return '';
+                }
+            }).join('');
+        })()}
             
             <div class="station-card" style="border: 2px dashed #bae6fd; background: #f0f9ff; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-                 <a href="../../profile-creator/index.html" class="source-link" style="font-size:1.1rem; margin-bottom:1rem;">Upload your own profile &rarr;</a>
+                 <a href="../../profile-creator/index.html" class="source-link" style="color:#1e40af; font-size:1.1rem; margin-bottom:1rem;">Upload your own profile &rarr;</a>
                  <div style="height: 1px; width: 100%; background: #e5e7eb; margin-bottom: 1rem;"></div>
                  <p style="color:#666; margin-bottom:1rem;">View full database on Lawis.at</p>
                  <a href="https://lawis.at/profile/" target="_blank" class="source-link" style="font-size:1.1rem;">Go to Lawis &rarr;</a>
@@ -250,6 +371,85 @@ function buildProfilePages() {
         
         <div style="margin-top:2rem"><a href="../../index.html">&larr; Back</a></div>
     </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal-overlay" style="display: none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+        <div class="modal" style="background:white; padding:2rem; border-radius:12px; max-width:400px; width:90%; text-align:center;">
+            <h3 style="margin-top:0; color:#ef4444;">Remove Report?</h3>
+            <p>Are you sure you want to remove this report?</p>
+            <div style="margin: 1rem 0; text-align:left;">
+                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                    <input type="checkbox" id="confirmAuth" onchange="toggleDeleteBtn()">
+                    <span style="font-size:0.9rem;">I confirm I am the author of this report or have authority to remove it.</span>
+                </label>
+            </div>
+            <div class="modal-actions" style="display:flex; gap:1rem; justify-content:center; margin-top:1.5rem;">
+                <button onclick="closeModal()" style="background:#e5e7eb; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer;">Cancel</button>
+                <button id="btnDelete" onclick="confirmDelete()" style="background:#ef4444; color:white; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; opacity: 0.5; pointer-events: none;">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deleteId = null;
+        
+        function requestDelete(id) {
+            deleteId = id;
+            document.getElementById('deleteModal').style.display = 'flex';
+            document.getElementById('confirmAuth').checked = false;
+            toggleDeleteBtn();
+        }
+
+        function closeModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            deleteId = null;
+        }
+
+        function toggleDeleteBtn() {
+            const btn = document.getElementById('btnDelete');
+            if(document.getElementById('confirmAuth').checked) {
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            } else {
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            }
+        }
+
+        async function confirmDelete() {
+            if(!deleteId) return;
+            const btn = document.getElementById('btnDelete');
+            btn.innerText = 'Deleting...';
+            
+            try {
+                // Determine ID (strip user- prefix if purely a backend ID, but we used full ID in KV)
+                // Actually our KV keys are likely just the timestamp or the ID we generated. 
+                // Wait, in buildProfilePages.js we force an ID: "user-\${new Date(u.date).getTime()}-\${i}"
+                // But the backend ID is "id" field in u.id. THIS IS IMPORTANT.
+                // We need to use values.u.id NOT the generated p.profil_id if they differ.
+                // In buildProfilePages we set profil_id = "user-..." BUT u has u.id from worker.
+                // We need to pass the REAL backend ID to the delete function.
+                
+                // Let's assume for now we need to fix the ID passing in the loop above first?
+                // Actually, let's fix the loop to use p.original_id if available or we might have an issue.
+                // See below note.
+                
+                await fetch('https://avalanche-archiver-uploads.bigdoggybollock.workers.dev/delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id: deleteId })
+                });
+                
+                // Reload to reflect changes (removed locally by rebuild script usually, but for now just reload)
+                alert('Item removed. It will disappear from the site on the next build (approx 4 hours) or sooner.');
+                closeModal();
+                btn.innerText = 'Remove';
+            } catch(e) {
+                alert('Error deleting: ' + e.message);
+                btn.innerText = 'Remove';
+            }
+        }
+    </script>
 </body>
 </html>`;
 

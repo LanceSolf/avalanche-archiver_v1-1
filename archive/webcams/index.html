@@ -1,92 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Allgäu Webcams</title>
-    <link rel="stylesheet" href="../../styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        .webcam-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 0.75rem; 
-            margin-top: 1rem; 
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Allgäu Webcams</title>
+                    <link rel="stylesheet" href="../../styles.css">
+                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                        <style>
+                            .webcam-grid {
+                                display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                            gap: 0.75rem;
+                            margin-top: 1rem; 
         }
-        .webcam-card { 
-            display: block;
-            background: white; 
-            border-radius: 6px; 
-            padding: 0.875rem 1rem; 
-            text-decoration: none; 
-            color: #1e293b; 
-            transition: all 0.2s; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
-            border: 1px solid #e2e8f0;
+                            .webcam-card {
+                                display: block;
+                            background: white;
+                            border-radius: 6px;
+                            padding: 0.875rem 1rem;
+                            text-decoration: none;
+                            color: #1e293b;
+                            transition: all 0.2s;
+                            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                            border: 1px solid #e2e8f0;
         }
-        .webcam-card:hover { 
-            transform: translateY(-1px); 
-            box-shadow: 0 2px 8px rgba(2,132,199,0.15); 
-            border-color: #0284c7;
-            color: #0284c7;
+                            .webcam-card:hover {
+                                transform: translateY(-1px);
+                            box-shadow: 0 2px 8px rgba(2,132,199,0.15);
+                            border-color: #0284c7;
+                            color: #0284c7;
         }
-        .webcam-title {
-            font-size: 0.95rem;
-            font-weight: 500;
-            margin: 0;
+                            .webcam-title {
+                                font - size: 0.95rem;
+                            font-weight: 500;
+                            margin: 0;
         }
 
-        /* Custom Leaflet Marker Styles */
-        .custom-marker { 
-            width: 16px; 
-            height: 16px; 
-            border-radius: 50%; 
-            border: 2px solid white; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3); 
-            background: #3b82f6; 
+                            /* Custom Leaflet Marker Styles */
+                            .custom-marker {
+                                width: 16px;
+                            height: 16px;
+                            border-radius: 50%;
+                            border: 2px solid white;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                            background: #3b82f6; 
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <a href="../../index.html" class="logo">Avalanche Archive</a>
-                <div class="date-nav"><span>Webcams</span></div>
-            </div>
-        </header>
-        <div style="margin-bottom:1rem;"><a href="../ground-conditions/index.html">&larr; Back to Ground Conditions</a></div>
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <header>
+                                <div class="header-content">
+                                    <a href="../../index.html" class="logo">Avalanche Archive</a>
+                                    <div class="date-nav"><span>Webcams</span></div>
+                                </div>
+                            </header>
+                            <div style="margin-bottom:1rem;"><a href="../ground-conditions/index.html">&larr; Back to Ground Conditions</a></div>
 
-        <h1>Allgäu Webcams</h1>
+                            <h1>Allgäu Webcams</h1>
 
-        <div id="map" style="height: 400px; width: 100%; border-radius: 12px; margin-bottom: 2rem; border:1px solid #e2e8f0;"></div>
+                            <div id="map" style="height: 400px; width: 100%; border-radius: 12px; margin-bottom: 2rem; border:1px solid #e2e8f0;"></div>
 
-        
+                            
                     <h2 style="margin-top:2.5rem; margin-bottom:1rem; color:#1e293b; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem;">Oberstdorf & Kleinwalsertal</h2>
                     <div class="webcam-grid">
                         
                         <a href="https://ok-bergbahnen.panomax.com/nebelhorn?t=2026-01-16+20-00-00&r=15&z=100&tl=0" target="_blank" class="webcam-card">
-                            <h3 class="webcam-title">Oberstdorf - Nebelhorn</h3>
+                            <h3 class="webcam-title">Oberstdorf - Nebelhorn (Bergstation)</h3>
                         </a>
-                        <a href="https://www.bergfex.de/kleinwalsertal-kanzelwand-fellhorn/webcams/c3056/" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/en/webcams/austria/vorarlberg/riezlern-kleinwalsertal-kanzelwand-fellhorn" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Kleinwalsertal - Kanzelwand</h3>
                         </a>
                         <a href="https://www.feratel.com/webcams/oesterreich/vorarlberg/hirschegg-ifenbahn-bergstation" target="_blank" class="webcam-card">
-                            <h3 class="webcam-title">Ifen</h3>
+                            <h3 class="webcam-title">Ifen (Bergstation)</h3>
                         </a>
-                        <a href="https://www.bergfex.de/kleinwalsertal-walmendingerhorn/webcams/c3050/" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/webcams/oesterreich/vorarlberg/mittelberg-walmendingerhorn" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Walmendingerhorn</h3>
                         </a>
-                        <a href="https://www.bergfex.de/oberstdorf-fellhorn/webcams/c3002/" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/en/webcams/germany/bavaria/oberstdorf-fellhorn-oberstdorf-kleinwalsertal" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Oberstdorf Fellhorn</h3>
                         </a>
-                        <a href="https://www.feratel.com/webcams/oesterreich/vorarlberg/hirschegg-ifenbahn-bergstation" target="_blank" class="webcam-card">
-                            <h3 class="webcam-title">Ifen</h3>
-                        </a>
-                        <a href="https://www.bergfex.de/oberstdorf-fellhorn/webcams/c3057/" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/en/webcams/germany/bavaria/oberstdorf-moeserbahn-berg" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Oberstdorf - Möserbahn Berg</h3>
                         </a>
-                        <a href="https://sts007.feratel.co.at/streams/latest/1/3052.mp4?dcsdesign=WTP_skiresort.de" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/en/webcams/germany/bavaria/oberstdorf-nebelhorn" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Nebelhorn Gipfel</h3>
                         </a>
                     </div>
@@ -106,13 +103,13 @@
                         <a href="https://bog.roundshot.com/#/" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Ofterschwang Bergbahnen</h3>
                         </a>
-                        <a href="https://www.bergfex.de/bolsterlang/webcams/c3236/" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/en/webcams/germany/bavaria/bolsterlang-i-weiherkopf-bergstation" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Weiherkopf Bolsterlang</h3>
                         </a>
                         <a href="https://www.feratel.com/webcams/deutschland/bayern/burgberg-im-allgaeu-gruenten-gipfel" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Grünten</h3>
                         </a>
-                        <a href="https://stsfc001.feratel.com/streams/latest/1/3055.mp4?dcsdesign=WTP_feratel.com" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/webcams/deutschland/bayern/oberstaufen-hochgratbahn-bergstation" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Hochgrat</h3>
                         </a>
                     </div>
@@ -120,46 +117,71 @@
                     <h2 style="margin-top:2.5rem; margin-bottom:1rem; color:#1e293b; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem;">Oberjoch & Tannheimer Tal</h2>
                     <div class="webcam-grid">
                         
-                        <a href="https://www.bergfex.de/bad-hindelang-oberjoch/webcams/c3051/" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/en/webcams/germany/bavaria/bad-hindelang-oberjoch" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Bad Hindelang/Oberjoch</h3>
                         </a>
-                        <a href="https://www.bergfex.at/zoeblen/webcams/c5716/" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/en/webcams/austria/tyrol/zoeblen-obere-halde" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Zöblen - Obere Halde</h3>
                         </a>
-                        <a href="https://www.feratel.com/webcams/oesterreich/tirol/tannheim-neunerkoepfle-mittelstation" target="_blank" class="webcam-card">
+                        <a href="https://www.feratel.com/en/webcams/austria/tyrol/tannheim-neunerkoepfle-mittelstation" target="_blank" class="webcam-card">
                             <h3 class="webcam-title">Neunerköpfle</h3>
                         </a>
                     </div>
                 
 
-        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-        <script>
-             const webcams = [{"title":"Balderschwang Gelbhansekopf","location":"Allgäu","type":"live","linkUrl":"https://balderschwang.roundshot.com/gelbhansekopf/#/","imageUrl":"https://backend.roundshot.com/cams/1191/thumbnail","lat":47.450878,"lon":10.104517,"provider":"Roundshot"},{"title":"Grasgehren - Bolgengrat","location":"Allgäu","type":"live","linkUrl":"https://grasgehren.roundshot.com/bolgengrat/#/","imageUrl":"https://backend.roundshot.com/cams/999/thumbnail","lat":47.445346,"lon":10.183202,"provider":"Roundshot"},{"title":"Balderschwang","location":"Allgäu","type":"live","linkUrl":"https://balderschwang.roundshot.com/#/","imageUrl":"https://backend.roundshot.com/cams/698/thumbnail","lat":47.465106,"lon":10.105126,"provider":"Roundshot"},{"title":"Ofterschwang Bergbahnen","location":"Allgäu","type":"live","linkUrl":"https://bog.roundshot.com/#/","imageUrl":"https://backend.roundshot.com/cams/13/thumbnail","lat":47.498619,"lon":10.213637,"provider":"Roundshot"},{"title":"Oberstdorf - Nebelhorn","location":"Allgäu","type":"live","linkUrl":"https://ok-bergbahnen.panomax.com/nebelhorn?t=2026-01-16+20-00-00&r=15&z=100&tl=0","imageUrl":"https://ok-bergbahnen.panomax.com/nebelhorn/latest_h.jpg","lat":47.419481,"lon":10.346831,"provider":"Panomax"},{"title":"Bad Hindelang/Oberjoch","location":"Allgäu","type":"live","linkUrl":"https://www.bergfex.de/bad-hindelang-oberjoch/webcams/c3051/","imageUrl":"https://images.bergfex.at/webcams/?id=3051&2&format=12","lat":47.517702,"lon":10.394094,"provider":"Bergfex"},{"title":"Weiherkopf Bolsterlang","location":"Allgäu","type":"live","linkUrl":"https://www.bergfex.de/bolsterlang/webcams/c3236/","imageUrl":"https://images.bergfex.at/webcams/?id=3236&2&format=12","lat":47.465261,"lon":10.201382,"provider":"Bergfex"},{"title":"Grünten","location":"Rettenberg","type":"live","linkUrl":"https://www.feratel.com/webcams/deutschland/bayern/burgberg-im-allgaeu-gruenten-gipfel","imageUrl":"https://images.bergfex.at/webcams/?id=16720&2&format=12","lat":47.553388,"lon":10.317145},{"title":"Hochgrat","location":"Oberstaufen","type":"live","linkUrl":"https://stsfc001.feratel.com/streams/latest/1/3055.mp4?dcsdesign=WTP_feratel.com","imageUrl":"https://images.bergfex.at/webcams/?id=1798&2&format=12","lat":47.492402,"lon":10.072574},{"title":"Kleinwalsertal - Kanzelwand","location":"Allgäu","type":"live","linkUrl":"https://www.bergfex.de/kleinwalsertal-kanzelwand-fellhorn/webcams/c3056/","imageUrl":"https://images.bergfex.at/webcams/?id=3056&2&format=12","lat":47.335709,"lon":10.206049,"provider":"Bergfex"},{"title":"Ifen","location":"Kleinwalsertal","type":"live","linkUrl":"https://www.feratel.com/webcams/oesterreich/vorarlberg/hirschegg-ifenbahn-bergstation","imageUrl":"https://images.bergfex.at/webcams/?id=288&2&format=12","lat":47.356397,"lon":10.105857},{"title":"Walmendingerhorn","location":"Allgäu","type":"live","linkUrl":"https://www.bergfex.de/kleinwalsertal-walmendingerhorn/webcams/c3050/","imageUrl":"https://images.bergfex.at/webcams/?id=3050&2&format=12","lat":47.325423,"lon":10.117945,"provider":"Bergfex"},{"title":"Zöblen - Obere Halde","location":"Allgäu","type":"live","linkUrl":"https://www.bergfex.at/zoeblen/webcams/c5716/","imageUrl":"https://images.bergfex.at/webcams/?id=5716&2&format=12","lat":47.513952,"lon":10.475822,"provider":"Bergfex"},{"title":"Oberstdorf Fellhorn","location":"Allgäu","type":"live","linkUrl":"https://www.bergfex.de/oberstdorf-fellhorn/webcams/c3002/","imageUrl":"https://images.bergfex.at/webcams/?id=3002&2&format=12","lat":47.348098,"lon":10.216258,"provider":"Bergfex"},{"title":"Neunerköpfle","location":"Tannheimer Tal","type":"live","linkUrl":"https://www.feratel.com/webcams/oesterreich/tirol/tannheim-neunerkoepfle-mittelstation","imageUrl":"https://images.bergfex.at/webcams/?id=4492&2&format=12","lat":47.491838,"lon":10.536338},{"title":"Ifen","location":"Kleinwalsertal","type":"live","linkUrl":"https://www.feratel.com/webcams/oesterreich/vorarlberg/hirschegg-ifenbahn-bergstation","imageUrl":"https://images.bergfex.at/webcams/?id=288&2&format=12","lat":47.356229,"lon":10.105899},{"title":"Oberstdorf - Möserbahn Berg","location":"Allgäu","type":"live","linkUrl":"https://www.bergfex.de/oberstdorf-fellhorn/webcams/c3057/","imageUrl":"https://images.bergfex.at/webcams/?id=3057&2&format=12","lat":47.34502,"lon":10.213019,"provider":"Bergfex"},{"title":"Nebelhorn Gipfel","location":"Oberstdorf","type":"live","linkUrl":"https://sts007.feratel.co.at/streams/latest/1/3052.mp4?dcsdesign=WTP_skiresort.de","imageUrl":"https://images.bergfex.at/webcams/?id=4971&2&format=12","lat":47.421897,"lon":10.34267}];
-             const map = L.map('map').setView([47.45, 10.3], 9);
-             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                            <script>
+                                const webcams = [{"title":"Balderschwang Gelbhansekopf","location":"Allgäu","type":"live","linkUrl":"https://balderschwang.roundshot.com/gelbhansekopf/#/","lat":47.450878,"lon":10.104517,"provider":"Roundshot"},{"title":"Grasgehren - Bolgengrat","location":"Allgäu","type":"live","linkUrl":"https://grasgehren.roundshot.com/bolgengrat/#/","lat":47.445346,"lon":10.183202,"provider":"Roundshot"},{"title":"Balderschwang","location":"Allgäu","type":"live","linkUrl":"https://balderschwang.roundshot.com/#/","lat":47.465106,"lon":10.105126,"provider":"Roundshot"},{"title":"Ofterschwang Bergbahnen","location":"Allgäu","type":"live","linkUrl":"https://bog.roundshot.com/#/","lat":47.498619,"lon":10.213637,"provider":"Roundshot"},{"title":"Oberstdorf - Nebelhorn (Bergstation)","location":"Allgäu","type":"live","linkUrl":"https://ok-bergbahnen.panomax.com/nebelhorn?t=2026-01-16+20-00-00&r=15&z=100&tl=0","lat":47.419481,"lon":10.346831,"provider":"Panomax"},{"title":"Bad Hindelang/Oberjoch","location":"Allgäu","type":"live","linkUrl":"https://www.feratel.com/en/webcams/germany/bavaria/bad-hindelang-oberjoch","lat":47.517702,"lon":10.394094,"provider":"Feratel"},{"title":"Weiherkopf Bolsterlang","location":"Allgäu","type":"live","linkUrl":"https://www.feratel.com/en/webcams/germany/bavaria/bolsterlang-i-weiherkopf-bergstation","lat":47.465261,"lon":10.201382,"provider":"Feratel"},{"title":"Grünten","location":"Rettenberg","type":"live","linkUrl":"https://www.feratel.com/webcams/deutschland/bayern/burgberg-im-allgaeu-gruenten-gipfel","lat":47.553388,"lon":10.317145},{"title":"Hochgrat","location":"Oberstaufen","type":"live","linkUrl":"https://www.feratel.com/webcams/deutschland/bayern/oberstaufen-hochgratbahn-bergstation","lat":47.492402,"lon":10.072574},{"title":"Kleinwalsertal - Kanzelwand","location":"Allgäu","type":"live","linkUrl":"https://www.feratel.com/en/webcams/austria/vorarlberg/riezlern-kleinwalsertal-kanzelwand-fellhorn","lat":47.335709,"lon":10.206049,"provider":"Feratel"},{"title":"Ifen (Bergstation)","location":"Kleinwalsertal","type":"live","linkUrl":"https://www.feratel.com/webcams/oesterreich/vorarlberg/hirschegg-ifenbahn-bergstation","lat":47.356397,"lon":10.105857},{"title":"Walmendingerhorn","location":"Allgäu","type":"live","linkUrl":"https://www.feratel.com/webcams/oesterreich/vorarlberg/mittelberg-walmendingerhorn","lat":47.325423,"lon":10.117945,"provider":"Feratel"},{"title":"Zöblen - Obere Halde","location":"Allgäu","type":"live","linkUrl":"https://www.feratel.com/en/webcams/austria/tyrol/zoeblen-obere-halde","lat":47.513952,"lon":10.475822,"provider":"Feratel"},{"title":"Oberstdorf Fellhorn","location":"Allgäu","type":"live","linkUrl":"https://www.feratel.com/en/webcams/germany/bavaria/oberstdorf-fellhorn-oberstdorf-kleinwalsertal","lat":47.348098,"lon":10.216258,"provider":"Feratel"},{"title":"Neunerköpfle","location":"Tannheimer Tal","type":"live","linkUrl":"https://www.feratel.com/en/webcams/austria/tyrol/tannheim-neunerkoepfle-mittelstation","lat":47.491838,"lon":10.536338},{"title":"Oberstdorf - Möserbahn Berg","location":"Allgäu","type":"live","linkUrl":"https://www.feratel.com/en/webcams/germany/bavaria/oberstdorf-moeserbahn-berg","lat":47.34502,"lon":10.213019,"provider":"Feratel"},{"title":"Nebelhorn Gipfel","location":"Oberstdorf","type":"live","linkUrl":"https://www.feratel.com/en/webcams/germany/bavaria/oberstdorf-nebelhorn","lat":47.421897,"lon":10.34267}];
+                                const map = L.map('map').setView([47.45, 10.3], 9);
+
+                                // Define Layers
+                                const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    minZoom: 0, maxZoom: 19,
+                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+             });
+
+                                const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                                    minZoom: 0, maxZoom: 17,
+                                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+             });
+
+                                // Dynamic Layer Switching Logic
+                                function updateLayers() {
+                 var zoom = map.getZoom();
+                                if (zoom < 13) {
+                     if (map.hasLayer(topoLayer)) map.removeLayer(topoLayer);
+                                if (!map.hasLayer(osmLayer)) map.addLayer(osmLayer);
+                 } else {
+                     if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+                                if (!map.hasLayer(topoLayer)) map.addLayer(topoLayer);
+                 }
+             }
+
+                                map.on('zoomend', updateLayers);
+                                updateLayers(); // Initial layer set
 
              webcams.forEach(cam => {
                  if(cam.lat && cam.lon) {
                      const icon = L.divIcon({
-                        className: 'custom-marker',
-                        iconSize: [16, 16],
-                        iconAnchor: [8, 8],
-                        popupAnchor: [0, -10]
+                                    className: 'custom-marker',
+                                iconSize: [16, 16],
+                                iconAnchor: [8, 8],
+                                popupAnchor: [0, -10]
                     });
 
-                    const popupContent = `
-                        <div style="text-align:center;">
-                            <b>${cam.title}</b><br>
-                            <a href="${cam.linkUrl}" target="_blank" style="color:#0284c7; font-weight:600; text-decoration:none; display:block; margin-top:4px;">View Feed &rarr;</a>
-                        </div>
-                    `;
+                                const popupContent = `
+                                <div style="text-align:center;">
+                                    <b>${cam.title}</b><br>
+                                        <a href="${cam.linkUrl}" target="_blank" style="color:#0284c7; font-weight:600; text-decoration:none; display:block; margin-top:4px;">View Feed &rarr;</a>
+                                </div>
+                                `;
 
-                    L.marker([cam.lat, cam.lon], { icon: icon })
-                     .bindPopup(popupContent)
-                     .addTo(map);
+                                L.marker([cam.lat, cam.lon], {icon: icon })
+                                .bindPopup(popupContent)
+                                .addTo(map);
                  }
              });
-        </script>
-    </div>
-</body>
-</html>
+                            </script>
+                        </div>
+                    </body>
+                </html>

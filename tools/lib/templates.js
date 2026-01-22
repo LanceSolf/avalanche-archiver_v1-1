@@ -77,7 +77,7 @@ function generateIndexPage(title, relativePath, links, isIncident = false, backL
         ${backLink ? `<div style="margin-bottom:1rem;"><a href="${backLink}">&larr; Back</a></div>` : ''}
 
         <div class="archive-list">
-            ${links.map(link => {
+            ${links.length > 0 ? links.map(link => {
         let inner;
         if (link.date && link.title) {
             const profileIcon = link.hasProfiles ? `<span style="background:#0284c7; width:12px; height:12px; border-radius:50%; border:2px solid white; box-shadow:0 1px 2px rgba(0,0,0,0.3); display:inline-block; flex-shrink:0;" title="Has Snow Profile"></span>` : '';
@@ -99,7 +99,7 @@ function generateIndexPage(title, relativePath, links, isIncident = false, backL
             inner = `<h2>${link.text}</h2>`;
         }
         return `<a href="${link.href}" class="archive-item ${isIncident ? 'incident-item' : ''}">${inner}</a>`;
-    }).join('')}
+    }).join('') : '<p style="grid-column: 1/-1; text-align:center; color:#64748b; padding:2rem; font-style:italic;">No items found.</p>'}
         </div>
     </div>
 </body>
@@ -428,17 +428,19 @@ function generateGroundConditionsPage(data) {
     const uploadCards = uploads.map(u => {
         const dateStr = new Date(u.date).toLocaleDateString();
         return `
-        <a href="uploads/${u.id || new Date(u.date).getTime()}.html" class="archive-item" style="display:flex; flex-direction:column; justify-content:space-between; text-align:left; align-items:stretch;">
-            <div style="display:flex; flex-direction:column; gap:0.25rem; flex-grow: 1;">
+        <div class="archive-item" style="display:flex; flex-direction:column; justify-content:space-between; text-align:left; align-items:stretch; cursor:default;">
+            <a href="uploads/${u.id || new Date(u.date).getTime()}.html" style="text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:0.25rem; flex-grow: 1;">
+                 ${u.image ? '<span style="font-size:1.1rem; flex-shrink:0; float:right;" title="Has Image">📷</span>' : ''}
+                <span style="font-size:1.1rem; color:#0f172a; font-weight:700;">${u.location || 'Unknown Location'}</span>
+                <span style="font-size:0.85rem; color:#64748b; font-style:italic;">Uploaded by ${u.user}</span>
                 <span style="font-size:0.85rem; color:#64748b; font-weight:500;">${dateStr}</span>
-                 ${u.image ? '<span style="font-size:1.1rem; flex-shrink:0;" title="Has Image">📷</span>' : ''}
-                <span style="font-size:1rem; color:#1e293b;">Uploaded by ${u.user}</span>
-                <span style="font-size:0.85rem; color:#64748b; font-style:italic;">"${u.comment.substring(0, 30)}${u.comment.length > 30 ? '...' : ''}"</span>
+                <span style="font-size:0.9rem; color:#334155; margin-top:0.5rem; line-height:1.5;">"${u.comment.substring(0, 50)}${u.comment.length > 50 ? '...' : ''}"</span>
+            </a>
+             <div style="margin-top:1rem; text-align:right; border-top:1px solid #f1f5f9; padding-top:0.5rem; display:flex; justify-content:flex-end; gap:1rem;">
+                <a href="upload.html?edit=${u.id}" style="color:#0284c7; font-size:0.8rem; text-decoration:none; font-weight:600;">Edit Report</a>
+                <button onclick="openDeleteModal('${u.id}', this)" style="color:#ef4444; background:none; border:none; padding:0; font-size:0.8rem; cursor:pointer; text-decoration:none;">Remove Report</button>
             </div>
-             <div style="margin-top:1rem; text-align:right; border-top:1px solid #f1f5f9; padding-top:0.5rem;">
-                <button onclick="event.preventDefault(); openDeleteModal('${u.id}', this)" style="color:#ef4444; background:none; border:none; padding:0; font-size:0.8rem; cursor:pointer; text-decoration:none;">Remove Report</button>
-            </div>
-        </a>`;
+        </div>`;
     }).join('');
 
     return `<!DOCTYPE html>
@@ -502,7 +504,7 @@ function generateGroundConditionsPage(data) {
         <div id="map" class="map-container"></div>
 
         <h2>Recent Reports</h2>
-        ${uploads.length > 0 ? `<div class="archive-list">${uploadCards}</div>` : '<p style="text-align:center; color:#64748b; padding:2rem;">No reports in the last 7 days. Be the first!</p>'}
+        ${uploads.length > 0 ? `<div class="archive-list">${uploadCards}</div>` : '<p style="text-align:center; color:#64748b; padding:2rem;">No reports in the last 21 days. Be the first!</p>'}
 
         <!-- Delete Modal -->
         <div id="deleteModal" class="modal-overlay">
@@ -561,9 +563,32 @@ function generateGroundConditionsPage(data) {
             }
 
             const map = L.map('map').setView([47.45, 10.3], 9); // Center on Allgau
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
+            
+            // Define Layers
+            const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                minZoom: 0, maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            });
+
+            const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                minZoom: 0, maxZoom: 17,
+                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+            });
+
+            // Dynamic Layer Switching Logic
+            function updateLayers() {
+                var zoom = map.getZoom();
+                if (zoom < 13) {
+                    if (map.hasLayer(topoLayer)) map.removeLayer(topoLayer);
+                    if (!map.hasLayer(osmLayer)) map.addLayer(osmLayer);
+                } else {
+                    if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+                    if (!map.hasLayer(topoLayer)) map.addLayer(topoLayer);
+                }
+            }
+
+            map.on('zoomend', updateLayers);
+            updateLayers(); // Initial layer set
 
             uploads.forEach(u => {
                 if (u.lat && u.lon) {
@@ -764,6 +789,11 @@ function generateUploadPage() {
             
             <form id="uploadForm">
                 <div class="form-group">
+                    <label>Location / Route</label>
+                    <input type="text" id="location" required placeholder="e.g. Grosser Daumen Descent">
+                </div>
+
+                <div class="form-group">
                     <label>Your Name</label>
                     <input type="text" id="name" required placeholder="e.g. Barry Buddon">
                 </div>
@@ -826,6 +856,10 @@ function generateUploadPage() {
         <!-- EXIF JS for reading geo tags -->
         <script src="https://cdn.jsdelivr.net/npm/exif-js"></script> 
         <script>
+            // 0. State
+            let editingId = null;
+            let existingImages = [];
+
             // 1. Date Dropdown (Today + 4 days back)
             const dateSelect = document.getElementById('dateSelect');
             const today = new Date();
@@ -840,7 +874,32 @@ function generateUploadPage() {
 
             // 2. Map Picker
             const map = L.map('pickerMap').setView([47.45, 10.3], 9);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM' }).addTo(map);
+
+            // Define Layers
+            const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                minZoom: 0, maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            });
+
+            const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                minZoom: 0, maxZoom: 17,
+                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+            });
+
+            // Dynamic Layer Switching Logic
+            function updateLayers() {
+                var zoom = map.getZoom();
+                if (zoom < 13) {
+                    if (map.hasLayer(topoLayer)) map.removeLayer(topoLayer);
+                    if (!map.hasLayer(osmLayer)) map.addLayer(osmLayer);
+                } else {
+                    if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+                    if (!map.hasLayer(topoLayer)) map.addLayer(topoLayer);
+                }
+            }
+
+            map.on('zoomend', updateLayers);
+            updateLayers(); // Initial layer set
             
             let marker;
             function setLocation(lat, lng) {
@@ -960,7 +1019,8 @@ function generateUploadPage() {
 
                 // 2. Validate Image (Sassy Check)
                 const fileInput = document.getElementById('photo');
-                if (fileInput.files.length === 0 && !bypassImageCheck) {
+                // Allow bypass if editing and we have existing images
+                if (fileInput.files.length === 0 && !bypassImageCheck && existingImages.length === 0) {
                     noImageModal.style.display = 'flex';
                     return;
                 }
@@ -971,16 +1031,19 @@ function generateUploadPage() {
             async function performUpload() {
                 const btn = form.querySelector('button[type="submit"]');
                 btn.disabled = true;
-                btn.innerText = 'Uploading...';
+                btn.innerText = editingId ? 'Updating...' : 'Uploading...';
                 
                 const statusDiv = document.getElementById('status');
                 statusDiv.style.display = 'block';
                 statusDiv.className = 'status-msg';
-                statusDiv.innerText = 'Uploading...';
+                statusDiv.innerText = editingId ? 'Updating Report...' : 'Uploading...';
 
                 try {
                     const data = {
+                        id: editingId || undefined,
+                        id: editingId || undefined,
                         user: document.getElementById('name').value,
+                        location: document.getElementById('location').value,
                         date: dateSelect.value,
                         comment: document.getElementById('comment').value,
                         lat: document.getElementById('lat').value,
@@ -1000,7 +1063,10 @@ function generateUploadPage() {
                          });
                          
                          data.images = await Promise.all(promises);
+                    } else if (editingId && existingImages.length > 0) {
+                        data.images = existingImages;
                     }
+
                     // Support legacy
                     if(data.images.length > 0) data.image = data.images[0];
 
@@ -1013,14 +1079,25 @@ function generateUploadPage() {
 
                     if(res.ok) {
                         statusDiv.className = 'status-msg success';
-                        statusDiv.innerText = 'Report Submitted! Should be displayed on next site update. (Updates daily @06:00, 14:00 & 18:00 CET)';
-                        form.reset();
-                        // Clear map
-                        if(marker) map.removeLayer(marker);
-                        document.getElementById('lat').value = '';
-                        document.getElementById('lon').value = '';
+                        statusDiv.innerText = editingId ? 'Update Successful! Rebuild needed to see changes.' : 'Report Submitted! Should be displayed on next site update. (Updates daily @06:00, 14:00 & 18:00 CET)';
+                        if (!editingId) form.reset();
+                        
+                        // Clear map if new upload
+                        if(!editingId && marker) map.removeLayer(marker);
+                        if(!editingId) {
+                            document.getElementById('lat').value = '';
+                            document.getElementById('lon').value = '';
+                        }
                         document.getElementById('locationStatus').innerText = '';
                         bypassImageCheck = false;
+                        
+                        // If editing, maybe disable form or show back button
+                        if(editingId) {
+                            btn.innerText = 'Update Report';
+                            setTimeout(() => {
+                                window.location.href = 'index.html'; // Redirect back to list
+                            }, 2000);
+                        }
                     } else {
                         const errorText = await res.text();
                         throw new Error('Upload failed (' + res.status + '): ' + errorText);
@@ -1032,7 +1109,7 @@ function generateUploadPage() {
                     statusDiv.innerText = 'Error: ' + err.message;
                 } finally {
                     btn.disabled = false;
-                    btn.innerText = 'Submit Report';
+                    if(!editingId) btn.innerText = 'Submit Report';
                 }
             }
 
@@ -1046,10 +1123,67 @@ function generateUploadPage() {
                 noImageModal.style.display = 'none';
                 performUpload(); 
             };
-        </script>
-    </div>
-</body>
-</html>`;
+            
+            // 5. Init Edit Mode
+            (async function checkEditMode() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const editId = urlParams.get('edit');
+                if (editId) {
+                    try {
+                        const statusDiv = document.getElementById('status');
+                        statusDiv.style.display = 'block';
+                        statusDiv.innerText = 'Loading report for editing...';
+                        
+                        const res = await fetch(\`https://avalanche-archiver-uploads.bigdoggybollock.workers.dev/get?id=\${editId}\`);
+    if (!res.ok) throw new Error('Report not found');
+    const data = await res.json();
+
+    editingId = data.id;
+    document.getElementById('name').value = data.user;
+    document.getElementById('location').value = data.location || '';
+    // Attempt to match date
+    // The dropdown generated 5 days. If older, add option?
+    const existingOpt = Array.from(dateSelect.options).find(o => o.value.startsWith(data.date.split('T')[0]));
+    if (existingOpt) {
+        dateSelect.value = existingOpt.value;
+    } else {
+        // Add custom option
+        const opt = document.createElement('option');
+        opt.value = data.date;
+        opt.text = new Date(data.date).toLocaleDateString();
+        opt.selected = true;
+        dateSelect.add(opt);
+    }
+
+    document.getElementById('comment').value = data.comment;
+
+    if (data.lat && data.lon) {
+        setLocation(data.lat, data.lon);
+        map.setView([data.lat, data.lon], 13);
+    }
+
+    if (data.images && data.images.length > 0) {
+        existingImages = data.images;
+        document.getElementById('locationStatus').innerHTML = \`✅ <strong>\${existingImages.length} Existing Image(s) Loaded.</strong><br>Upload new ones to replace them.\`;
+    } else if (data.image) {
+        existingImages = [data.image];
+        document.getElementById('locationStatus').innerHTML = \`✅ <strong>1 Existing Image Loaded.</strong><br>Upload new ones to replace it.\`;
+    }
+
+    document.querySelector('button[type="submit"]').innerText = 'Update Report';
+    document.querySelector('h1').innerText = '✏️ Edit Report';
+    statusDiv.style.display = 'none';
+
+} catch (e) {
+    console.error(e);
+    alert('Error loading edit: ' + e.message);
+}
+                }
+            }) ();
+        </script >
+    </div >
+</body >
+</html > `;
 }
 
 /**
@@ -1057,69 +1191,69 @@ function generateUploadPage() {
  */
 function generateWebcamPage(webcams) {
     return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Allgäu Webcams</title>
-    <link rel="stylesheet" href="../../styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        .webcam-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 0.75rem; 
-            margin-top: 1rem; 
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Allgäu Webcams</title>
+                    <link rel="stylesheet" href="../../styles.css">
+                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                        <style>
+                            .webcam-grid {
+                                display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                            gap: 0.75rem;
+                            margin-top: 1rem; 
         }
-        .webcam-card { 
-            display: block;
-            background: white; 
-            border-radius: 6px; 
-            padding: 0.875rem 1rem; 
-            text-decoration: none; 
-            color: #1e293b; 
-            transition: all 0.2s; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
-            border: 1px solid #e2e8f0;
+                            .webcam-card {
+                                display: block;
+                            background: white;
+                            border-radius: 6px;
+                            padding: 0.875rem 1rem;
+                            text-decoration: none;
+                            color: #1e293b;
+                            transition: all 0.2s;
+                            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                            border: 1px solid #e2e8f0;
         }
-        .webcam-card:hover { 
-            transform: translateY(-1px); 
-            box-shadow: 0 2px 8px rgba(2,132,199,0.15); 
-            border-color: #0284c7;
-            color: #0284c7;
+                            .webcam-card:hover {
+                                transform: translateY(-1px);
+                            box-shadow: 0 2px 8px rgba(2,132,199,0.15);
+                            border-color: #0284c7;
+                            color: #0284c7;
         }
-        .webcam-title {
-            font-size: 0.95rem;
-            font-weight: 500;
-            margin: 0;
+                            .webcam-title {
+                                font - size: 0.95rem;
+                            font-weight: 500;
+                            margin: 0;
         }
 
-        /* Custom Leaflet Marker Styles */
-        .custom-marker { 
-            width: 16px; 
-            height: 16px; 
-            border-radius: 50%; 
-            border: 2px solid white; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3); 
-            background: #3b82f6; 
+                            /* Custom Leaflet Marker Styles */
+                            .custom-marker {
+                                width: 16px;
+                            height: 16px;
+                            border-radius: 50%;
+                            border: 2px solid white;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                            background: #3b82f6; 
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <a href="../../index.html" class="logo">Avalanche Archive</a>
-                <div class="date-nav"><span>Webcams</span></div>
-            </div>
-        </header>
-        <div style="margin-bottom:1rem;"><a href="../ground-conditions/index.html">&larr; Back to Ground Conditions</a></div>
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <header>
+                                <div class="header-content">
+                                    <a href="../../index.html" class="logo">Avalanche Archive</a>
+                                    <div class="date-nav"><span>Webcams</span></div>
+                                </div>
+                            </header>
+                            <div style="margin-bottom:1rem;"><a href="../ground-conditions/index.html">&larr; Back to Ground Conditions</a></div>
 
-        <h1>Allgäu Webcams</h1>
+                            <h1>Allgäu Webcams</h1>
 
-        <div id="map" style="height: 400px; width: 100%; border-radius: 12px; margin-bottom: 2rem; border:1px solid #e2e8f0;"></div>
+                            <div id="map" style="height: 400px; width: 100%; border-radius: 12px; margin-bottom: 2rem; border:1px solid #e2e8f0;"></div>
 
-        ${(() => {
+                            ${(() => {
             // Group Definitions
             const groups = {
                 'Oberjoch & Tannheimer Tal': [
@@ -1173,37 +1307,62 @@ function generateWebcamPage(webcams) {
             }).join('');
         })()}
 
-        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-        <script>
-             const webcams = ${JSON.stringify(webcams)};
-             const map = L.map('map').setView([47.45, 10.3], 9);
-             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                            <script>
+                                const webcams = ${JSON.stringify(webcams)};
+                                const map = L.map('map').setView([47.45, 10.3], 9);
+
+                                // Define Layers
+                                const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    minZoom: 0, maxZoom: 19,
+                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+             });
+
+                                const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                                    minZoom: 0, maxZoom: 17,
+                                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+             });
+
+                                // Dynamic Layer Switching Logic
+                                function updateLayers() {
+                 var zoom = map.getZoom();
+                                if (zoom < 13) {
+                     if (map.hasLayer(topoLayer)) map.removeLayer(topoLayer);
+                                if (!map.hasLayer(osmLayer)) map.addLayer(osmLayer);
+                 } else {
+                     if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+                                if (!map.hasLayer(topoLayer)) map.addLayer(topoLayer);
+                 }
+             }
+
+                                map.on('zoomend', updateLayers);
+                                updateLayers(); // Initial layer set
 
              webcams.forEach(cam => {
                  if(cam.lat && cam.lon) {
                      const icon = L.divIcon({
-                        className: 'custom-marker',
-                        iconSize: [16, 16],
-                        iconAnchor: [8, 8],
-                        popupAnchor: [0, -10]
+                                    className: 'custom-marker',
+                                iconSize: [16, 16],
+                                iconAnchor: [8, 8],
+                                popupAnchor: [0, -10]
                     });
 
-                    const popupContent = \`
-                        <div style="text-align:center;">
-                            <b>\${cam.title}</b><br>
-                            <a href="\${cam.linkUrl}" target="_blank" style="color:#0284c7; font-weight:600; text-decoration:none; display:block; margin-top:4px;">View Feed &rarr;</a>
-                        </div>
-                    \`;
+                                const popupContent = \`
+                                <div style="text-align:center;">
+                                    <b>\${cam.title}</b><br>
+                                        <a href="\${cam.linkUrl}" target="_blank" style="color:#0284c7; font-weight:600; text-decoration:none; display:block; margin-top:4px;">View Feed &rarr;</a>
+                                </div>
+                                \`;
 
-                    L.marker([cam.lat, cam.lon], { icon: icon })
-                     .bindPopup(popupContent)
-                     .addTo(map);
+                                L.marker([cam.lat, cam.lon], {icon: icon })
+                                .bindPopup(popupContent)
+                                .addTo(map);
                  }
              });
-        </script>
-    </div>
-</body>
-</html>`;
+                            </script>
+                        </div>
+                    </body>
+                </html>`;
 }
 
 /**
@@ -1215,54 +1374,80 @@ function generateUserUploadDetailPage(upload) {
         : (upload.image ? `<img src="${upload.image}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;">` : '');
 
     return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report by ${upload.user}</title>
-    <link rel="stylesheet" href="../../../styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-</head>
-<body>
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <a href="../../../index.html" class="logo">Avalanche Archive</a>
-                <div class="date-nav"><span>Report Detail</span></div>
-            </div>
-        </header>
-        <div style="margin-bottom:1rem;"><a href="../index.html">&larr; Back to Ground Conditions</a></div>
+                        <html lang="en">
+                            <head>
+                                <meta charset="UTF-8">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                        <title>Report by ${upload.user}</title>
+                                        <link rel="stylesheet" href="../../../styles.css">
+                                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                                        </head>
+                                        <body>
+                                            <div class="container">
+                                                <header>
+                                                    <div class="header-content">
+                                                        <a href="../../../index.html" class="logo">Avalanche Archive</a>
+                                                        <div class="date-nav"><span>Report Detail</span></div>
+                                                    </div>
+                                                </header>
+                                                <div style="margin-bottom:1rem;"><a href="../index.html">&larr; Back to Ground Conditions</a></div>
 
-        <h1>Skier Report</h1>
-        <div style="background:white; padding:2rem; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); border:1px solid #e2e8f0;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid #eee; padding-bottom:1rem;">
-                <div>
-                   <h2 style="margin:0; color:#0f172a;">${upload.user}</h2>
-                   <div style="color:#64748b; margin-top:0.25rem;">${new Date(upload.date).toLocaleDateString()} ${new Date(upload.date).toLocaleTimeString()}</div>
-                </div>
-            </div>
+                                                <h1>Skier Report</h1>
+                                                <div style="background:white; padding:2rem; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); border:1px solid #e2e8f0;">
+                                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid #eee; padding-bottom:1rem;">
+                                                        <div>
+                                                            <h2 style="margin:0; color:#0f172a;">${upload.location || 'Report'}</h2>
+                                                            <div style="font-size:0.95rem; font-style:italic; color:#475569; margin-top:0.25rem;">Uploaded by ${upload.user}</div>
+                                                            <div style="color:#64748b; margin-top:0.25rem;">${new Date(upload.date).toLocaleDateString()} ${new Date(upload.date).toLocaleTimeString()}</div>
+                                                        </div>
+                                                    </div>
 
-            <div style="margin-bottom:2rem;">
-                ${imageGallery}
-            </div>
+                                                    <div style="margin-bottom:2rem;">
+                                                        ${imageGallery}
+                                                    </div>
 
-            <p style="font-size:1.1rem; line-height:1.7; color:#334155;">${upload.comment}</p>
+                                                    <p style="font-size:1.1rem; line-height:1.7; color:#334155;">${upload.comment}</p>
 
-            ${(upload.lat && upload.lon) ? `
+                                                    ${(upload.lat && upload.lon) ? `
             <div style="margin-top:2rem;">
                 <h3>Location</h3>
                 <div id="map" style="height:200px; width:100%; max-width:400px; border-radius:8px; border:1px solid #cbd5e1;"></div>
                 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
                 <script>
                     const map = L.map('map').setView([${upload.lat}, ${upload.lon}], 13);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                    
+                    // Define Layers
+                    const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        minZoom: 0, maxZoom: 19,
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    });
+
+                    const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                        minZoom: 0, maxZoom: 17,
+                        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+                    });
+
+                    // Dynamic Layer Switching Logic
+                    function updateLayers() {
+                        var zoom = map.getZoom();
+                        if (zoom < 13) {
+                            if (map.hasLayer(topoLayer)) map.removeLayer(topoLayer);
+                            if (!map.hasLayer(osmLayer)) map.addLayer(osmLayer);
+                        } else {
+                            if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+                            if (!map.hasLayer(topoLayer)) map.addLayer(topoLayer);
+                        }
+                    }
+
+                    map.on('zoomend', updateLayers);
+                    updateLayers(); // Initial layer set
                     L.marker([${upload.lat}, ${upload.lon}]).addTo(map);
                 </script>
             </div>` : ''}
-        </div>
-    </div>
-</body>
-</html>`;
+                                                </div>
+                                            </div>
+                                        </body>
+                                    </html>`;
 }
 
 module.exports = {

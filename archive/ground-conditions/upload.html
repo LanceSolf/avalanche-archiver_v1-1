@@ -98,6 +98,11 @@
             
             <form id="uploadForm">
                 <div class="form-group">
+                    <label>Location / Route</label>
+                    <input type="text" id="location" required placeholder="e.g. Grosser Daumen Descent">
+                </div>
+
+                <div class="form-group">
                     <label>Your Name</label>
                     <input type="text" id="name" required placeholder="e.g. Barry Buddon">
                 </div>
@@ -160,6 +165,10 @@
         <!-- EXIF JS for reading geo tags -->
         <script src="https://cdn.jsdelivr.net/npm/exif-js"></script> 
         <script>
+            // 0. State
+            let editingId = null;
+            let existingImages = [];
+
             // 1. Date Dropdown (Today + 4 days back)
             const dateSelect = document.getElementById('dateSelect');
             const today = new Date();
@@ -174,7 +183,32 @@
 
             // 2. Map Picker
             const map = L.map('pickerMap').setView([47.45, 10.3], 9);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM' }).addTo(map);
+
+            // Define Layers
+            const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                minZoom: 0, maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            });
+
+            const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                minZoom: 0, maxZoom: 17,
+                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+            });
+
+            // Dynamic Layer Switching Logic
+            function updateLayers() {
+                var zoom = map.getZoom();
+                if (zoom < 13) {
+                    if (map.hasLayer(topoLayer)) map.removeLayer(topoLayer);
+                    if (!map.hasLayer(osmLayer)) map.addLayer(osmLayer);
+                } else {
+                    if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+                    if (!map.hasLayer(topoLayer)) map.addLayer(topoLayer);
+                }
+            }
+
+            map.on('zoomend', updateLayers);
+            updateLayers(); // Initial layer set
             
             let marker;
             function setLocation(lat, lng) {
@@ -294,7 +328,8 @@
 
                 // 2. Validate Image (Sassy Check)
                 const fileInput = document.getElementById('photo');
-                if (fileInput.files.length === 0 && !bypassImageCheck) {
+                // Allow bypass if editing and we have existing images
+                if (fileInput.files.length === 0 && !bypassImageCheck && existingImages.length === 0) {
                     noImageModal.style.display = 'flex';
                     return;
                 }
@@ -305,16 +340,19 @@
             async function performUpload() {
                 const btn = form.querySelector('button[type="submit"]');
                 btn.disabled = true;
-                btn.innerText = 'Uploading...';
+                btn.innerText = editingId ? 'Updating...' : 'Uploading...';
                 
                 const statusDiv = document.getElementById('status');
                 statusDiv.style.display = 'block';
                 statusDiv.className = 'status-msg';
-                statusDiv.innerText = 'Uploading...';
+                statusDiv.innerText = editingId ? 'Updating Report...' : 'Uploading...';
 
                 try {
                     const data = {
+                        id: editingId || undefined,
+                        id: editingId || undefined,
                         user: document.getElementById('name').value,
+                        location: document.getElementById('location').value,
                         date: dateSelect.value,
                         comment: document.getElementById('comment').value,
                         lat: document.getElementById('lat').value,
@@ -334,7 +372,10 @@
                          });
                          
                          data.images = await Promise.all(promises);
+                    } else if (editingId && existingImages.length > 0) {
+                        data.images = existingImages;
                     }
+
                     // Support legacy
                     if(data.images.length > 0) data.image = data.images[0];
 
@@ -347,14 +388,25 @@
 
                     if(res.ok) {
                         statusDiv.className = 'status-msg success';
-                        statusDiv.innerText = 'Report Submitted! Should be displayed on next site update. (Updates daily @06:00, 14:00 & 18:00 CET)';
-                        form.reset();
-                        // Clear map
-                        if(marker) map.removeLayer(marker);
-                        document.getElementById('lat').value = '';
-                        document.getElementById('lon').value = '';
+                        statusDiv.innerText = editingId ? 'Update Successful! Rebuild needed to see changes.' : 'Report Submitted! Should be displayed on next site update. (Updates daily @06:00, 14:00 & 18:00 CET)';
+                        if (!editingId) form.reset();
+                        
+                        // Clear map if new upload
+                        if(!editingId && marker) map.removeLayer(marker);
+                        if(!editingId) {
+                            document.getElementById('lat').value = '';
+                            document.getElementById('lon').value = '';
+                        }
                         document.getElementById('locationStatus').innerText = '';
                         bypassImageCheck = false;
+                        
+                        // If editing, maybe disable form or show back button
+                        if(editingId) {
+                            btn.innerText = 'Update Report';
+                            setTimeout(() => {
+                                window.location.href = 'index.html'; // Redirect back to list
+                            }, 2000);
+                        }
                     } else {
                         const errorText = await res.text();
                         throw new Error('Upload failed (' + res.status + '): ' + errorText);
@@ -366,7 +418,7 @@
                     statusDiv.innerText = 'Error: ' + err.message;
                 } finally {
                     btn.disabled = false;
-                    btn.innerText = 'Submit Report';
+                    if(!editingId) btn.innerText = 'Submit Report';
                 }
             }
 
@@ -380,7 +432,64 @@
                 noImageModal.style.display = 'none';
                 performUpload(); 
             };
-        </script>
-    </div>
-</body>
-</html>
+            
+            // 5. Init Edit Mode
+            (async function checkEditMode() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const editId = urlParams.get('edit');
+                if (editId) {
+                    try {
+                        const statusDiv = document.getElementById('status');
+                        statusDiv.style.display = 'block';
+                        statusDiv.innerText = 'Loading report for editing...';
+                        
+                        const res = await fetch(`https://avalanche-archiver-uploads.bigdoggybollock.workers.dev/get?id=${editId}`);
+    if (!res.ok) throw new Error('Report not found');
+    const data = await res.json();
+
+    editingId = data.id;
+    document.getElementById('name').value = data.user;
+    document.getElementById('location').value = data.location || '';
+    // Attempt to match date
+    // The dropdown generated 5 days. If older, add option?
+    const existingOpt = Array.from(dateSelect.options).find(o => o.value.startsWith(data.date.split('T')[0]));
+    if (existingOpt) {
+        dateSelect.value = existingOpt.value;
+    } else {
+        // Add custom option
+        const opt = document.createElement('option');
+        opt.value = data.date;
+        opt.text = new Date(data.date).toLocaleDateString();
+        opt.selected = true;
+        dateSelect.add(opt);
+    }
+
+    document.getElementById('comment').value = data.comment;
+
+    if (data.lat && data.lon) {
+        setLocation(data.lat, data.lon);
+        map.setView([data.lat, data.lon], 13);
+    }
+
+    if (data.images && data.images.length > 0) {
+        existingImages = data.images;
+        document.getElementById('locationStatus').innerHTML = `✅ <strong>${existingImages.length} Existing Image(s) Loaded.</strong><br>Upload new ones to replace them.`;
+    } else if (data.image) {
+        existingImages = [data.image];
+        document.getElementById('locationStatus').innerHTML = `✅ <strong>1 Existing Image Loaded.</strong><br>Upload new ones to replace it.`;
+    }
+
+    document.querySelector('button[type="submit"]').innerText = 'Update Report';
+    document.querySelector('h1').innerText = '✏️ Edit Report';
+    statusDiv.style.display = 'none';
+
+} catch (e) {
+    console.error(e);
+    alert('Error loading edit: ' + e.message);
+}
+                }
+            }) ();
+        </script >
+    </div >
+</body >
+</html > 

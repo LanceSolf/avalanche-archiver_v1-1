@@ -31,16 +31,19 @@ function buildGroundConditions() {
         }
     } catch (e) { console.error('Error loading uploads.json', e); }
 
-    // Filter uploads (last 7 days)
+    // Filter uploads (last 21 days)
     const now = new Date();
     const recentUploads = uploads.filter(u => {
+        // Exclude generated snow profiles (they have their own section)
+        if (u.type === 'profile') return false;
+
         const d = new Date(u.date);
-        const diff = (now - d) / (1000 * 60 * 60 * 24);
-        return diff <= 7;
+        const diff = (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+        return diff <= 21;
     });
 
     // Sort by date desc
-    recentUploads.sort((a, b) => new Date(b.date) - new Date(a.date));
+    recentUploads.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     // 2. Generate Index Page (Ground Conditions Hub)
     const indexHtml = generateGroundConditionsPage({
@@ -58,12 +61,13 @@ function buildGroundConditions() {
     fs.writeFileSync(path.join(webcamDir, 'index.html'), webcamHtml);
 
     // 5. Generate Individual User Upload Pages
-    // Create a 'uploads' subdir in 'ground-conditions' or 'incidents'?
-    // The prompt says "html pages of user uploads ... curated by date and deleted after 7 days"
+    // Create a 'uploads' subdir
     const userUploadsDir = path.join(groundDir, 'uploads');
 
-    // Clean old pages first? (Optional, but good for "deleted after 7 days" if we relied on file existence)
-    // Since we rebuild from scratch into 'archive', we don't need to delete, just don't build them.
+    // Clean old pages first to ensure expired reports are removed
+    if (fs.existsSync(userUploadsDir)) {
+        fs.rmSync(userUploadsDir, { recursive: true, force: true });
+    }
     fs.mkdirSync(userUploadsDir, { recursive: true });
 
     recentUploads.forEach(u => {

@@ -45,6 +45,14 @@ async function main() {
     }
 
     try {
+        console.log('Fetching latest uploads...');
+        const { fetchUploads } = require('./fetch_uploads');
+        await fetchUploads();
+    } catch (e) {
+        console.error('Error fetching uploads (continuing build):', e);
+    }
+
+    try {
         console.log('Running buildProfilePages...');
         buildProfilePages();
     } catch (e) {
@@ -78,7 +86,11 @@ async function main() {
 </head>
 <body>
     <div class="container">
-        <header><div class="header-content"><span class="logo">Avalanche Archive</span></div></header>
+        <header><div class="header-content"><span class="logo">Avalanche Archive</span>
+        <div style="font-size: 0.7rem; color: #94a3b8; text-align: right; line-height: 1.3; font-weight: 500;">
+            Updates daily @ 06:00, 14:00 & 18:00 CET.<br>
+            Changes may take a few hours to appear.
+        </div></div></header>
         <h1>Archive Root</h1>
         <div class="grid">
             <a href="incidents/index.html" class="card"><h2>Incidents</h2></a>

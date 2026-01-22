@@ -40,6 +40,23 @@ export default {
             }
         }
 
+        // GET SINGLE UPLOAD
+        if (request.method === "GET" && url.pathname === "/get") {
+            const id = url.searchParams.get('id');
+            if (!id) return new Response("Missing ID", { status: 400, headers: corsHeaders });
+
+            try {
+                const val = await env.UPLOADS.get(id, { type: "json" });
+                if (!val) return new Response("Not Found", { status: 404, headers: corsHeaders });
+
+                return new Response(JSON.stringify(val), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" }
+                });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+            }
+        }
+
         if (request.method === "POST" && url.pathname === "/delete") {
             try {
                 const data = await request.json();
@@ -66,21 +83,30 @@ export default {
                     return new Response("Missing content", { status: 400, headers: corsHeaders });
                 }
 
-                const id = Date.now().toString();
+                // Use existing ID if provided (for edits), otherwise generate new
+                const id = data.id || Date.now().toString();
+
                 const uploadRecord = {
                     id: id,
-                    date: new Date().toISOString(),
+                    date: data.date || new Date().toISOString(),
                     user: data.user || "Anonymous",
                     location: data.location || "Unknown",
                     comment: data.comment || "",
                     lat: data.lat || null,
                     lon: data.lon || null,
+                    elevation: data.elevation || null,
+                    aspect: data.aspect || null,
+                    type: data.type || 'generic',
                     images: data.images || (data.image ? [data.image] : []), // Array of Base64 strings
+                    layers: data.layers || [], // Store raw snow profile layers
+                    tests: data.tests || [], // Store stability tests
                     approved: true // Auto-approve for now, change logic if needed
                 };
 
-                // Store in KV (Expires in 14 days to keep it clean, or keep forever)
-                // expirationTtl: 60 * 60 * 24 * 14
+                // Store in KV
+                // CRITICAL: Do NOT set an expirationTtl here.
+                // Retention is handled by the build script (Application Layer). 
+                // We must keep raw data PERMANENTLY because some items are linked to Incidents and must never expire.
                 await env.UPLOADS.put(id, JSON.stringify(uploadRecord));
 
                 return new Response(JSON.stringify({ success: true, id: id }), {

@@ -108,8 +108,60 @@ interface RegionConfig {
     type: 'pdf';      // Only PDF supported currently
   }
 }
+```
 
-interface RegionPdfMap {
-  [api_id: string]: string; // Maps Source ID (e.g. DE-BY-12) to Slug (allgau-alps-central)
+## 5. Webcams (`data/webcams.json`)
+List of mountain webcams for the dashboard.
+
+```typescript
+type WebcamDB = Webcam[];
+
+interface Webcam {
+  title: string;       // Human readable title
+  location: string;    // Region name (e.g. "Allgäu")
+  type: string;        // e.g. "live"
+  linkUrl: string;     // URL to the provider's page
+  lat: number;         // Latitude
+  lon: number;         // Longitude
+  provider?: string;   // e.g. "Feratel", "Roundshot"
+}
+```
+
+## 6. User Uploads (`data/uploads.json` & Cloudflare KV)
+User-submitted snow profiles and ground condition reports.
+
+```typescript
+type UploadsDB = UploadRecord[];
+
+interface UploadRecord {
+  id: string;               // Unique ID (timestamp based)
+  date: string;             // ISO Date "2026-01-21T..."
+  user: string;             // Observer Name
+  location: string;         // Location Name e.g. "Fellhorn"
+  comment: string;          // User description
+  lat: number;              // Latitude
+  lon: number;              // Longitude
+  elevation?: number;       // Elevation in meters
+  aspect?: string;          // Aspect (N, NE, etc)
+  type: 'profile' | 'generic';
+  images: string[];         // Array of Base64 strings or URLs
+  layers?: Layer[];         // Raw snow profile layers
+  tests?: Test[];           // Stability tests
+  approved: boolean;
+}
+
+interface Layer {
+    id: number;
+    thickness: number;
+    hardness: string;
+    grainForm: string;
+    temp: number;
+}
+
+interface Test {
+    id: number;
+    result: string;
+    depth: number;
+    desc: string;
 }
 ```

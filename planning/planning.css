@@ -798,6 +798,14 @@ input:checked+.slider:before {
     margin-bottom: 2px;
 }
 
+.legend-item span {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    border-radius: 2px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
 
 /* Status Indicator */
 .shademap-status {
