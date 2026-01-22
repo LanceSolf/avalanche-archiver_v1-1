@@ -84,6 +84,21 @@
                     </a>
                 </div>
 
+                <!-- Slope-Aspect -->
+                <div class="layer-control">
+                    <label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="slope-aspect-toggle">
+                            <span class="slider"></span>
+                        </div>
+                        Slope-Aspect
+                    </label>
+                </div>
+                <div class="opacity-control" id="slope-aspect-opacity-container" style="display: none;">
+                    <input type="range" id="slope-aspect-opacity" min="0" max="100" value="70">
+                    <div class="opacity-label">Opacity: <span id="slope-aspect-opacity-value">70</span>%</div>
+                </div>
+
                 <!-- Slope -->
                 <div class="layer-control">
                     <label>
@@ -192,7 +207,21 @@
         <div class="legend-item"><span style="background: #1a0033cc;"></span> ≥45°</div>
     </div>
 
+    <!-- Slope-Aspect Legend -->
+    <div id="slope-aspect-legend" class="legend" style="display: none;">
+        <h4>Aspect (≥20°)</h4>
+        <div class="legend-item"><span style="background: #3b82f6cc;"></span> N</div>
+        <div class="legend-item"><span style="background: #22d3eecc;"></span> NE</div>
+        <div class="legend-item"><span style="background: #22c55ecc;"></span> E</div>
+        <div class="legend-item"><span style="background: #a3e635cc;"></span> SE</div>
+        <div class="legend-item"><span style="background: #ef4444cc;"></span> S</div>
+        <div class="legend-item"><span style="background: #fb923ccc;"></span> SW</div>
+        <div class="legend-item"><span style="background: #facc15cc;"></span> W</div>
+        <div class="legend-item"><span style="background: #a855f7cc;"></span> NW</div>
+    </div>
+
     <script src="js/overlays/SlopeLayer.js"></script>
+    <script src="js/overlays/SlopeAspectLayer.js"></script>
     <script src="js/overlays/ShadeMap.js"></script>
     <script src="js/main.js"></script>
 

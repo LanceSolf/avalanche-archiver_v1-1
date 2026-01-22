@@ -61,6 +61,12 @@ map.on('load', () => {
         paint: { 'raster-opacity': 1.0 }
     });
 
+    // Add Slope-Aspect Layer instance (added first to render underneath)
+    const slopeAspectLayer = new SlopeAspectLayer();
+    slopeAspectLayer.onAdd(map);
+
+    window.slopeAspectLayerInstance = slopeAspectLayer; // Global access for controls
+
     // Add Slope Layer instance
     const slopeLayer = new SlopeLayer();
     slopeLayer.onAdd(map); // Manually trigger add - it manages its own source/layer now
@@ -206,6 +212,7 @@ function updateTimeDisplay(minutes) {
 // Layer Controls
 const layers = [
     { id: 'slope', toggle: 'slope-toggle', opacity: 'slope-opacity', opacityValue: 'slope-opacity-value', container: 'slope-opacity-container' },
+    { id: 'slope-aspect', toggle: 'slope-aspect-toggle', opacity: 'slope-aspect-opacity', opacityValue: 'slope-aspect-opacity-value', container: 'slope-aspect-opacity-container' },
     { id: 'satellite', toggle: 'satellite-toggle', opacity: 'satellite-opacity', opacityValue: 'satellite-opacity-value', container: 'satellite-opacity-container' }
 ];
 
@@ -223,6 +230,13 @@ layers.forEach(layer => {
                 map.triggerRepaint();
                 // Show/Hide Legend
                 document.getElementById('slope-legend').style.display = e.target.checked ? 'block' : 'none';
+            }
+        } else if (layer.id === 'slope-aspect') {
+            if (window.slopeAspectLayerInstance) {
+                window.slopeAspectLayerInstance.visible = e.target.checked;
+                map.triggerRepaint();
+                // Show/Hide Legend
+                document.getElementById('slope-aspect-legend').style.display = e.target.checked ? 'block' : 'none';
             }
         } else if (layer.id === 'satellite') {
             const visibility = e.target.checked ? 'visible' : 'none';
@@ -250,6 +264,9 @@ layers.forEach(layer => {
         const opacity = e.target.value / 100;
         if (layer.id === 'slope' && window.slopeLayerInstance) {
             window.slopeLayerInstance.setOpacity(opacity);
+            opacityValue.textContent = e.target.value;
+        } else if (layer.id === 'slope-aspect' && window.slopeAspectLayerInstance) {
+            window.slopeAspectLayerInstance.setOpacity(opacity);
             opacityValue.textContent = e.target.value;
         } else {
             map.setPaintProperty(`${layer.id}-layer`, 'raster-opacity', opacity);
