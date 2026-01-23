@@ -291,13 +291,25 @@ async function analyzeRoute(filePath) {
     // Calculate average slope
     const avgSlope = totalDistance > 0 ? (totalSlopeDistance / totalDistance) : 0;
 
-    // Determine primary descent aspect (Priority 1: Descent > 15°)
+    // Determine primary aspect
+    // Priority:
+    // 1. Descent Aspect (IF significant descent exists)
+    // 2. General Aspect (Fall back if mostly ascent or flat)
+
     let primaryAspect = 'N';
     let maxDescentDistance = 0;
-    for (const dir in descentAspectDistances) {
-        if (descentAspectDistances[dir] > maxDescentDistance) {
-            maxDescentDistance = descentAspectDistances[dir];
-            primaryAspect = dir;
+
+    // Only consider Descent Aspect as priority if:
+    // A) The route has > 150m descent
+    // B) OR the route is at least 30% descent (to catch smaller but valid downhill runs)
+    const isSignificantDescent = totalDescent > 150 || (totalDescent > totalAscent * 0.3);
+
+    if (isSignificantDescent) {
+        for (const dir in descentAspectDistances) {
+            if (descentAspectDistances[dir] > maxDescentDistance) {
+                maxDescentDistance = descentAspectDistances[dir];
+                primaryAspect = dir;
+            }
         }
     }
 
