@@ -85,6 +85,7 @@ function renderTable() {
     const showDescent = document.getElementById('toggle-descent').checked;
     const showSlope = document.getElementById('toggle-slope').checked;
     const showAspect = document.getElementById('toggle-aspect').checked;
+    const showBreakdown = document.getElementById('toggle-breakdown').checked;
 
     // Build Header
     let headerHTML = `<thead><tr>
@@ -94,9 +95,21 @@ function renderTable() {
     if (showAscent) headerHTML += `<th data-sort="ascent">Ascent <span class="sort-icon">↕</span></th>`;
     if (showDescent) headerHTML += `<th data-sort="descent">Descent <span class="sort-icon">↕</span></th>`;
     if (showSlope) headerHTML += `<th data-sort="maxSlope">Max Slope <span class="sort-icon">↕</span></th>`;
-    if (showAspect) {
-        headerHTML += `<th data-sort="primaryAspect">Primary Aspect <span class="sort-icon">↕</span></th>`;
-        headerHTML += `<th>Aspect Breakdown</th>`;
+    if (showAspect) headerHTML += `<th data-sort="primaryAspect">Primary Aspect <span class="sort-icon">↕</span></th>`;
+    if (showBreakdown) {
+        headerHTML += `<th>
+            Aspect Breakdown
+            <div style="display:flex; gap:2px; margin-top:4px; flex-wrap:wrap; justify-content:center;">
+                <span class="aspect-badge N" style="font-size:0.6rem; padding:1px 4px;">N</span>
+                <span class="aspect-badge NE" style="font-size:0.6rem; padding:1px 4px;">NE</span>
+                <span class="aspect-badge E" style="font-size:0.6rem; padding:1px 4px;">E</span>
+                <span class="aspect-badge SE" style="font-size:0.6rem; padding:1px 4px;">SE</span>
+                <span class="aspect-badge S" style="font-size:0.6rem; padding:1px 4px;">S</span>
+                <span class="aspect-badge SW" style="font-size:0.6rem; padding:1px 4px;">SW</span>
+                <span class="aspect-badge W" style="font-size:0.6rem; padding:1px 4px;">W</span>
+                <span class="aspect-badge NW" style="font-size:0.6rem; padding:1px 4px;">NW</span>
+            </div>
+        </th>`;
     }
 
     headerHTML += `<th>Actions</th>
@@ -112,10 +125,8 @@ function renderTable() {
         if (showDescent) row += `<td>${route.descent ?? 0} m</td>`;
         if (showSlope) row += `<td>${route.maxSlope ?? 0}°</td>`;
 
-        if (showAspect) {
-            row += `<td><span class="aspect-badge ${route.primaryAspect}">${route.primaryAspect}</span></td>`;
-            row += `<td>${renderAspectBreakdown(route.aspectBreakdown)}</td>`;
-        }
+        if (showAspect) row += `<td><span class="aspect-badge ${route.primaryAspect}">${route.primaryAspect}</span></td>`;
+        if (showBreakdown) row += `<td>${renderAspectBreakdown(route.aspectBreakdown)}</td>`;
 
         row += `<td>
                 <div class="action-buttons">
@@ -197,7 +208,6 @@ function updateSortIndicators() {
 // Filtering
 function applyFilters() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const regionFilter = document.getElementById('region-filter').value;
 
     const selectedAspects = Array.from(
         document.querySelectorAll('.aspect-checkboxes input:checked')
@@ -206,11 +216,6 @@ function applyFilters() {
     filteredRoutes = allRoutes.filter(route => {
         // Search filter
         if (searchTerm && !route.name.toLowerCase().includes(searchTerm)) {
-            return false;
-        }
-
-        // Region filter
-        if (regionFilter && route.region !== regionFilter) {
             return false;
         }
 
@@ -298,9 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Search input
     document.getElementById('search-input').addEventListener('input', applyFilters);
 
-    // Region filter
-    document.getElementById('region-filter').addEventListener('change', applyFilters);
-
     // Helper for simple toggles (like Aspect)
     function setupSimpleToggle(type) {
         const toggle = document.getElementById(`toggle-${type}`);
@@ -317,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setupSimpleToggle('aspect');
+    setupSimpleToggle('breakdown');
 
     // Setup helper for dual range sliders
     function setupDualRange(type, unit, maxValLimit) {

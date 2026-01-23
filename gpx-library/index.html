@@ -25,148 +25,161 @@
 
         <!-- Filters -->
         <div class="filter-panel">
-            <div class="filter-group">
+            <!-- Search Filter (Full Width) -->
+            <div class="filter-group search-filter-group">
                 <label for="search-input">Search</label>
                 <input type="text" id="search-input" placeholder="Search routes...">
             </div>
 
-            <div class="filter-group">
-                <label for="region-filter">Region</label>
-                <select id="region-filter">
-                    <option value="">All Regions</option>
-                    <option value="Allgäu Alps West">Allgäu Alps West</option>
-                    <option value="Allgäu Alps Central">Allgäu Alps Central</option>
-                    <option value="Allgäu Alps East">Allgäu Alps East</option>
-                </select>
-            </div>
+            <!-- Toggle Grid -->
+            <div class="filter-toggles-grid">
 
-            <!-- Distance Filter -->
-            <div class="filter-group">
-                <div class="filter-header-toggle">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="toggle-distance">
-                        <span class="slider"></span>
-                    </div>
-                    <label for="toggle-distance">Distance</label>
-                </div>
-                <div class="filter-inputs-container collapsed" id="container-distance">
-                    <div class="range-container">
-                        <div class="dual-range-labels">
-                            <span>Min</span>
-                            <span>Max</span>
+                <!-- Distance Filter -->
+                <div class="filter-group">
+                    <div class="filter-header-toggle">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-distance">
+                            <span class="slider"></span>
                         </div>
-                        <input type="range" id="distance-filter-min" min="0" max="40" value="0" step="0.5">
-                        <input type="range" id="distance-filter-max" min="0" max="40" value="40" step="0.5">
-                        <span id="distance-value">0 - 40+ km</span>
+                        <label for="toggle-distance">Distance</label>
                     </div>
-                </div>
-            </div>
-
-            <!-- Ascent Filter -->
-            <div class="filter-group">
-                <div class="filter-header-toggle">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="toggle-ascent">
-                        <span class="slider"></span>
-                    </div>
-                    <label for="toggle-ascent">Ascent</label>
-                </div>
-                <div class="filter-inputs-container collapsed" id="container-ascent">
-                    <div class="range-container">
-                        <div class="dual-range-labels">
-                            <span>Min</span>
-                            <span>Max</span>
+                    <div class="filter-inputs-container collapsed" id="container-distance">
+                        <div class="range-container">
+                            <div class="dual-range-labels">
+                                <span>Min</span>
+                                <span>Max</span>
+                            </div>
+                            <input type="range" id="distance-filter-min" min="0" max="40" value="0" step="0.5">
+                            <input type="range" id="distance-filter-max" min="0" max="40" value="40" step="0.5">
+                            <span id="distance-value">0 - 40+ km</span>
                         </div>
-                        <input type="range" id="ascent-filter-min" min="0" max="2000" value="0" step="50">
-                        <input type="range" id="ascent-filter-max" min="0" max="2000" value="2000" step="50">
-                        <span id="ascent-value">0 - 2000+ m</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Descent Filter -->
-            <div class="filter-group">
-                <div class="filter-header-toggle">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="toggle-descent">
-                        <span class="slider"></span>
-                    </div>
-                    <label for="toggle-descent">Descent</label>
-                </div>
-                <div class="filter-inputs-container collapsed" id="container-descent">
-                    <div class="range-container">
-                        <div class="dual-range-labels">
-                            <span>Min</span>
-                            <span>Max</span>
+                <!-- Ascent Filter -->
+                <div class="filter-group">
+                    <div class="filter-header-toggle">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-ascent">
+                            <span class="slider"></span>
                         </div>
-                        <input type="range" id="descent-filter-min" min="0" max="2000" value="0" step="50">
-                        <input type="range" id="descent-filter-max" min="0" max="2000" value="2000" step="50">
-                        <span id="descent-value">0 - 2000+ m</span>
+                        <label for="toggle-ascent">Ascent</label>
                     </div>
-                </div>
-            </div>
-
-            <!-- Max Slope Filter -->
-            <div class="filter-group">
-                <div class="filter-header-toggle">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="toggle-slope">
-                        <span class="slider"></span>
-                    </div>
-                    <label for="toggle-slope">Max Slope</label>
-                </div>
-                <div class="filter-inputs-container collapsed" id="container-slope">
-                    <div class="range-container">
-                        <div class="dual-range-labels">
-                            <span>Min</span>
-                            <span>Max</span>
+                    <div class="filter-inputs-container collapsed" id="container-ascent">
+                        <div class="range-container">
+                            <div class="dual-range-labels">
+                                <span>Min</span>
+                                <span>Max</span>
+                            </div>
+                            <input type="range" id="ascent-filter-min" min="0" max="2000" value="0" step="50">
+                            <input type="range" id="ascent-filter-max" min="0" max="2000" value="2000" step="50">
+                            <span id="ascent-value">0 - 2000+ m</span>
                         </div>
-                        <input type="range" id="slope-filter-min" min="0" max="45" value="0" step="1">
-                        <input type="range" id="slope-filter-max" min="0" max="45" value="45" step="1">
-                        <span id="slope-value">0° - 45°+</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Aspect Filter -->
-            <div class="filter-group aspect-filter">
-                <div class="filter-header-toggle">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="toggle-aspect">
-                        <span class="slider"></span>
+                <!-- Descent Filter -->
+                <div class="filter-group">
+                    <div class="filter-header-toggle">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-descent">
+                            <span class="slider"></span>
+                        </div>
+                        <label for="toggle-descent">Descent</label>
                     </div>
-                    <label for="toggle-aspect">Primary Aspect</label>
-                </div>
-                <div class="filter-inputs-container collapsed" id="container-aspect">
-                    <div class="aspect-checkboxes">
-                        <label><input type="checkbox" value="N" checked> <span class="aspect-badge N">N</span></label>
-                        <label><input type="checkbox" value="NE" checked> <span
-                                class="aspect-badge NE">NE</span></label>
-                        <label><input type="checkbox" value="E" checked> <span class="aspect-badge E">E</span></label>
-                        <label><input type="checkbox" value="SE" checked> <span
-                                class="aspect-badge SE">SE</span></label>
-                        <label><input type="checkbox" value="S" checked> <span class="aspect-badge S">S</span></label>
-                        <label><input type="checkbox" value="SW" checked> <span
-                                class="aspect-badge SW">SW</span></label>
-                        <label><input type="checkbox" value="W" checked> <span class="aspect-badge W">W</span></label>
-                        <label><input type="checkbox" value="NW" checked> <span
-                                class="aspect-badge NW">NW</span></label>
+                    <div class="filter-inputs-container collapsed" id="container-descent">
+                        <div class="range-container">
+                            <div class="dual-range-labels">
+                                <span>Min</span>
+                                <span>Max</span>
+                            </div>
+                            <input type="range" id="descent-filter-min" min="0" max="2000" value="0" step="50">
+                            <input type="range" id="descent-filter-max" min="0" max="2000" value="2000" step="50">
+                            <span id="descent-value">0 - 2000+ m</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Add New Route -->
-            <div class="filter-group add-route-filter">
-                <label>Add New Route</label>
-                <div class="upload-container-compact">
-                    <input type="file" id="gpx-upload-input" accept=".gpx" class="hidden-input">
-                    <label for="gpx-upload-input" class="upload-btn-compact">
-                        📂 Choose GPX File
-                    </label>
-                    <div id="upload-status" class="upload-status-compact" style="display: none;">
-                        <span id="upload-filename">filename.gpx</span>
-                        <button id="btn-process" class="process-btn-compact">Analyse & Add</button>
-                        <button id="btn-cancel-upload" class="cancel-upload-btn-compact">✕</button>
+                <!-- Max Slope Filter -->
+                <div class="filter-group">
+                    <div class="filter-header-toggle">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-slope">
+                            <span class="slider"></span>
+                        </div>
+                        <label for="toggle-slope">Max Slope</label>
+                    </div>
+                    <div class="filter-inputs-container collapsed" id="container-slope">
+                        <div class="range-container">
+                            <div class="dual-range-labels">
+                                <span>Min</span>
+                                <span>Max</span>
+                            </div>
+                            <input type="range" id="slope-filter-min" min="0" max="45" value="0" step="1">
+                            <input type="range" id="slope-filter-max" min="0" max="45" value="45" step="1">
+                            <span id="slope-value">0° - 45°+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aspect Filter -->
+                <div class="filter-group aspect-filter">
+                    <div class="filter-header-toggle">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-aspect">
+                            <span class="slider"></span>
+                        </div>
+                        <label for="toggle-aspect">Primary Aspect</label>
+                    </div>
+                    <div class="filter-inputs-container collapsed" id="container-aspect">
+                        <div class="aspect-checkboxes">
+                            <label><input type="checkbox" value="N" checked> <span
+                                    class="aspect-badge N">N</span></label>
+                            <label><input type="checkbox" value="NE" checked> <span
+                                    class="aspect-badge NE">NE</span></label>
+                            <label><input type="checkbox" value="E" checked> <span
+                                    class="aspect-badge E">E</span></label>
+                            <label><input type="checkbox" value="SE" checked> <span
+                                    class="aspect-badge SE">SE</span></label>
+                            <label><input type="checkbox" value="S" checked> <span
+                                    class="aspect-badge S">S</span></label>
+                            <label><input type="checkbox" value="SW" checked> <span
+                                    class="aspect-badge SW">SW</span></label>
+                            <label><input type="checkbox" value="W" checked> <span
+                                    class="aspect-badge W">W</span></label>
+                            <label><input type="checkbox" value="NW" checked> <span
+                                    class="aspect-badge NW">NW</span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aspect Breakdown Filter (Visual Only) -->
+                <div class="filter-group breakdown-filter">
+                    <div class="filter-header-toggle">
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="toggle-breakdown">
+                            <span class="slider"></span>
+                        </div>
+                        <label for="toggle-breakdown">Aspect Breakdown</label>
+                    </div>
+                    <div class="filter-inputs-container collapsed" id="container-breakdown">
+                        <!-- Legend moved to Table Header -->
+                    </div>
+                </div>
+
+                <!-- Add New Route -->
+                <div class="filter-group add-route-filter">
+                    <label>Add New Route</label>
+                    <div class="upload-container-compact">
+                        <input type="file" id="gpx-upload-input" accept=".gpx" class="hidden-input">
+                        <label for="gpx-upload-input" class="upload-btn-compact">
+                            📂 Choose GPX File
+                        </label>
+                        <div id="upload-status" class="upload-status-compact" style="display: none;">
+                            <span id="upload-filename">filename.gpx</span>
+                            <button id="btn-process" class="process-btn-compact">Analyse & Add</button>
+                            <button id="btn-cancel-upload" class="cancel-upload-btn-compact">✕</button>
+                        </div>
                     </div>
                 </div>
             </div>

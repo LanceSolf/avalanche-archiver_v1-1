@@ -111,6 +111,18 @@ input:checked+.slider:before {
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.search-filter-group {
+    width: 100%;
+    max-width: 300px;
+}
+
+.filter-toggles-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
@@ -168,9 +180,8 @@ input:checked+.slider:before {
 }
 
 /* Aspect Filter */
-.aspect-filter {
-    grid-column: 1 / -1;
-}
+/* Aspect Filter */
+/* .aspect-filter removed grid-column override to flow naturally */
 
 .aspect-checkboxes {
     display: flex;
@@ -192,6 +203,9 @@ input:checked+.slider:before {
     border-top: 1px solid #e2e8f0;
     padding-top: 1rem;
     margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; REMOVED to keep text left */
 }
 
 .hidden-input {
@@ -202,10 +216,20 @@ input:checked+.slider:before {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    width: 100%;
+    max-width: 300px;
+    min-width: 0;
+    /* Allow shrinking below content size if needed */
+    /* margin: 0 auto; Removed to align left */
 }
 
 .upload-btn-compact {
-    display: inline-flex;
+    display: flex;
+    /* Changed from inline-flex to fill container */
+    width: 100%;
+    /* Fill the max-width 300px container */
+    box-sizing: border-box;
+    /* Ensure padding includes in width */
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
