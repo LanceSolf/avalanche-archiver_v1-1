@@ -270,8 +270,18 @@ async function downloadRoute(routeId) {
     if (!route) return;
 
     try {
-        const response = await fetch(`${WORKER_URL}/gpx/${route.filename}`);
-        if (!response.ok) throw new Error('Download failed');
+        const safeFilename = encodeURIComponent(route.filename);
+
+        // Strategy 1: Cloud via /gpx/ prefix
+        let response = await fetch(`${WORKER_URL}/gpx/${safeFilename}`);
+
+        // Strategy 2: Cloud root (fallback)
+        if (!response.ok) {
+            console.warn('Cloud /gpx/ download failed, trying root...');
+            response = await fetch(`${WORKER_URL}/${safeFilename}`);
+        }
+
+        if (!response.ok) throw new Error(`Download failed: ${response.status}`);
 
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -284,10 +294,9 @@ async function downloadRoute(routeId) {
         window.URL.revokeObjectURL(url);
     } catch (err) {
         console.error(err);
-        alert('Failed to download GPX.');
+        alert('Failed to download GPX. Please check connection.');
     }
 }
-
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadRoutes();
