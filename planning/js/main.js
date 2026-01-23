@@ -465,11 +465,12 @@ function checkGPXParameter() {
 
 // Load GPX file from library
 async function loadGPXFromLibrary(routeId) {
+    const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev';
     try {
         // Fetch metadata to get filename
-        const metadataResponse = await fetch('../gpx/routes-metadata.json');
+        const metadataResponse = await fetch(`${WORKER_URL}/gpx/list`);
         const metadata = await metadataResponse.json();
-        const route = metadata.routes.find(r => r.id === routeId);
+        const route = (metadata.routes || []).find(r => r.id === routeId);
 
         if (!route) {
             console.error(`Route ${routeId} not found in library`);
@@ -477,7 +478,7 @@ async function loadGPXFromLibrary(routeId) {
         }
 
         // Fetch the GPX file
-        const gpxResponse = await fetch(`../gpx/${route.filename}`);
+        const gpxResponse = await fetch(`${WORKER_URL}/gpx/${route.filename}`);
         const gpxText = await gpxResponse.text();
 
         // Parse and load

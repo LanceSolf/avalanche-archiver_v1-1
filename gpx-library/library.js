@@ -16,27 +16,10 @@ const aspectColors = {
     NW: '#a855f7'
 };
 
+const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev';
+
 // Load routes metadata
 async function loadRoutes() {
-    // Detect Localhost
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-    // If Localhost, skip Worker and use local file immediately (to ensure we see fresh non-cached local builds)
-    if (isLocalhost) {
-        console.log('Localhost detected: Using local routes-metadata.json');
-        try {
-            const response = await fetch(`../gpx/routes-metadata.json?t=${Date.now()}`); // Cache-bust
-            const data = await response.json();
-            allRoutes = data.routes;
-        } catch (localError) {
-            console.error('Failed to load local routes:', localError);
-            allRoutes = [];
-        }
-        filteredRoutes = [...allRoutes];
-        renderTable();
-        return;
-    }
-
     try {
         // Try fetching from Worker first (Production behavior)
         const response = await fetch(`${WORKER_URL}/gpx/list`);
@@ -47,16 +30,8 @@ async function loadRoutes() {
             throw new Error('Worker list endpoint not active');
         }
     } catch (workerError) {
-        // Fallback to local files
-        console.log('Fetching local routes (Worker unavailable)');
-        try {
-            const response = await fetch(`../gpx/routes-metadata.json?t=${Date.now()}`);
-            const data = await response.json();
-            allRoutes = data.routes;
-        } catch (localError) {
-            console.error('Failed to load routes:', localError);
-            allRoutes = [];
-        }
+        console.error('Failed to load routes from Cloud:', workerError);
+        allRoutes = [];
     }
 
     filteredRoutes = [...allRoutes];
@@ -89,7 +64,8 @@ function renderTable() {
 
     // Build Header
     let headerHTML = `<thead><tr>
-        <th data-sort="name">Route Name <span class="sort-icon">↕</span></th>`;
+        <th data-sort="name">Route Name <span class="sort-icon">↕</span></th>
+        <th data-sort="region">Region <span class="sort-icon">↕</span></th>`;
 
     if (showDistance) headerHTML += `<th data-sort="distance">Distance <span class="sort-icon">↕</span></th>`;
     if (showAscent) headerHTML += `<th data-sort="ascent">Ascent <span class="sort-icon">↕</span></th>`;
@@ -118,7 +94,8 @@ function renderTable() {
     // Build Body
     const rowsHTML = filteredRoutes.map(route => {
         let row = `<tr>
-            <td><div class="route-name">${route.name}</div></td>`;
+            <td><div class="route-name">${route.name}</div></td>
+            <td><div class="route-region">${route.region}</div></td>`;
 
         if (showDistance) row += `<td>${route.distance} km</td>`;
         if (showAscent) row += `<td>${route.ascent} m</td>`;
@@ -284,7 +261,7 @@ function loadInPlanner(routeId) {
 function viewRoute(routeId) {
     const route = allRoutes.find(r => r.id === routeId);
     if (route) {
-        window.open(`../gpx/${route.filename}`, '_blank');
+        window.open(`${WORKER_URL}/gpx/${route.filename}`, '_blank');
     }
 }
 
@@ -423,18 +400,7 @@ async function confirmDelete() {
     const route = allRoutes.find(r => r.id === deleteRouteId);
     if (!route) return;
 
-    // Detect Localhost
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-    if (isLocalhost) {
-        // Localhost: Cannot delete files via browser. Prompt user.
-        alert(`LOCAL MODE: Cannot delete files automatically.\n\nTo remove "${deleteRouteName}":\n1. Go to your project folder.\n2. Delete "gpx/${route.filename}"\n3. Run "npm run build"`);
-        closeFinalWarning();
-        return;
-    }
-
     try {
-        // Try deletion via Worker (Only in Production)
         const response = await fetch(`${WORKER_URL}/gpx/delete`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -454,105 +420,10 @@ async function confirmDelete() {
 
     } catch (error) {
         console.warn('Worker delete failed:', error);
-        alert(`Error deleting from cloud. Please delete local file manually.`);
+        alert(`Error deleting from cloud. Please check connection.`);
         closeFinalWarning();
     }
 }
-
-// GPX Upload Functions
-const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev';
-
-// ... (helpers) ...
-
-async function processGPXFile() {
-    if (!uploadedGPXFile) return;
-
-    // Detect Localhost
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-    const processBtn = document.getElementById('btn-process');
-    processBtn.disabled = true;
-    processBtn.textContent = 'Analysing...';
-
-    try {
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const gpxText = event.target.result;
-            const parser = new DOMParser();
-            const gpxDoc = parser.parseFromString(gpxText, 'text/xml');
-            const metadata = analyzeGPXContent(gpxDoc, uploadedGPXFile.name);
-
-            if (!metadata) {
-                alert('Analysis failed.');
-                processBtn.disabled = false;
-                processBtn.textContent = 'Analyse & Add';
-                return;
-            }
-
-            metadata.filename = `${metadata.id}.gpx`; // Unique ID filename
-
-            if (isLocalhost) {
-                // LOCALHOST BEHAVIOR: Simulate & Download
-                console.log('Localhost upload simulation');
-
-                // 1. Update UI immediately
-                allRoutes.push(metadata);
-                filteredRoutes = [...allRoutes];
-                renderTable();
-
-                // 2. Download File
-                const blob = new Blob([gpxText], { type: 'application/gpx+xml' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = metadata.filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                alert(`LOCAL MODE: Analysis Complete.\n\n1. File "${metadata.filename}" has been downloaded.\n2. MOVE IT to your local "gpx/" folder.\n3. Run "npm run build".`);
-
-                resetUploadUI();
-                return;
-            }
-
-            // PRODUCTION BEHAVIOR: Worker Upload
-            processBtn.textContent = 'Uploading...';
-            try {
-                const response = await fetch(`${WORKER_URL}/gpx/upload`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        gpxContent: gpxText,
-                        metadata: metadata
-                    })
-                });
-
-                if (response.ok) {
-                    alert(`Route "${metadata.name}" uploaded to Cloud!`);
-                    loadRoutes(); // Refresh list
-                    resetUploadUI();
-                } else {
-                    throw new Error('Worker returned error');
-                }
-            } catch (workerError) {
-                alert('Cloud upload failed. Please use local mode.');
-                resetUploadUI();
-            }
-        };
-
-        reader.readAsText(uploadedGPXFile);
-
-    } catch (error) {
-        console.error('Error processing GPX:', error);
-        alert('Failed to process GPX file.');
-        processBtn.disabled = false;
-        processBtn.textContent = 'Analyse & Add';
-    }
-}
-
-
 
 // GPX Analysis Helpers (Ported from gpx-analyzer.js)
 function haversineDistance(lat1, lon1, lat2, lon2) {
@@ -832,38 +703,17 @@ async function processGPXFile() {
 
                 if (response.ok) {
                     alert(`Route "${metadata.name}" added successfully!`);
-                    // Refresh
-                    loadRoutes(); // This will try fetching list from worker if implemented, or we might need to update loadRoutes to handle worker list
-
-                    // Reset UI
+                    loadRoutes();
                     resetUploadUI();
                 } else {
-                    throw new Error('Worker returned error');
+                    const errText = await response.text();
+                    throw new Error(`Worker returned error: ${errText}`);
                 }
             } catch (workerError) {
-                console.warn('Worker upload failed/skipped:', workerError);
-
-                // LOCALHOST / FALLBACK BEHAVIOR:
-                // 1. Add to local memory so it appears in the table immediately
-                allRoutes.push(metadata);
-                filteredRoutes = [...allRoutes];
-                renderTable();
-
-                // 2. Alert user with instructions
-                alert(`Analysis Success!\n\nName: ${metadata.name}\nAspect: ${metadata.primaryAspect}\n\nSince you are on Localhost (or Worker is down):\n1. The file "${metadata.filename}" has been downloaded.\n2. Move it to your local 'gpx/' folder.\n3. Run 'npm run build' to update the index permanently.`);
-
-                // 3. Trigger download of the renamed GPX file
-                const blob = new Blob([gpxText], { type: 'application/gpx+xml' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = metadata.filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                resetUploadUI();
+                console.error('Cloud upload failed:', workerError);
+                alert('Cloud upload failed. Please check your connection.');
+                processBtn.disabled = false;
+                processBtn.textContent = 'Add to Library';
             }
 
 
