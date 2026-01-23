@@ -12,14 +12,14 @@
       "elevationMax": 2038,
       "maxSlope": 22,
       "avgSlope": 17.3,
-      "primaryAspect": "N",
+      "primaryAspect": "SW",
       "aspectBreakdown": {
         "N": 0,
-        "NE": 100,
+        "NE": 0,
         "E": 0,
         "SE": 0,
         "S": 0,
-        "SW": 0,
+        "SW": 100,
         "W": 0,
         "NW": 0
       }
@@ -36,14 +36,14 @@
       "elevationMax": 2224,
       "maxSlope": 26,
       "avgSlope": 15.8,
-      "primaryAspect": "N",
+      "primaryAspect": "SW",
       "aspectBreakdown": {
         "N": 0,
-        "NE": 100,
+        "NE": 0,
         "E": 0,
         "SE": 0,
         "S": 0,
-        "SW": 0,
+        "SW": 100,
         "W": 0,
         "NW": 0
       }

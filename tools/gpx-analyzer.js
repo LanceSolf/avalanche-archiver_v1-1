@@ -182,18 +182,19 @@ async function analyzeRoute(filePath) {
         maxSlope = Math.max(maxSlope, slope);
         totalSlopeDistance += slope * distance;
 
-        // Track aspect for slopes >20°
+        // 1. General Aspect Breakdown (Slopes > 20°)
         if (slope >= 20) {
             const aspectCategory = categorizeAspect(aspect);
             aspectDistances[aspectCategory] += distance;
             totalDistanceAbove20 += distance;
         }
 
-        // Track descent aspect for slopes >30° after summit
-        if (i >= summitIndex && slope >= 30 && elevChange < 0) {
+        // 2. Primary Aspect Calculation (Descent Only)
+        // We look at ALL descent segments > 20 degrees, not just after summit
+        if (elevChange < 0 && slope >= 20) {
             const aspectCategory = categorizeAspect(aspect);
             descentAspectDistances[aspectCategory] += distance;
-            totalDescentDistanceAbove30 += distance;
+            totalDescentDistanceAbove30 += distance; // Variable name legacy, now > 20
         }
     }
 
@@ -215,6 +216,17 @@ async function analyzeRoute(filePath) {
         if (descentAspectDistances[dir] > maxDescentDistance) {
             maxDescentDistance = descentAspectDistances[dir];
             primaryAspect = dir;
+        }
+    }
+
+    // Fallback: If no significant descent found (>20°), try general breakdown
+    if (maxDescentDistance === 0) {
+        let maxAspectDist = 0;
+        for (const dir in aspectDistances) {
+            if (aspectDistances[dir] > maxAspectDist) {
+                maxAspectDist = aspectDistances[dir];
+                primaryAspect = dir;
+            }
         }
     }
 

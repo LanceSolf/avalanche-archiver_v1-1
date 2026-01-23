@@ -507,16 +507,19 @@ function analyzeGPXContent(gpxDoc, filename) {
         maxSlope = Math.max(maxSlope, slope);
         totalSlopeDistance += slope * distance;
 
+        // 1. General Aspect Breakdown (Slopes > 20°)
         if (slope >= 20) {
             const aspectCategory = categorizeAspect(aspect);
             aspectDistances[aspectCategory] += distance;
             totalDistanceAbove20 += distance;
         }
 
-        if (i >= summitIndex && slope >= 30 && elevChange < 0) {
+        // 2. Primary Aspect Calculation (Descent Only)
+        // We look at ALL descent segments > 20 degrees, not just after summit
+        if (elevChange < 0 && slope >= 20) {
             const aspectCategory = categorizeAspect(aspect);
             descentAspectDistances[aspectCategory] += distance;
-            totalDescentDistanceAbove30 += distance;
+            totalDescentDistanceAbove30 += distance; // Variable name legacy, now > 20
         }
     }
 
@@ -538,9 +541,8 @@ function analyzeGPXContent(gpxDoc, filename) {
         }
     }
 
-    // Fallback if no steep descent found
+    // Fallback: If no significant descent found (>20°), try general breakdown
     if (maxDescentDistance === 0) {
-        // Use aspect with most distance > 20
         let maxAspectDist = 0;
         for (const dir in aspectDistances) {
             if (aspectDistances[dir] > maxAspectDist) {
