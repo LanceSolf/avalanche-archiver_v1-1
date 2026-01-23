@@ -181,7 +181,9 @@ input:checked+.slider:before {
 
 /* Aspect Filter */
 /* Aspect Filter */
-/* .aspect-filter removed grid-column override to flow naturally */
+.aspect-filter {
+    grid-column: 1 / -1;
+}
 
 .aspect-checkboxes {
     display: flex;

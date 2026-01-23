@@ -741,6 +741,7 @@ function initGPXUpload() {
     const uploadLabel = document.querySelector('.upload-btn-compact');
     const uploadStatus = document.getElementById('upload-status');
     const filenameSpan = document.getElementById('upload-filename');
+    const nameInput = document.getElementById('upload-name-input');
     const processBtn = document.getElementById('btn-process');
     const cancelBtn = document.getElementById('btn-cancel-upload');
 
@@ -750,6 +751,22 @@ function initGPXUpload() {
 
         uploadedGPXFile = file;
         filenameSpan.textContent = file.name;
+
+        // Pre-fill name using analysis logic
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const gpxText = event.target.result;
+            const parser = new DOMParser();
+            const gpxDoc = parser.parseFromString(gpxText, 'text/xml');
+            const metadata = analyzeGPXContent(gpxDoc, file.name);
+            if (metadata && metadata.name) {
+                nameInput.value = metadata.name;
+            } else {
+                nameInput.value = file.name.replace(/\.gpx$/i, '');
+            }
+        };
+        reader.readAsText(file);
+
         uploadLabel.style.display = 'none';
         uploadStatus.style.display = 'flex';
     });
@@ -761,6 +778,7 @@ function initGPXUpload() {
         fileInput.value = '';
         uploadStatus.style.display = 'none';
         uploadLabel.style.display = 'inline-flex';
+        nameInput.value = '';
     });
 }
 
@@ -782,6 +800,12 @@ async function processGPXFile() {
 
             // Analyze
             const metadata = analyzeGPXContent(gpxDoc, uploadedGPXFile.name);
+
+            // Override Name from Input
+            const nameInput = document.getElementById('upload-name-input');
+            if (nameInput && nameInput.value.trim() !== '') {
+                metadata.name = nameInput.value.trim();
+            }
 
             if (!metadata) {
                 alert('Analysis failed. Could not extract track points.');
