@@ -110,6 +110,7 @@ function renderTable() {
                     <button class="btn-load" onclick="loadInPlanner('${route.id}')">Load</button>
                     <button class="btn-view" onclick="downloadRoute('${route.id}')" title="Download GPX" style="display:flex; align-items:center; gap:4px;">GPX <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
                     <button class="btn-remove" onclick="requestDelete('${route.id}', '${route.name}')">✕</button>
+                    <button class="btn-secondary" onclick="alert(JSON.stringify(allRoutes.find(r => r.id === '${route.id}'), null, 2))" style="padding:2px 6px; font-size:10px; margin-left:4px;" title="Debug Metadata">?</button>
                 </div>
             </td>
         </tr>`;
