@@ -111,6 +111,9 @@ map.on('load', () => {
 
     // Initialize File Input listeners
     initGPXUpload();
+
+    // Check for GPX parameter in URL
+    checkGPXParameter();
 });
 
 // Create ShadeMap instance
@@ -448,6 +451,97 @@ function initGPXUpload() {
         statusDiv.style.display = 'none';
         uploadLabel.style.display = 'inline-block';
     });
+}
+
+// Check for GPX parameter in URL and load from library
+function checkGPXParameter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const gpxId = urlParams.get('gpx');
+
+    if (gpxId) {
+        loadGPXFromLibrary(gpxId);
+    }
+}
+
+// Load GPX file from library
+async function loadGPXFromLibrary(routeId) {
+    try {
+        // Fetch metadata to get filename
+        const metadataResponse = await fetch('../gpx/routes-metadata.json');
+        const metadata = await metadataResponse.json();
+        const route = metadata.routes.find(r => r.id === routeId);
+
+        if (!route) {
+            console.error(`Route ${routeId} not found in library`);
+            return;
+        }
+
+        // Fetch the GPX file
+        const gpxResponse = await fetch(`../gpx/${route.filename}`);
+        const gpxText = await gpxResponse.text();
+
+        // Parse and load
+        const parser = new DOMParser();
+        const gpxDoc = parser.parseFromString(gpxText, 'text/xml');
+        const geojson = toGeoJSON.gpx(gpxDoc);
+
+        // Update map data
+        map.getSource('gpx-route').setData(geojson);
+
+        // Update UI
+        const filenameSpan = document.getElementById('gpx-filename');
+        const statusDiv = document.getElementById('gpx-status');
+        const uploadLabel = document.querySelector('.upload-btn');
+
+        filenameSpan.textContent = route.name;
+        uploadLabel.style.display = 'none';
+        statusDiv.style.display = 'flex';
+
+        // Fit bounds
+        const bounds = new maplibregl.LngLatBounds();
+        let hasFeatures = false;
+
+        geojson.features.forEach(feature => {
+            if (feature.geometry && feature.geometry.coordinates) {
+                if (feature.geometry.type === 'LineString') {
+                    hasFeatures = true;
+                    feature.geometry.coordinates.forEach(coord => bounds.extend(coord));
+                } else if (feature.geometry.type === 'MultiLineString') {
+                    hasFeatures = true;
+                    feature.geometry.coordinates.forEach(line => {
+                        line.forEach(coord => bounds.extend(coord));
+                    });
+                }
+            }
+        });
+
+        if (hasFeatures) {
+            const is3D = terrainToggle.checked;
+            const isMobile = window.innerWidth <= 768;
+
+            let padding = 50;
+            if (is3D) {
+                const h = map.getCanvas().height;
+                padding = {
+                    top: h * 0.65,
+                    bottom: 20,
+                    left: 50,
+                    right: isMobile ? 20 : 350
+                };
+            } else {
+                padding = isMobile ? 20 : 50;
+            }
+
+            map.fitBounds(bounds, {
+                padding: padding,
+                maxZoom: 12.5
+            });
+        }
+
+    } catch (error) {
+        console.error('Failed to load GPX from library:', error);
+        alert('Failed to load route from library.');
+    }
 }
 
 // Drawer Controls logic

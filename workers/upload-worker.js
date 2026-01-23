@@ -118,6 +118,106 @@ export default {
             }
         }
 
+        // GUIDE FOR GPX LIBRARY:
+        // We use a "Metadata Index" strategy. 
+        // 1. 'gpx:index' -> Stores the lightweight JSON array of all route metadata.
+        // 2. 'gpx:file:<id>' -> Stores the heavy GPX XML content.
+        // This avoids listing thousands of keys or fetching heavy files just to show the library.
+
+        // GET GPX LIST (Library Index)
+        if (request.method === "GET" && url.pathname === "/gpx/list") {
+            try {
+                const index = await env.UPLOADS.get('gpx:index', { type: "json" });
+                return new Response(JSON.stringify({ routes: index || [] }), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" }
+                });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+            }
+        }
+
+        // GET GPX FILE
+        if (request.method === "GET" && url.pathname === "/gpx/get") {
+            const id = url.searchParams.get('id');
+            if (!id) return new Response("Missing ID", { status: 400, headers: corsHeaders });
+
+            try {
+                // Try fetching gpx specific key first
+                let content = await env.UPLOADS.get(`gpx:file:${id}`);
+                // Fallback for legacy or different storage if needed
+                if (!content) return new Response("GPX file not found", { status: 404, headers: corsHeaders });
+
+                return new Response(content, {
+                    headers: { ...corsHeaders, "Content-Type": "application/gpx+xml" }
+                });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+            }
+        }
+
+        // UPLOAD GPX (Update Index + Store File)
+        if (request.method === "POST" && url.pathname === "/gpx/upload") {
+            try {
+                const data = await request.json();
+
+                // Expecting: { gpxContent: "...", metadata: { id, name, ... } }
+                if (!data.gpxContent || !data.metadata || !data.metadata.id) {
+                    return new Response("Missing GPX content or metadata", { status: 400, headers: corsHeaders });
+                }
+
+                const id = data.metadata.id;
+
+                // 1. Store the File
+                await env.UPLOADS.put(`gpx:file:${id}`, data.gpxContent);
+
+                // 2. Update the Index
+                let index = await env.UPLOADS.get('gpx:index', { type: "json" }) || [];
+
+                // Remove existing entry if updating
+                index = index.filter(r => r.id !== id);
+                // Add new metadata
+                index.push(data.metadata);
+
+                // Sort by name by default to keep index tidy
+                index.sort((a, b) => a.name.localeCompare(b.name));
+
+                await env.UPLOADS.put('gpx:index', JSON.stringify(index));
+
+                return new Response(JSON.stringify({ success: true, id: id }), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" }
+                });
+
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+            }
+        }
+
+        // DELETE GPX
+        if (request.method === "POST" && url.pathname === "/gpx/delete") {
+            try {
+                const data = await request.json();
+                if (!data.id) return new Response("Missing ID", { status: 400, headers: corsHeaders });
+
+                const id = data.id;
+
+                // 1. Delete the File
+                await env.UPLOADS.delete(`gpx:file:${id}`);
+
+                // 2. Update the Index
+                let index = await env.UPLOADS.get('gpx:index', { type: "json" }) || [];
+                const newIndex = index.filter(r => r.id !== id);
+
+                await env.UPLOADS.put('gpx:index', JSON.stringify(newIndex));
+
+                return new Response(JSON.stringify({ success: true }), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" }
+                });
+
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+            }
+        }
+
         return new Response("Not Found", { status: 404, headers: corsHeaders });
     },
 };

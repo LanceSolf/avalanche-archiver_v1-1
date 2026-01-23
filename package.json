@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:smoke": "node tools/test_smoke.js",
-    "build": "node tools/build.js",
+    "build": "node tools/gpx-analyzer.js && node tools/build.js",
     "fetch:daily": "node tools/fetch_daily.js",
     "fetch:weather": "node tools/fetch_weather.js",
     "fetch:report": "node tools/fetch_weather_report.js",
@@ -20,6 +20,7 @@
     "lint:fix": "eslint tools snow-depth --fix"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.8.11",
     "dotenv": "^17.2.3",
     "leaflet": "^1.9.4",
     "puppeteer": "^24.35.0"

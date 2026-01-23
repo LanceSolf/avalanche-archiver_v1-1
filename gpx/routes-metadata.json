@@ -1,0 +1,52 @@
+{
+  "routes": [
+    {
+      "id": "fellhorn-ridge-traverse",
+      "name": "Fellhorn Ridge Traverse",
+      "filename": "fellhorn-ridge-traverse.gpx",
+      "region": "Allgäu Alps West",
+      "distance": 3.03,
+      "ascent": 948,
+      "descent": 0,
+      "elevationMin": 1090,
+      "elevationMax": 2038,
+      "maxSlope": 22,
+      "avgSlope": 17.3,
+      "primaryAspect": "N",
+      "aspectBreakdown": {
+        "N": 0,
+        "NE": 100,
+        "E": 0,
+        "SE": 0,
+        "S": 0,
+        "SW": 0,
+        "W": 0,
+        "NW": 0
+      }
+    },
+    {
+      "id": "nebelhorn-summit-tour",
+      "name": "Nebelhorn Summit Tour",
+      "filename": "nebelhorn-summit-tour.gpx",
+      "region": "Allgäu Alps Central",
+      "distance": 4.94,
+      "ascent": 1409,
+      "descent": 0,
+      "elevationMin": 815,
+      "elevationMax": 2224,
+      "maxSlope": 26,
+      "avgSlope": 15.8,
+      "primaryAspect": "N",
+      "aspectBreakdown": {
+        "N": 0,
+        "NE": 100,
+        "E": 0,
+        "SE": 0,
+        "S": 0,
+        "SW": 0,
+        "W": 0,
+        "NW": 0
+      }
+    }
+  ]
+}
