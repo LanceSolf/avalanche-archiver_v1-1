@@ -740,7 +740,7 @@ function initGPXUpload() {
     const fileInput = document.getElementById('gpx-upload-input');
     const uploadLabel = document.querySelector('.upload-btn-compact');
     const uploadStatus = document.getElementById('upload-status');
-    const filenameSpan = document.getElementById('upload-filename');
+    // const filenameSpan = document.getElementById('upload-filename'); // Removed
     const nameInput = document.getElementById('upload-name-input');
     const processBtn = document.getElementById('btn-process');
     const cancelBtn = document.getElementById('btn-cancel-upload');
@@ -750,10 +750,10 @@ function initGPXUpload() {
         if (!file) return;
 
         uploadedGPXFile = file;
-        filenameSpan.textContent = file.name;
+        // filenameSpan.textContent = file.name; // Removed
 
-        // Pre-fill name using analysis logic
-        const reader = new FileReader();
+        uploadLabel.style.display = 'none';
+        uploadStatus.style.display = 'flex';
         reader.onload = (event) => {
             const gpxText = event.target.result;
             const parser = new DOMParser();
