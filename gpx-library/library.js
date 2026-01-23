@@ -445,6 +445,7 @@ function categorizeAspect(bearing) {
 }
 
 function analyzeGPXContent(gpxDoc, filename) {
+    console.log('Analyzing GPX:', filename);
     const trkpts = gpxDoc.getElementsByTagName('trkpt');
     const trackPoints = [];
 
@@ -468,18 +469,10 @@ function analyzeGPXContent(gpxDoc, filename) {
     let totalSlopeDistance = 0;
 
     const aspectDistances = { N: 0, NE: 0, E: 0, SE: 0, S: 0, SW: 0, W: 0, NW: 0 };
-    let totalDistanceAbove20 = 0;
-
-    // Find summit
-    let summitIndex = 0;
-    for (let i = 0; i < trackPoints.length; i++) {
-        if (trackPoints[i].ele > trackPoints[summitIndex].ele) {
-            summitIndex = i;
-        }
-    }
+    let totalDistanceAboveThreshold = 0;
 
     const descentAspectDistances = { N: 0, NE: 0, E: 0, SE: 0, S: 0, SW: 0, W: 0, NW: 0 };
-    let totalDescentDistanceAbove30 = 0;
+    let totalDescentDistanceAboveThreshold = 0;
 
     for (let i = 0; i < trackPoints.length - 1; i++) {
         const p1 = trackPoints[i];
@@ -507,26 +500,26 @@ function analyzeGPXContent(gpxDoc, filename) {
         maxSlope = Math.max(maxSlope, slope);
         totalSlopeDistance += slope * distance;
 
-        // 1. General Aspect Breakdown (Slopes > 20°)
-        if (slope >= 20) {
+        // 1. General Aspect Breakdown (Slopes > 15°)
+        if (slope >= 15) {
             const aspectCategory = categorizeAspect(aspect);
             aspectDistances[aspectCategory] += distance;
-            totalDistanceAbove20 += distance;
+            totalDistanceAboveThreshold += distance;
         }
 
         // 2. Primary Aspect Calculation (Descent Only)
-        // We look at ALL descent segments > 20 degrees, not just after summit
-        if (elevChange < 0 && slope >= 20) {
+        // We look at ALL descent segments > 15 degrees
+        if (elevChange < 0 && slope >= 15) {
             const aspectCategory = categorizeAspect(aspect);
             descentAspectDistances[aspectCategory] += distance;
-            totalDescentDistanceAbove30 += distance; // Variable name legacy, now > 20
+            totalDescentDistanceAboveThreshold += distance;
         }
     }
 
     const aspectBreakdown = {};
     for (const dir in aspectDistances) {
-        aspectBreakdown[dir] = totalDistanceAbove20 > 0
-            ? parseFloat((aspectDistances[dir] / totalDistanceAbove20 * 100).toFixed(1))
+        aspectBreakdown[dir] = totalDistanceAboveThreshold > 0
+            ? parseFloat((aspectDistances[dir] / totalDistanceAboveThreshold * 100).toFixed(1))
             : 0;
     }
 
@@ -541,7 +534,7 @@ function analyzeGPXContent(gpxDoc, filename) {
         }
     }
 
-    // Fallback: If no significant descent found (>20°), try general breakdown
+    // Fallback: If no significant descent found (>15°), try general breakdown
     if (maxDescentDistance === 0) {
         let maxAspectDist = 0;
         for (const dir in aspectDistances) {
@@ -552,14 +545,12 @@ function analyzeGPXContent(gpxDoc, filename) {
         }
     }
 
-    // Attempt to guess region from filename or name? 
-    // This is hard to do purely client side without a geo-database. 
-    // We'll default to "Allgäu Alps" or let user edit later? 
-    // For now, mirroring logic:
+    // Name Logic: Prioritize Filename
+    let displayName = filename.replace(/\.gpx$/i, '');
+
+    // Region Logic
     let region = 'Allgäu Alps';
-    const nameNode = gpxDoc.getElementsByTagName('name')[0];
-    const rawName = nameNode ? nameNode.textContent : filename;
-    const lowerName = rawName.toLowerCase();
+    const lowerName = displayName.toLowerCase();
 
     if (lowerName.includes('kleinwalsertal') || lowerName.includes('fellhorn')) {
         region = 'Allgäu Alps West';
@@ -567,10 +558,12 @@ function analyzeGPXContent(gpxDoc, filename) {
         region = 'Allgäu Alps Central';
     }
 
+    console.log('Analysis Result:', { displayName, primaryAspect, aspectBreakdown });
+
     return {
         id: filename.replace('.gpx', '').replace(/\s+/g, '-').toLowerCase() + '-' + Date.now().toString().slice(-4), // Unique ID
-        name: rawName,
-        filename: filename, // Ideally this should be just the ID.gpx or similar to avoid collisions
+        name: displayName,
+        filename: filename,
         region,
         distance: parseFloat((totalDistance / 1000).toFixed(2)),
         ascent: Math.round(totalAscent),

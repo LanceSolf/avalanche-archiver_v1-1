@@ -137,21 +137,13 @@ async function analyzeRoute(filePath) {
     let maxSlope = 0;
     let totalSlopeDistance = 0; // Weighted slope calculation
 
-    // Aspect breakdown for slopes >20°
+    // Aspect breakdown for slopes >15°
     const aspectDistances = { N: 0, NE: 0, E: 0, SE: 0, S: 0, SW: 0, W: 0, NW: 0 };
-    let totalDistanceAbove20 = 0;
+    let totalDistanceAboveThreshold = 0;
 
-    // Find summit (highest point)
-    let summitIndex = 0;
-    for (let i = 0; i < trackPoints.length; i++) {
-        if (trackPoints[i].ele > trackPoints[summitIndex].ele) {
-            summitIndex = i;
-        }
-    }
-
-    // Aspect tracking for descent from summit on slopes >30°
+    // Aspect tracking for descent for slopes > 15°
     const descentAspectDistances = { N: 0, NE: 0, E: 0, SE: 0, S: 0, SW: 0, W: 0, NW: 0 };
-    let totalDescentDistanceAbove30 = 0;
+    let totalDescentDistanceAboveThreshold = 0;
 
     // Analyze each segment
     for (let i = 0; i < trackPoints.length - 1; i++) {
@@ -177,32 +169,31 @@ async function analyzeRoute(filePath) {
             aspect = (aspect + 180) % 360;
         }
 
-        // Track max slope (ignore extreme outliers > 60° usually GPS errors, but let's cap at 90 for now or stick to raw)
-        // Simple smoothing might be needed for real GPS data, but for now raw:
+        // Track max slope
         maxSlope = Math.max(maxSlope, slope);
         totalSlopeDistance += slope * distance;
 
-        // 1. General Aspect Breakdown (Slopes > 20°)
-        if (slope >= 20) {
+        // 1. General Aspect Breakdown (Slopes > 15°)
+        if (slope >= 15) {
             const aspectCategory = categorizeAspect(aspect);
             aspectDistances[aspectCategory] += distance;
-            totalDistanceAbove20 += distance;
+            totalDistanceAboveThreshold += distance;
         }
 
         // 2. Primary Aspect Calculation (Descent Only)
-        // We look at ALL descent segments > 20 degrees, not just after summit
-        if (elevChange < 0 && slope >= 20) {
+        // We look at ALL descent segments > 15 degrees
+        if (elevChange < 0 && slope >= 15) {
             const aspectCategory = categorizeAspect(aspect);
             descentAspectDistances[aspectCategory] += distance;
-            totalDescentDistanceAbove30 += distance; // Variable name legacy, now > 20
+            totalDescentDistanceAboveThreshold += distance;
         }
     }
 
     // Calculate aspect percentages
     const aspectBreakdown = {};
     for (const dir in aspectDistances) {
-        aspectBreakdown[dir] = totalDistanceAbove20 > 0
-            ? parseFloat((aspectDistances[dir] / totalDistanceAbove20 * 100).toFixed(1))
+        aspectBreakdown[dir] = totalDistanceAboveThreshold > 0
+            ? parseFloat((aspectDistances[dir] / totalDistanceAboveThreshold * 100).toFixed(1))
             : 0;
     }
 
@@ -219,7 +210,7 @@ async function analyzeRoute(filePath) {
         }
     }
 
-    // Fallback: If no significant descent found (>20°), try general breakdown
+    // Fallback: If no significant descent found (>15°), try general breakdown
     if (maxDescentDistance === 0) {
         let maxAspectDist = 0;
         for (const dir in aspectDistances) {
@@ -232,15 +223,20 @@ async function analyzeRoute(filePath) {
 
     // Determine region from route name or location
     let region = 'Allgäu Alps';
-    if (metadata.name.toLowerCase().includes('kleinwalsertal') || metadata.name.toLowerCase().includes('fellhorn')) {
+    // Use filename as the Name if possible (node script doesn't know "original filename" unless user renamed it on disk)
+    // path.basename(filePath) IS the filename on disk.
+    // The user wants filename to take priority over internal metadata.
+    const displayName = path.basename(filePath, '.gpx'); // use filename as display name
+
+    if (displayName.toLowerCase().includes('kleinwalsertal') || displayName.toLowerCase().includes('fellhorn')) {
         region = 'Allgäu Alps West';
-    } else if (metadata.name.toLowerCase().includes('oberstdorf') || metadata.name.toLowerCase().includes('nebelhorn')) {
+    } else if (displayName.toLowerCase().includes('oberstdorf') || displayName.toLowerCase().includes('nebelhorn')) {
         region = 'Allgäu Alps Central';
     }
 
     return {
         id: path.basename(filePath, '.gpx'),
-        name: metadata.name,
+        name: displayName, // Priority: Filename
         filename: path.basename(filePath),
         region,
         distance: parseFloat((totalDistance / 1000).toFixed(2)), // km

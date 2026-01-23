@@ -2,7 +2,7 @@
   "routes": [
     {
       "id": "fellhorn-ridge-traverse",
-      "name": "Fellhorn Ridge Traverse",
+      "name": "fellhorn-ridge-traverse",
       "filename": "fellhorn-ridge-traverse.gpx",
       "region": "Allgäu Alps West",
       "distance": 3.03,
@@ -26,7 +26,7 @@
     },
     {
       "id": "nebelhorn-summit-tour",
-      "name": "Nebelhorn Summit Tour",
+      "name": "nebelhorn-summit-tour",
       "filename": "nebelhorn-summit-tour.gpx",
       "region": "Allgäu Alps Central",
       "distance": 4.94,
