@@ -384,8 +384,18 @@ async function confirmDelete() {
     const route = allRoutes.find(r => r.id === deleteRouteId);
     if (!route) return;
 
+    // Detect Localhost
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    if (isLocalhost) {
+        // Localhost: Cannot delete files via browser. Prompt user.
+        alert(`LOCAL MODE: Cannot delete files automatically.\n\nTo remove "${deleteRouteName}":\n1. Go to your project folder.\n2. Delete "gpx/${route.filename}"\n3. Run "npm run build"`);
+        closeFinalWarning();
+        return;
+    }
+
     try {
-        // Try deletion via Worker
+        // Try deletion via Worker (Only in Production)
         const response = await fetch(`${WORKER_URL}/gpx/delete`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -396,7 +406,7 @@ async function confirmDelete() {
             // Success
             allRoutes = allRoutes.filter(r => r.id !== deleteRouteId);
             filteredRoutes = filteredRoutes.filter(r => r.id !== deleteRouteId);
-            alert(`Route "${deleteRouteName}" has been permanently removed.`);
+            alert(`Route "${deleteRouteName}" has been permanently removed from the Cloud.`);
             closeFinalWarning();
             renderTable();
         } else {
@@ -404,18 +414,106 @@ async function confirmDelete() {
         }
 
     } catch (error) {
-        console.warn('Worker delete failed, using local fallback message:', error);
-
-        // Manual fallback for static site
-        alert(`(Backend unavailable)\n\nTo permanently remove "${deleteRouteName}", you need to:\n1. Delete the GPX file: gpx/${route.filename}\n2. Re-run the analyzer: node tools/gpx-analyzer.js`);
-
+        console.warn('Worker delete failed:', error);
+        alert(`Error deleting from cloud. Please delete local file manually.`);
         closeFinalWarning();
     }
 }
 
 // GPX Upload Functions
-// Worker API Configuration
 const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.dev';
+
+// ... (helpers) ...
+
+async function processGPXFile() {
+    if (!uploadedGPXFile) return;
+
+    // Detect Localhost
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    const processBtn = document.getElementById('btn-process');
+    processBtn.disabled = true;
+    processBtn.textContent = 'Analysing...';
+
+    try {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const gpxText = event.target.result;
+            const parser = new DOMParser();
+            const gpxDoc = parser.parseFromString(gpxText, 'text/xml');
+            const metadata = analyzeGPXContent(gpxDoc, uploadedGPXFile.name);
+
+            if (!metadata) {
+                alert('Analysis failed.');
+                processBtn.disabled = false;
+                processBtn.textContent = 'Analyse & Add';
+                return;
+            }
+
+            metadata.filename = `${metadata.id}.gpx`; // Unique ID filename
+
+            if (isLocalhost) {
+                // LOCALHOST BEHAVIOR: Simulate & Download
+                console.log('Localhost upload simulation');
+
+                // 1. Update UI immediately
+                allRoutes.push(metadata);
+                filteredRoutes = [...allRoutes];
+                renderTable();
+
+                // 2. Download File
+                const blob = new Blob([gpxText], { type: 'application/gpx+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = metadata.filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                alert(`LOCAL MODE: Analysis Complete.\n\n1. File "${metadata.filename}" has been downloaded.\n2. MOVE IT to your local "gpx/" folder.\n3. Run "npm run build".`);
+
+                resetUploadUI();
+                return;
+            }
+
+            // PRODUCTION BEHAVIOR: Worker Upload
+            processBtn.textContent = 'Uploading...';
+            try {
+                const response = await fetch(`${WORKER_URL}/gpx/upload`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        gpxContent: gpxText,
+                        metadata: metadata
+                    })
+                });
+
+                if (response.ok) {
+                    alert(`Route "${metadata.name}" uploaded to Cloud!`);
+                    loadRoutes(); // Refresh list
+                    resetUploadUI();
+                } else {
+                    throw new Error('Worker returned error');
+                }
+            } catch (workerError) {
+                alert('Cloud upload failed. Please use local mode.');
+                resetUploadUI();
+            }
+        };
+
+        reader.readAsText(uploadedGPXFile);
+
+    } catch (error) {
+        console.error('Error processing GPX:', error);
+        alert('Failed to process GPX file.');
+        processBtn.disabled = false;
+        processBtn.textContent = 'Analyse & Add';
+    }
+}
+
+
 
 // GPX Analysis Helpers (Ported from gpx-analyzer.js)
 function haversineDistance(lat1, lon1, lat2, lon2) {
