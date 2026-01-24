@@ -270,22 +270,8 @@ async function downloadRoute(routeId) {
     if (!route) return;
 
     try {
-        const safeFilename = encodeURIComponent(route.filename);
-
-        // Strategy 1: Cloud via /gpx/ prefix
-        let response = await fetch(`${WORKER_URL}/gpx/${safeFilename}`);
-
-        // Strategy 2: Cloud root (fallback)
-        if (!response.ok) {
-            // console.warn('Cloud /gpx/ download failed, trying root...'); // Commented to reduce noise
-            response = await fetch(`${WORKER_URL}/${safeFilename}`);
-        }
-
-        // Strategy 3: Cloud /gpx/ No Extension (fallback)
-        if (!response.ok) {
-            const noExt = route.filename.replace(/\.gpx$/i, '');
-            response = await fetch(`${WORKER_URL}/gpx/${encodeURIComponent(noExt)}`);
-        }
+        // Use the correct API endpoint
+        const response = await fetch(`${WORKER_URL}/gpx/get?id=${routeId}`);
 
         if (!response.ok) throw new Error(`Download failed: ${response.status}`);
 

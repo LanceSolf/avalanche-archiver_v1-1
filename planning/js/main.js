@@ -551,22 +551,9 @@ const WORKER_URL = 'https://avalanche-archiver-uploads.bigdoggybollock.workers.d
 async function loadGPXFromFilename(filename, name) {
     try {
         updateGPXUI(name || filename, true); // Show loading state?
-        const safeFilename = encodeURIComponent(filename);
-
-        // Strategy 1: Cloud via /gpx/ prefix
-        let gpxResponse = await fetch(`${WORKER_URL}/gpx/${safeFilename}`);
-
-        // Strategy 2: Cloud root (fallback)
-        if (!gpxResponse.ok) {
-            console.warn('Cloud /gpx/ fetch failed, trying root...');
-            gpxResponse = await fetch(`${WORKER_URL}/${safeFilename}`);
-        }
-
-        // Strategy 3: Cloud /gpx/ No Extension (fallback)
-        if (!gpxResponse.ok) {
-            const noExt = filename.replace(/\.gpx$/i, '');
-            gpxResponse = await fetch(`${WORKER_URL}/gpx/${encodeURIComponent(noExt)}`);
-        }
+        // Strategy 1: Cloud via /gpx/get?id=...
+        const id = filename.replace(/\.gpx$/i, '');
+        let gpxResponse = await fetch(`${WORKER_URL}/gpx/get?id=${encodeURIComponent(id)}`);
 
         // Strategy 4: Local Fallback (if user has files)
         if (!gpxResponse.ok) {
@@ -606,20 +593,8 @@ async function loadGPXFromLibrary(routeId) {
             return;
         }
 
-        // Fetch the GPX file
-        const safeFilename = encodeURIComponent(route.filename);
-        let gpxResponse = await fetch(`${WORKER_URL}/gpx/${safeFilename}`);
-
-        if (!gpxResponse.ok) {
-            // Fallback 2: Root
-            gpxResponse = await fetch(`${WORKER_URL}/${safeFilename}`);
-        }
-
-        if (!gpxResponse.ok) {
-            // Fallback 3: No Ext
-            const noExt = route.filename.replace(/\.gpx$/i, '');
-            gpxResponse = await fetch(`${WORKER_URL}/gpx/${encodeURIComponent(noExt)}`);
-        }
+        // Fetch the GPX file using the correct API
+        let gpxResponse = await fetch(`${WORKER_URL}/gpx/get?id=${encodeURIComponent(routeId)}`);
 
         if (!gpxResponse.ok) {
             throw new Error(`Failed to fetch GPX file: ${gpxResponse.status} ${gpxResponse.statusText}`);
