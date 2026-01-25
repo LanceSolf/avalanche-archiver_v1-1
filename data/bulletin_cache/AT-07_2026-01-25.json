@@ -2,7 +2,7 @@
   "bulletins": [
     {
       "avalancheActivity": {
-        "comment": "From midday as the snowfall becomes more intense there will be an appreciable increase in the avalanche danger to level 3 (considerable). The fresh snow as well as the wind slabs that are forming during the snowfall will be deposited on a weakly bonded old snowpack in particular on west, north and east facing slopes above approximately 2000 m. Especially here avalanches can be triggered in the faceted old snow and reach medium size. Caution is to be exercised in particular in gullies and bowls, and behind abrupt changes in the terrain, as well as in places that are protected from the wind. The avalanche prone locations are barely recognisable. The number and size of avalanche prone locations will increase with altitude. Individual natural avalanches are not ruled out.",
+        "comment": "From midday as the snowfall becomes more intense there will be an increase in the avalanche danger to level 3 (considerable). The fresh snow as well as the wind slabs that are forming during the snowfall will be deposited on a weakly bonded old snowpack in particular on west, north and east facing slopes above approximately 2000 m. Especially here avalanches can be triggered in the faceted old snow and reach medium size. Caution is to be exercised in particular in gullies and bowls, and behind abrupt changes in the terrain, as well as in places that are protected from the wind. The avalanche prone locations are barely recognisable. The number and size of avalanche prone locations will increase with altitude. Individual natural avalanches are not ruled out.",
         "highlights": "Increase in avalanche danger as a consequence of the new snow."
       },
       "avalancheProblems": [
@@ -51,7 +51,7 @@
           "validTimePeriod": "later"
         }
       ],
-      "bulletinID": "41325845-5e15-4e87-b8e0-ed6850e65ac5",
+      "bulletinID": "41325845-5e15-4e87-b8e0-ed6850e65ac5_1",
       "customData": {
         "ALBINA": {
           "mainDate": "2026-01-25"
@@ -93,44 +93,8 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-24T17:57:33+00:00",
+      "publicationTime": "2026-01-25T07:00:00+00:00",
       "regions": [
-        {
-          "regionID": "AT-02-09",
-          "name": "Kreuzeck Group"
-        },
-        {
-          "regionID": "AT-02-01-02-01",
-          "name": "Goldberg Group South"
-        },
-        {
-          "regionID": "AT-02-01-02-02",
-          "name": "Sadnig Group"
-        },
-        {
-          "regionID": "AT-02-10",
-          "name": "Gailtal Alps West"
-        },
-        {
-          "regionID": "AT-02-02",
-          "name": "Schober Group East"
-        },
-        {
-          "regionID": "AT-02-03-01-02",
-          "name": "Reisseck Group"
-        },
-        {
-          "regionID": "AT-02-03-01-01",
-          "name": "Ankogel-Hochalm Group"
-        },
-        {
-          "regionID": "AT-02-03-02",
-          "name": "Hafner Group"
-        },
-        {
-          "regionID": "AT-02-01-01",
-          "name": "Glockner Group Pasterze"
-        },
         {
           "regionID": "AT-07-25",
           "name": "Las\u00f6rling Group"
@@ -158,14 +122,6 @@
         {
           "regionID": "AT-07-26-01",
           "name": "Glockner Group South"
-        },
-        {
-          "regionID": "IT-32-BZ-12",
-          "name": "Rieserferner Mountains"
-        },
-        {
-          "regionID": "IT-32-BZ-13",
-          "name": "Deferegger Alps West"
         }
       ],
       "snowpackStructure": {
@@ -244,7 +200,7 @@
           "validTimePeriod": "later"
         }
       ],
-      "bulletinID": "c0381e23-a6c4-4300-9c40-6d25e9c1e2ad",
+      "bulletinID": "6f588c4a-2e14-4acb-866d-9af9a27995a2",
       "customData": {
         "ALBINA": {
           "mainDate": "2026-01-25"
@@ -287,51 +243,59 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-24T17:57:33+00:00",
+      "publicationTime": "2026-01-25T07:00:00+00:00",
       "regions": [
-        {
-          "regionID": "AT-02-19",
-          "name": "Karawanks East"
-        },
-        {
-          "regionID": "AT-02-18",
-          "name": "Karawanks Central"
-        },
-        {
-          "regionID": "AT-02-14",
-          "name": "Carnic Alps Lesachtal"
-        },
-        {
-          "regionID": "AT-02-17",
-          "name": "Karawanks West"
-        },
-        {
-          "regionID": "AT-02-16",
-          "name": "Carnic Alps Oistnering"
-        },
-        {
-          "regionID": "AT-02-15-02",
-          "name": "Carnic Alps Nassfeld"
-        },
-        {
-          "regionID": "AT-02-15-01",
-          "name": "Carnic Alps Pl\u00f6ckenpass"
-        },
         {
           "regionID": "AT-07-29-01",
           "name": "Carnic Alps East Tirol"
         },
         {
-          "regionID": "IT-32-BZ-19",
-          "name": "Prags Dolomites"
+          "regionID": "IT-32-TN-09",
+          "name": "Latemar"
         },
         {
-          "regionID": "IT-32-BZ-18-02",
-          "name": "Gr\u00f6den Dolomites"
+          "regionID": "IT-32-TN-02",
+          "name": "Southern Adamello"
         },
         {
-          "regionID": "IT-32-BZ-20",
-          "name": "Sexten Dolomites"
+          "regionID": "IT-32-TN-13",
+          "name": "Primiero - Pale di S. Martino"
+        },
+        {
+          "regionID": "IT-32-TN-01",
+          "name": "Adamello - Presanella"
+        },
+        {
+          "regionID": "IT-32-TN-14",
+          "name": "Vallarsa"
+        },
+        {
+          "regionID": "IT-32-TN-06",
+          "name": "Folgaria - Lavarone"
+        },
+        {
+          "regionID": "IT-32-TN-16",
+          "name": "Fassa Valley"
+        },
+        {
+          "regionID": "IT-32-TN-19",
+          "name": "Sole, Pejo and Rabbi"
+        },
+        {
+          "regionID": "IT-32-TN-08",
+          "name": "Southern Lagorai"
+        },
+        {
+          "regionID": "IT-32-TN-07",
+          "name": "Northern Lagorai"
+        },
+        {
+          "regionID": "IT-32-TN-20",
+          "name": "Maddalene"
+        },
+        {
+          "regionID": "IT-32-TN-10",
+          "name": "Marzola - Valsugana"
         }
       ],
       "snowpackStructure": {
@@ -410,7 +374,7 @@
           "validTimePeriod": "later"
         }
       ],
-      "bulletinID": "388788e5-f686-4d4c-9409-e1be1ab8a934",
+      "bulletinID": "7e530bc2-ffa2-4fdd-bf1f-0b9e3ed9a246",
       "customData": {
         "ALBINA": {
           "mainDate": "2026-01-25"
@@ -452,7 +416,7 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-24T17:57:33+00:00",
+      "publicationTime": "2026-01-25T07:00:00+00:00",
       "regions": [
         {
           "regionID": "AT-07-23-02",
@@ -467,52 +431,28 @@
           "name": "Gurgler Group"
         },
         {
+          "regionID": "AT-07-22",
+          "name": "Stubai Alps Central"
+        },
+        {
           "regionID": "AT-07-24",
           "name": "Venediger Group South"
         },
         {
-          "regionID": "IT-32-BZ-10",
-          "name": "Pfunderer Mountains East"
+          "regionID": "AT-07-15",
+          "name": "Tuxer Alps West"
         },
         {
-          "regionID": "IT-32-BZ-11",
-          "name": "Durreck Range"
+          "regionID": "AT-07-14-04",
+          "name": "Kalkk\u00f6gel"
         },
         {
-          "regionID": "IT-32-BZ-05-03",
-          "name": "Upper Ahr Valley"
+          "regionID": "AT-07-14-05",
+          "name": "Serles Ridge"
         },
         {
-          "regionID": "IT-32-BZ-04-02",
-          "name": "Ratschings"
-        },
-        {
-          "regionID": "IT-32-BZ-05-02",
-          "name": "Zillertal Alps South"
-        },
-        {
-          "regionID": "IT-32-BZ-04-01",
-          "name": "Stubai Alps South"
-        },
-        {
-          "regionID": "IT-32-BZ-05-01",
-          "name": "Pfitsch"
-        },
-        {
-          "regionID": "IT-32-BZ-14",
-          "name": "Ortler Range"
-        },
-        {
-          "regionID": "IT-32-BZ-15",
-          "name": "Ulten Valley"
-        },
-        {
-          "regionID": "IT-32-BZ-07-01",
-          "name": "Upper Passeier Valley"
-        },
-        {
-          "regionID": "IT-32-BZ-07-02",
-          "name": "Texel Mountains"
+          "regionID": "AT-07-14-03",
+          "name": "Sellrain - Alpein Mountains"
         }
       ],
       "snowpackStructure": {
@@ -598,7 +538,7 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-24T17:57:33+00:00",
+      "publicationTime": "2026-01-25T07:00:00+00:00",
       "regions": [
         {
           "regionID": "AT-07-02-02",
@@ -621,20 +561,12 @@
           "name": "Kitzb\u00fchel Alps Brixental"
         },
         {
-          "regionID": "AT-07-22",
-          "name": "Stubai Alps Central"
-        },
-        {
           "regionID": "AT-07-01",
           "name": "Allg\u00e4u Alps East"
         },
         {
           "regionID": "AT-07-03",
           "name": "Mieming Mountains"
-        },
-        {
-          "regionID": "AT-07-15",
-          "name": "Tuxer Alps West"
         },
         {
           "regionID": "AT-07-16",
@@ -645,24 +577,12 @@
           "name": "Kitzb\u00fchel Alps Wildseeloder"
         },
         {
-          "regionID": "AT-07-14-04",
-          "name": "Kalkk\u00f6gel"
-        },
-        {
           "regionID": "AT-07-09",
           "name": "Grieskogel Mountains"
         },
         {
-          "regionID": "AT-07-14-05",
-          "name": "Serles Ridge"
-        },
-        {
           "regionID": "AT-07-14-02",
           "name": "K\u00fchtai - Geigen Ridge"
-        },
-        {
-          "regionID": "AT-07-14-03",
-          "name": "Sellrain - Alpein Mountains"
         },
         {
           "regionID": "AT-07-04-01",
@@ -768,7 +688,7 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-24T17:57:33+00:00",
+      "publicationTime": "2026-01-25T07:00:00+00:00",
       "regions": [
         {
           "regionID": "AT-07-14-01",
@@ -897,7 +817,7 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-24T17:57:33+00:00",
+      "publicationTime": "2026-01-25T07:00:00+00:00",
       "regions": [
         {
           "regionID": "AT-07-05",
