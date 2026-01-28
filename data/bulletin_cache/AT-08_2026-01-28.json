@@ -2,6 +2,139 @@
   "bulletins": [
     {
       "avalancheActivity": {
+        "comment": "Particularly in higher-altitude ridgeline and pass zones, as well as behind drops in the terrain, fresh snowdrift accumulations are extremely prone to triggering. One single winter sports enthusiast can trigger slab avalanches. Releases in the old snow are especially possible by large additional loading. If releases sweep away the entire snowpack, avalanches can grow to medium size. Danger zones occur particularly on steep shady slopes, but also in wind-loaded gullies and bowls in all aspects. Whumpf noises and fractures in the surface are alarm signals. Activities in backcountry demand careful evaluation of the terrain and the dangers.",
+        "highlights": "Beware: fresh, trigger-sensitive snowdrifts"
+      },
+      "avalancheProblems": [
+        {
+          "customData": {
+            "ALBINA": {
+              "avalancheType": "slab"
+            }
+          },
+          "problemType": "wind_slab",
+          "aspects": [
+            "NE",
+            "E",
+            "W",
+            "N",
+            "NW"
+          ],
+          "elevation": {
+            "lowerBound": "2000"
+          },
+          "validTimePeriod": "all_day"
+        },
+        {
+          "customData": {
+            "ALBINA": {
+              "avalancheType": "slab"
+            }
+          },
+          "problemType": "persistent_weak_layers",
+          "aspects": [
+            "NE",
+            "E",
+            "W",
+            "N",
+            "NW"
+          ],
+          "elevation": {
+            "lowerBound": "2000"
+          },
+          "validTimePeriod": "all_day"
+        },
+        {
+          "customData": {
+            "ALBINA": {
+              "avalancheType": "slab"
+            }
+          },
+          "problemType": "wind_slab",
+          "aspects": [
+            "NE",
+            "E",
+            "W",
+            "N",
+            "NW"
+          ],
+          "elevation": {
+            "upperBound": "2000"
+          },
+          "validTimePeriod": "all_day"
+        }
+      ],
+      "bulletinID": "77239414-a824-44ea-a428-c708ad3998e0",
+      "customData": {
+        "ALBINA": {
+          "mainDate": "2026-01-28"
+        },
+        "LWD_Tyrol": {
+          "dangerPatterns": []
+        }
+      },
+      "dangerRatings": [
+        {
+          "mainValue": "moderate",
+          "elevation": {
+            "upperBound": "2000"
+          },
+          "validTimePeriod": "all_day"
+        },
+        {
+          "mainValue": "considerable",
+          "elevation": {
+            "lowerBound": "2000"
+          },
+          "validTimePeriod": "all_day"
+        }
+      ],
+      "lang": "en",
+      "publicationTime": "2026-01-28T06:33:17+00:00",
+      "regions": [
+        {
+          "regionID": "AT-08-05-01",
+          "name": "R\u00e4tikon East"
+        },
+        {
+          "regionID": "AT-08-05-02",
+          "name": "R\u00e4tikon West"
+        },
+        {
+          "regionID": "AT-08-06",
+          "name": "Silvretta West"
+        }
+      ],
+      "snowpackStructure": {
+        "comment": "The latest bout of fresh snow was intermittently transported by strong-velocity winds. Particularly in ridgeline and pass zones, freshly generated small-to-medium sized snowdrift accumulations occur. Especially where they are desposited on top of surface hoar or loose old snowpack layers, the bonding is poor. Small naturally triggered releases and fractures observed by others confirm the snowpack\u2019s proneness to triggering. The old snowpack is overall unfavorably structured. Especially on steep shady slopes the weak intermediate layers and weak fundament have persisted."
+      },
+      "source": {
+        "provider": {
+          "name": "LWD Vorarlberg",
+          "website": "https://warnung.vorarlberg.at/vtgdb/dist/index.html#//lwd_lagebericht_en.html"
+        }
+      },
+      "tendency": [
+        {
+          "highlights": "Fresh snowfall and fresh snowdrifts will lead to slightly increased danger levels within the same Danger Level. The old snowpack continues to be weak.",
+          "tendencyType": "steady",
+          "validTime": {
+            "startTime": "2026-01-28T16:00:00+00:00",
+            "endTime": "2026-01-29T16:00:00+00:00"
+          }
+        }
+      ],
+      "unscheduled": true,
+      "validTime": {
+        "startTime": "2026-01-27T16:00:00+00:00",
+        "endTime": "2026-01-28T16:00:00+00:00"
+      },
+      "weatherForecast": {
+        "comment": "Southerly foehn winds will generated dispersed clouds and some sunshine. During the course of the day the air will become moist, the clouds dense. Late in the afternoon light snowfall is anticipated in most regions. Temperature at 2000m: dropping from +1 to -4 degrees; at 3000m: from -5 to -8 degrees. Initially brisk southerly winds at high altitudes, later slackening off to moderate velocity."
+      }
+    },
+    {
+      "avalancheActivity": {
         "comment": "Particularly in high-altitude ridgeline and pass areas, as well as behind drops in the terrain, fresh snowdrift accumulations are easy to trigger. It is possible to trigger slab avalanches in the old snow particularly by large additional loading.  If a release sweeps away the entire snowpack the avalanche can grow to medium size. Danger zones are located especially on steep shady slopes, but also in wind-loaded gullies and bowls in all aspects. Whumpf noises and fractures on the surface are alarm signals. Activities in outlying terrain away from secured ski runs require experience in evaluating the terrain and assessment of avalanche dangers.",
         "highlights": "Main danger: weak old snowpack layers. Fresh snowdrifts require caution."
       },
@@ -90,20 +223,8 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-27T16:00:00+00:00",
+      "publicationTime": "2026-01-28T06:33:17+00:00",
       "regions": [
-        {
-          "regionID": "AT-08-05-01",
-          "name": "R\u00e4tikon East"
-        },
-        {
-          "regionID": "AT-08-05-02",
-          "name": "R\u00e4tikon West"
-        },
-        {
-          "regionID": "AT-08-06",
-          "name": "Silvretta West"
-        },
         {
           "regionID": "AT-08-03-02",
           "name": "Lechquellen Mountains"
@@ -136,7 +257,7 @@
           }
         }
       ],
-      "unscheduled": false,
+      "unscheduled": true,
       "validTime": {
         "startTime": "2026-01-27T16:00:00+00:00",
         "endTime": "2026-01-28T16:00:00+00:00"
@@ -196,7 +317,7 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-27T16:00:00+00:00",
+      "publicationTime": "2026-01-28T06:33:17+00:00",
       "regions": [
         {
           "regionID": "AT-08-01",
@@ -226,13 +347,13 @@
           }
         }
       ],
-      "unscheduled": false,
+      "unscheduled": true,
       "validTime": {
         "startTime": "2026-01-27T16:00:00+00:00",
         "endTime": "2026-01-28T16:00:00+00:00"
       },
       "weatherForecast": {
-        "comment": "On Wednesday, southerly foehn winds will generate a dispersed cloud cover and some sunshine. In the course of the day, air masses will become moister, clouds denser. In late afternoon, light snowfall is expected in many places. At 2000m: from +1 to -4 degrees; at 3000m: from -5 to -8 degrees. Initially brisk southerly winds at high altitudes, later slackening off to moderate velocity."
+        "comment": "On Wednesday, southerly foehn winds will generate dispersed clouds and some sunshine. During the course of the day, air masses will become moist, clouds dense. In late afternoon, light snowfall is expected in many places. At 2000m: dropping from +1 to -4 degrees; at 3000m: from -5 to -8 degrees. Initially brisk southerly winds at high altitudes, later slackening off to moderate velocity."
       }
     },
     {
@@ -256,7 +377,7 @@
         }
       ],
       "lang": "en",
-      "publicationTime": "2026-01-27T16:00:00+00:00",
+      "publicationTime": "2026-01-28T06:33:17+00:00",
       "regions": [
         {
           "regionID": "AT-08-07",
@@ -282,7 +403,63 @@
           }
         }
       ],
-      "unscheduled": false,
+      "unscheduled": true,
+      "validTime": {
+        "startTime": "2026-01-27T16:00:00+00:00",
+        "endTime": "2026-01-28T16:00:00+00:00"
+      },
+      "weatherForecast": {
+        "comment": "On Wednesday, southerly foehn winds will generate dispersed clouds and some sunshine. During the course of the day, air masses will become moist, clouds dense. In late afternoon, light snowfall is expected in many places. At 2000m: dropping from +1 to -4 degrees; at 3000m: from -5 to -8 degrees. Initially brisk southerly winds at high altitudes, later slackening off to moderate velocity."
+      }
+    },
+    {
+      "avalancheActivity": {
+        "comment": "Avalanche danger is low. Isolated avalanche releases are possible in extremely steep terrain, but the avalanches are small-sized. Apart from the risks of being buried in snow masses, the danger of being swept along and forced to take a fall also require caution.",
+        "highlights": "Little snow on the ground, low avalanche danger"
+      },
+      "bulletinID": "12d5c60d-e5df-48f5-85db-613925429589_1",
+      "customData": {
+        "ALBINA": {
+          "mainDate": "2026-01-28"
+        },
+        "LWD_Tyrol": {
+          "dangerPatterns": []
+        }
+      },
+      "dangerRatings": [
+        {
+          "mainValue": "low",
+          "validTimePeriod": "all_day"
+        }
+      ],
+      "lang": "en",
+      "publicationTime": "2026-01-28T06:33:17+00:00",
+      "regions": [
+        {
+          "regionID": "AT-08-07",
+          "name": "Pre Alps"
+        }
+      ],
+      "snowpackStructure": {
+        "comment": "There is little snow on the ground. Particularly on steep, shaday slopes, weak intermediate layers often occur inside the old snowpack. South-facing slopes continue to become bare of snow."
+      },
+      "source": {
+        "provider": {
+          "name": "LWD Vorarlberg",
+          "website": "https://warnung.vorarlberg.at/vtgdb/dist/index.html#//lwd_lagebericht_en.html"
+        }
+      },
+      "tendency": [
+        {
+          "highlights": "Avalanche danger could increase slightly on Thursday due to fresh snow and winds.",
+          "tendencyType": "increasing",
+          "validTime": {
+            "startTime": "2026-01-28T16:00:00+00:00",
+            "endTime": "2026-01-29T16:00:00+00:00"
+          }
+        }
+      ],
+      "unscheduled": true,
       "validTime": {
         "startTime": "2026-01-27T16:00:00+00:00",
         "endTime": "2026-01-28T16:00:00+00:00"
@@ -294,7 +471,7 @@
   ],
   "customData": {
     "ALBINA": {
-      "generalHeadline": "Avalanche danger generally moderate. Caution: fresh drifts at high altitudes."
+      "generalHeadline": "Avalanche danger considerable regionally. Caution: fresh drifts at high altitudes."
     }
   }
 }
